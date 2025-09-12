@@ -26,12 +26,12 @@ export default function HotelVistaSidebar() {
       href: "/",
       label: "Dashboard",
       icon: Home,
-      isActive: true, // Since it's a single page app for now
     },
     {
-      href: "#",
+      href: "/room-management",
       label: "Room Management",
       icon: BedDouble,
+      isActive: true, // Since it's a single page app for now
     },
     {
       href: "#",
