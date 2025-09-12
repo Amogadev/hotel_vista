@@ -5,7 +5,7 @@ import { SidebarInset } from '@/components/ui/sidebar';
 
 export default function HotelVistaPage() {
   return (
-    <SidebarProvider defaultOpen={false}>
+    <SidebarProvider defaultOpen={true}>
       <Sidebar />
       <SidebarInset>
         <Dashboard />
