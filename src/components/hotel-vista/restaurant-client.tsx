@@ -24,12 +24,12 @@ const stats = [
   {
     title: "Today's Orders",
     value: '47',
-    icon: <UtensilsCrossed className="h-6 w-6 text-muted-foreground" />,
+    icon: <UtensilsCrossed className="h-6 w-6 text-blue-500" />,
   },
   {
     title: 'Revenue',
     value: '$2,340',
-    icon: <DollarSign className="h-6 w-6 text-muted-foreground" />,
+    icon: <DollarSign className="h-6 w-6 text-green-500" />,
   },
   {
     title: 'Active Orders',
