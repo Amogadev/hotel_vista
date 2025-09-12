@@ -171,7 +171,6 @@ export default function Dashboard() {
                     </div>
                     <div className="flex-1">
                       <p className="font-medium">{item.description}</p>
-                      <p className="text-sm text-muted-foreground">{item.time}</p>
                     </div>
                   </div>
                 ))}
