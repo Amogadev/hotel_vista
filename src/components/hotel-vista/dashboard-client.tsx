@@ -91,7 +91,7 @@ export default function Dashboard() {
       value: "203",
       trend: "+8.2% from last month",
       trendColor: "text-orange-600",
-      icon: <Users className="h-5 w-5" />,
+      icon: <Users className="h-5 w-5 text-orange-500" />,
       isAnomalous: analysis?.isAnomalousGuestTrend,
     },
     {
