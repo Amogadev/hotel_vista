@@ -124,8 +124,8 @@ const statusVariantMap: { [key: string]: 'default' | 'destructive' } = {
 };
 
 const statusColorMap: { [key: string]: string } = {
-    good: 'bg-green-200 text-green-900 border-green-300',
-    low: 'bg-red-200 text-red-900 border-red-300',
+    good: 'bg-green-400 text-green-950 border-green-500',
+    low: 'bg-red-400 text-red-950 border-red-500',
 };
 
 

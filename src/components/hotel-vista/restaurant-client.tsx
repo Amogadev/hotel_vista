@@ -107,9 +107,9 @@ const orderStatusVariantMap: { [key: string]: 'default' | 'secondary' | 'destruc
 };
 
 const orderStatusColorMap: { [key: string]: string } = {
-    preparing: 'bg-blue-200 text-blue-900 border-blue-300',
-    pending: 'bg-yellow-300 text-yellow-900 border-yellow-400',
-    ready: 'bg-green-200 text-green-900 border-green-300',
+    preparing: 'bg-blue-400 text-blue-950 border-blue-500',
+    pending: 'bg-yellow-400 text-yellow-950 border-yellow-500',
+    ready: 'bg-green-400 text-green-950 border-green-500',
 };
 
 
@@ -119,8 +119,8 @@ const menuStatusVariantMap: { [key: string]: 'default' | 'destructive' } = {
   };
   
 const menuStatusColorMap: { [key: string]: string } = {
-    Available: 'bg-green-200 text-green-900 border-green-300',
-    'Out of Stock': 'bg-red-200 text-red-900 border-red-300',
+    Available: 'bg-green-400 text-green-950 border-green-500',
+    'Out of Stock': 'bg-red-400 text-red-950 border-red-500',
 };
 
 

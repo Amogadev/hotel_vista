@@ -109,9 +109,9 @@ const statusVariantMap: { [key: string]: 'destructive' | 'default' | 'outline' }
 };
 
 const statusColorMap: { [key: string]: string } = {
-  critical: 'bg-red-200 text-red-900 border-red-300',
-  low: 'bg-yellow-300 text-yellow-900 border-yellow-400',
-  normal: 'bg-blue-200 text-blue-900 border-blue-300',
+  critical: 'bg-red-400 text-red-950 border-red-500',
+  low: 'bg-yellow-400 text-yellow-950 border-yellow-500',
+  normal: 'bg-blue-400 text-blue-950 border-blue-500',
 };
 
 const progressColorMap: { [key: string]: string } = {
