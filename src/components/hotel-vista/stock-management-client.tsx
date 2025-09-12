@@ -60,21 +60,64 @@ const stockItems = [
     supplier: 'Clean Supply Inc.',
     status: 'low',
   },
+  {
+    name: 'Bed Sheets',
+    category: 'Linens',
+    current: 8,
+    min: 20,
+    max: 80,
+    unit: 'sets',
+    supplier: 'Hotel Supplies Co.',
+    status: 'critical',
+  },
+  {
+    name: 'Hand Soap',
+    category: 'Bathroom',
+    current: 35,
+    min: 15,
+    max: 60,
+    unit: 'bottles',
+    supplier: 'Clean Supply Inc.',
+    status: 'normal',
+  },
+  {
+    name: 'Coffee Pods',
+    category: 'Room Service',
+    current: 120,
+    min: 50,
+    max: 300,
+    unit: 'pods',
+    supplier: 'Beverage Direct',
+    status: 'normal',
+  },
+  {
+    name: 'Vacuum Bags',
+    category: 'Cleaning',
+    current: 5,
+    min: 10,
+    max: 50,
+    unit: 'pieces',
+    supplier: 'Clean Supply Inc.',
+    status: 'critical',
+  },
 ];
 
-const statusVariantMap: { [key: string]: 'destructive' | 'default' } = {
+const statusVariantMap: { [key: string]: 'destructive' | 'default' | 'outline' } = {
   critical: 'destructive',
   low: 'default',
+  normal: 'outline',
 };
 
 const statusColorMap: { [key: string]: string } = {
   critical: 'bg-red-100 text-red-800 border-red-200',
   low: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  normal: 'bg-blue-100 text-primary border-blue-200',
 };
 
 const progressColorMap: { [key: string]: string } = {
     critical: 'bg-red-500',
     low: 'bg-yellow-500',
+    normal: 'bg-primary'
   };
 
 export default function StockManagementDashboard() {
@@ -138,6 +181,7 @@ export default function StockManagementDashboard() {
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
         {stockItems.map((item) => {
             const stockPercentage = (item.current / item.max) * 100;
+            const progressClass = progressColorMap[item.status] || 'bg-primary';
             return (
                 <Card key={item.name}>
                     <CardHeader>
@@ -171,7 +215,7 @@ export default function StockManagementDashboard() {
                                 <span>Stock Level</span>
                                 <span>{stockPercentage.toFixed(0)}%</span>
                             </div>
-                            <Progress value={stockPercentage} className="h-2" />
+                            <Progress value={stockPercentage} className="h-2 [&>div]:bg-primary" />
                         </div>
                         <div className="flex items-center justify-between pt-2">
                             <div>
