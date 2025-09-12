@@ -24,7 +24,7 @@ const stats = [
   {
     title: 'Total Rooms',
     value: '120',
-    icon: <Bed className="h-6 w-6 text-muted-foreground" />,
+    icon: <Bed className="h-6 w-6 text-blue-500" />,
   },
   {
     title: 'Occupied',
