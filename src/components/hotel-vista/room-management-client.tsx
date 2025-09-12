@@ -97,10 +97,10 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
   };
   
   const statusColorMap: { [key: string]: string } = {
-    Occupied: 'bg-green-100 text-green-800 border-green-200',
-    Available: 'bg-blue-100 text-primary border-blue-200',
+    Occupied: 'bg-green-200 text-green-900 border-green-300',
+    Available: 'bg-blue-200 text-blue-900 border-blue-300',
     Cleaning: 'bg-yellow-300 text-yellow-900 border-yellow-400',
-    Maintenance: 'bg-red-100 text-destructive border-red-200',
+    Maintenance: 'bg-red-200 text-red-900 border-red-300',
   };
 
 function RoomCard({ room }: { room: (typeof rooms)[0] }) {
