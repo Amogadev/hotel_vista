@@ -29,7 +29,7 @@ const stats = [
   {
     title: 'Occupied',
     value: '85',
-    icon: <Users className="h-6 w-6 text-muted-foreground" />,
+    icon: <Users className="h-6 w-6 text-green-500" />,
   },
   {
     title: 'Available',
