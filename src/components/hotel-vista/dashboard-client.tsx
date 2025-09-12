@@ -83,7 +83,7 @@ export default function Dashboard() {
       value: "85 / 120",
       trend: "+6.3% from last month",
       trendColor: "text-blue-600",
-      icon: <BedDouble className="h-5 w-5" />,
+      icon: <BedDouble className="h-5 w-5 text-blue-500" />,
       isAnomalous: analysis?.isAnomalousOccupancyTrend,
     },
     {
