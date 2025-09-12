@@ -66,6 +66,27 @@ const inventoryItems = [
     price: 6,
     status: 'good',
   },
+  {
+    name: 'Red Wine',
+    type: 'Wine',
+    stock: 16,
+    price: 25,
+    status: 'good',
+  },
+  {
+    name: 'Gin Tonic',
+    type: 'Gin',
+    stock: 5,
+    price: 10,
+    status: 'low',
+  },
+  {
+    name: 'Champagne',
+    type: 'Champagne',
+    stock: 12,
+    price: 40,
+    status: 'good',
+  },
 ];
 
 const recentSales = [
