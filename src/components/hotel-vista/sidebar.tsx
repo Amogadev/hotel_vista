@@ -18,6 +18,7 @@ import {
   Box,
   Settings,
   Hotel,
+  LogOut,
 } from "lucide-react";
 
 export default function HotelVistaSidebar() {
@@ -66,7 +67,7 @@ export default function HotelVistaSidebar() {
             <SidebarMenuItem key={item.label}>
               <SidebarMenuButton
                 asChild
-                isActive={item.isActive}
+                isActive={item.href === "/" ? true : false}
                 tooltip={{ children: item.label }}
               >
                 <a href={item.href}>
@@ -85,6 +86,14 @@ export default function HotelVistaSidebar() {
               <a href="#">
                 <Settings />
                 <span>Settings</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip={{ children: "Log out" }}>
+              <a href="#">
+                <LogOut />
+                <span>Log out</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
