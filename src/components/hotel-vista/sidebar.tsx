@@ -20,8 +20,10 @@ import {
   Hotel,
   LogOut,
 } from "lucide-react";
+import { usePathname } from 'next/navigation';
 
 export default function HotelVistaSidebar() {
+  const pathname = usePathname();
   const menuItems = [
     {
       href: "/",
@@ -37,10 +39,9 @@ export default function HotelVistaSidebar() {
       href: "/restaurant",
       label: "Restaurant",
       icon: UtensilsCrossed,
-      isActive: true, 
     },
     {
-      href: "#",
+      href: "/bar-liquor",
       label: "Bar & Liquor",
       icon: Wine,
     },
@@ -67,7 +68,7 @@ export default function HotelVistaSidebar() {
             <SidebarMenuItem key={item.label}>
               <SidebarMenuButton
                 asChild
-                isActive={item.href === "/" ? true : false}
+                isActive={pathname === item.href}
                 tooltip={{ children: item.label }}
               >
                 <a href={item.href}>
