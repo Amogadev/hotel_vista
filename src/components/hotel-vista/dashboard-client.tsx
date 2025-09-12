@@ -75,7 +75,7 @@ export default function Dashboard() {
       value: "$45,231",
       trend: "+12.5% from last month",
       trendColor: "text-green-600",
-      icon: <DollarSign className="h-5 w-5" />,
+      icon: <DollarSign className="h-5 w-5 text-green-500" />,
       isAnomalous: analysis?.isAnomalousRevenueTrend,
     },
     {
