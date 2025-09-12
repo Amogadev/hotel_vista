@@ -99,7 +99,7 @@ export default function Dashboard() {
       value: "47",
       trend: "+15.3% from last month",
       trendColor: "text-yellow-600",
-      icon: <UtensilsCrossed className="h-5 w-5" />,
+      icon: <UtensilsCrossed className="h-5 w-5 text-yellow-500" />,
       isAnomalous: analysis?.isAnomalousRestaurantOrderTrend,
     },
   ];
