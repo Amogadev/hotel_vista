@@ -99,7 +99,7 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
   const statusColorMap: { [key: string]: string } = {
     Occupied: 'bg-green-100 text-green-800 border-green-200',
     Available: 'bg-blue-100 text-primary border-blue-200',
-    Cleaning: 'bg-yellow-200 text-yellow-900 border-yellow-300',
+    Cleaning: 'bg-yellow-300 text-yellow-900 border-yellow-400',
     Maintenance: 'bg-red-100 text-destructive border-red-200',
   };
 
