@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -34,12 +35,12 @@ const stats = [
   {
     title: 'Available',
     value: '28',
-    icon: <CalendarDays className="h-6 w-6 text-muted-foreground" />,
+    icon: <CalendarDays className="h-6 w-6 text-blue-500" />,
   },
   {
     title: 'Revenue Today',
     value: '$12,750',
-    icon: <DollarSign className="h-6 w-6 text-muted-foreground" />,
+    icon: <DollarSign className="h-6 w-6 text-yellow-500" />,
   },
 ];
 
