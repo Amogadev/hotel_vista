@@ -34,12 +34,12 @@ const stats = [
   {
     title: 'Active Orders',
     value: '12',
-    icon: <Clock className="h-6 w-6 text-muted-foreground" />,
+    icon: <Clock className="h-6 w-6 text-yellow-500" />,
   },
   {
     title: 'Avg. Order Value',
     value: '$49.79',
-    icon: <DollarSign className="h-6 w-6 text-muted-foreground" />,
+    icon: <DollarSign className="h-6 w-6 text-yellow-500" />,
   },
 ];
 
