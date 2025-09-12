@@ -33,22 +33,18 @@ const activityItems = [
   {
     icon: <BedDouble className="h-5 w-5" />,
     description: "Room 204 checked in",
-    time: "2 minutes ago",
   },
   {
     icon: <UtensilsCrossed className="h-5 w-5" />,
     description: "Restaurant order #1247",
-    time: "5 minutes ago",
   },
   {
     icon: <Wine className="h-5 w-5" />,
     description: "Bar sale – Premium Whiskey",
-    time: "8 minutes ago",
   },
   {
     icon: <Box className="h-5 w-5" />,
     description: "Stock alert: Low towels",
-    time: "12 minutes ago",
   },
 ];
 
@@ -115,33 +111,6 @@ export default function Dashboard() {
         <h1 className="font-headline text-2xl font-bold tracking-tight md:text-3xl">
           Dashboard
         </h1>
-        <div className="ml-auto flex items-center gap-4">
-          <Button onClick={handleAnalyzeTrends} disabled={isPending}>
-            {isPending ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              <Sparkles />
-            )}
-            <span>Analyze Trends</span>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
       </header>
 
       <main className="flex flex-1 flex-col gap-4 md:gap-8">
