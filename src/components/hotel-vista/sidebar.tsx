@@ -46,7 +46,7 @@ export default function HotelVistaSidebar() {
       icon: Wine,
     },
     {
-      href: "#",
+      href: "/stock-management",
       label: "Stock Management",
       icon: Box,
     },
