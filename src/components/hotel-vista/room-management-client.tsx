@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, 'useState, useTransition, useMemo } from 'react';
+import React, { useState, useTransition, useMemo } from 'react';
 import {
   Bed,
   Users,
