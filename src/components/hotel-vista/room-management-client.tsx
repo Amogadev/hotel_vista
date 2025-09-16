@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/card';
 import { SidebarTrigger } from '../ui/sidebar';
 import { RoomDetailsModal } from './room-details-modal';
+import { AddRoomModal } from './add-room-modal';
 
 type Room = {
     number: string;
@@ -57,7 +58,7 @@ const stats = [
   },
 ];
 
-const rooms: Room[] = [
+const initialRooms: Room[] = [
   {
     number: '101',
     type: 'Standard Single',
@@ -155,17 +156,38 @@ function RoomCard({ room, onSelectRoom }: { room: Room, onSelectRoom: (room: Roo
 }
 
 export default function RoomManagementDashboard() {
+  const [rooms, setRooms] = useState<Room[]>(initialRooms);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const handleSelectRoom = (room: Room) => {
     setSelectedRoom(room);
-    setIsModalOpen(true);
+    setIsDetailsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleCloseDetailsModal = () => {
+    setIsDetailsModalOpen(false);
     setSelectedRoom(null);
+  };
+
+  const handleOpenAddModal = () => {
+    setIsAddModalOpen(true);
+  };
+
+  const handleCloseAddModal = () => {
+    setIsAddModalOpen(false);
+  };
+
+  const handleRoomAdded = (newRoomData: { number: string; type: string; price: number; status: string; }) => {
+    const newRoom: Room = {
+      number: newRoomData.number,
+      type: newRoomData.type,
+      status: newRoomData.status,
+      rate: `$${newRoomData.price}/night`,
+    };
+    setRooms(prevRooms => [...prevRooms, newRoom]);
+    handleCloseAddModal();
   };
 
   return (
@@ -182,7 +204,7 @@ export default function RoomManagementDashboard() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
-          <Button>
+          <Button onClick={handleOpenAddModal}>
             <Plus className="mr-2 h-4 w-4" />
             Add Room
           </Button>
@@ -209,10 +231,15 @@ export default function RoomManagementDashboard() {
       {selectedRoom && (
         <RoomDetailsModal
           room={selectedRoom}
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
+          isOpen={isDetailsModalOpen}
+          onClose={handleCloseDetailsModal}
         />
       )}
+      <AddRoomModal
+        isOpen={isAddModalOpen}
+        onClose={handleCloseAddModal}
+        onRoomAdded={handleRoomAdded}
+      />
     </div>
   );
 }

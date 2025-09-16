@@ -1,3 +1,4 @@
+
 "use server";
 
 import {
@@ -20,4 +21,16 @@ export async function getTrendAnalysis(): Promise<AnalyzeDashboardTrendsOutput> 
 
   const result = await analyzeDashboardTrends(input);
   return result;
+}
+
+export async function addRoom(newRoom: {
+  number: string,
+  type: string,
+  price: number,
+  status: string
+}) {
+  console.log("Adding new room:", newRoom);
+  // This is a mock implementation. In a real app, you'd save to a database.
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  return { success: true, room: newRoom };
 }

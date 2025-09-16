@@ -60,7 +60,7 @@ export function RoomDetailsModal({ room, isOpen, onClose }: RoomDetailsModalProp
             Detailed information for the selected room.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-6 py-4">
+        <div className="grid gap-4 py-4">
             <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className='flex items-center gap-2'>
                     <Info className="h-5 w-5 text-muted-foreground" />
