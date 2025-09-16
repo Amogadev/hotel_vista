@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   AlertTriangle,
   TrendingDown,
@@ -22,26 +22,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { StockReport, type StockItem } from './stock-report';
+import { useToast } from '@/hooks/use-toast';
 
-const stats = [
-  {
-    title: 'Critical Stock',
-    value: '3',
-    icon: <AlertTriangle className="h-6 w-6 text-red-500" />,
-  },
-  {
-    title: 'Low Stock',
-    value: '1',
-    icon: <TrendingDown className="h-6 w-6 text-yellow-500" />,
-  },
-  {
-    title: 'Total Items',
-    value: '6',
-    icon: <Box className="h-6 w-6 text-blue-500" />,
-  },
-];
-
-const stockItems: StockItem[] = [
+const initialStockItems: StockItem[] = [
   {
     name: 'Bath Towels',
     category: 'Linens',
@@ -122,40 +105,38 @@ const progressColorMap: { [key: string]: string } = {
     normal: 'bg-primary'
   };
 
+const categories = ['All', 'Linens', 'Bathroom', 'Room Service', 'Cleaning'];
+
 export default function StockManagementDashboard() {
+  const { toast } = useToast();
+  const [activeFilter, setActiveFilter] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handlePrintReport = () => {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
-      const reportHtml = `
-        <html>
-          <head>
-            <title>Stock Report</title>
-            <script src="https://cdn.tailwindcss.com"></script>
-            <style>
-              @media print {
-                body {
-                  margin: 1.5rem;
-                }
-                .no-print {
-                  display: none;
-                }
-              }
-            </style>
-          </head>
-          <body>
-            <div id="report-root"></div>
-          </body>
-        </html>
-      `;
-      printWindow.document.write(reportHtml);
+      printWindow.document.write('<html><head><title>Stock Report</title></head><body><div id="report-root"></div></body></html>');
       printWindow.document.close();
       
       const reportRoot = printWindow.document.getElementById('report-root');
       if (reportRoot) {
         import('react-dom/client').then(ReactDOM => {
-            const root = ReactDOM.createRoot(reportRoot);
-            root.render(<StockReport items={stockItems} />);
+          const root = ReactDOM.createRoot(reportRoot);
+          // We need to inject Tailwind CSS for styling in the new window
+          const style = document.createElement('style');
+          style.innerHTML = `
+            @import url('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css');
+            @media print {
+              body {
+                margin: 1.5rem;
+              }
+              .no-print {
+                display: none;
+              }
+            }
+          `;
+          printWindow.document.head.appendChild(style);
+          root.render(<StockReport items={initialStockItems} />);
         });
       }
 
@@ -165,6 +146,52 @@ export default function StockManagementDashboard() {
       }, 500);
     }
   };
+
+  const handleAddItem = () => {
+    toast({ title: "Add Item", description: "This feature is not yet implemented." });
+  };
+
+  const handleUpdateItem = (itemName: string) => {
+    toast({ title: "Update Item", description: `Update functionality for ${itemName} is not yet implemented.` });
+  };
+
+  const handleReorderItem = (itemName: string) => {
+    toast({ title: "Reorder Placed", description: `A reorder request for ${itemName} has been placed.` });
+  };
+
+  const filteredStockItems = useMemo(() => {
+    let items = initialStockItems;
+
+    if (activeFilter !== 'All') {
+      items = items.filter(item => item.category === activeFilter);
+    }
+
+    if (searchTerm) {
+      items = items.filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    }
+
+    return items;
+  }, [activeFilter, searchTerm]);
+
+  const stats = useMemo(() => {
+    return [
+      {
+        title: 'Critical Stock',
+        value: initialStockItems.filter(i => i.status === 'critical').length.toString(),
+        icon: <AlertTriangle className="h-6 w-6 text-red-500" />,
+      },
+      {
+        title: 'Low Stock',
+        value: initialStockItems.filter(i => i.status === 'low').length.toString(),
+        icon: <TrendingDown className="h-6 w-6 text-yellow-500" />,
+      },
+      {
+        title: 'Total Items',
+        value: initialStockItems.length.toString(),
+        icon: <Box className="h-6 w-6 text-blue-500" />,
+      },
+    ];
+  }, [initialStockItems]);
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
@@ -180,7 +207,7 @@ export default function StockManagementDashboard() {
             <Box className="mr-2 h-4 w-4" />
             Stock Report
           </Button>
-          <Button>
+          <Button onClick={handleAddItem}>
             <Plus className="mr-2 h-4 w-4" />
             Add Item
           </Button>
@@ -206,14 +233,23 @@ export default function StockManagementDashboard() {
           <div className="flex flex-wrap items-center gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search stock items..." className="pl-10 w-full md:w-auto" />
+              <Input 
+                placeholder="Search stock items..." 
+                className="pl-10 w-full md:w-auto"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button variant="default">All</Button>
-              <Button variant="outline">Linens</Button>
-              <Button variant="outline">Bathroom</Button>
-              <Button variant="outline">Room Service</Button>
-              <Button variant="outline">Cleaning</Button>
+              {categories.map(category => (
+                <Button 
+                  key={category} 
+                  variant={activeFilter === category ? 'default' : 'outline'}
+                  onClick={() => setActiveFilter(category)}
+                >
+                  {category}
+                </Button>
+              ))}
               <Button variant="outline">
                 <Filter className="mr-2 h-4 w-4" />
                 Filters
@@ -224,9 +260,8 @@ export default function StockManagementDashboard() {
       </Card>
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-        {stockItems.map((item) => {
+        {filteredStockItems.map((item) => {
             const stockPercentage = (item.current / item.max) * 100;
-            const progressClass = progressColorMap[item.status] || 'bg-primary';
             return (
                 <Card key={item.name}>
                     <CardHeader>
@@ -268,8 +303,8 @@ export default function StockManagementDashboard() {
                                 <p className="font-semibold">{item.supplier}</p>
                             </div>
                             <div className="flex gap-2">
-                                <Button variant="outline">Update</Button>
-                                <Button variant="secondary">Reorder</Button>
+                                <Button variant="outline" onClick={() => handleUpdateItem(item.name)}>Update</Button>
+                                <Button variant="secondary" onClick={() => handleReorderItem(item.name)}>Reorder</Button>
                             </div>
                         </div>
                     </CardContent>
