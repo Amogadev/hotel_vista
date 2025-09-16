@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/card';
 import { AddMenuItemModal, MenuItemFormValues } from './add-menu-item-modal';
 import { EditMenuItemModal, EditMenuItemFormValues } from './edit-menu-item-modal';
+import { NewOrderModal, OrderFormValues } from './new-order-modal';
 
 const stats = [
   {
@@ -47,7 +48,7 @@ const stats = [
   },
 ];
 
-const activeOrders = [
+const initialActiveOrders = [
   {
     id: 'ORD001',
     status: 'preparing',
@@ -111,6 +112,8 @@ type MenuItem = {
     status: string;
 };
 
+type ActiveOrder = (typeof initialActiveOrders)[0];
+
 const orderStatusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
     preparing: 'default',
     pending: 'secondary',
@@ -135,7 +138,7 @@ const menuStatusColorMap: { [key: string]: string } = {
 };
 
 
-function OrderCard({ order }: { order: (typeof activeOrders)[0] }) {
+function OrderCard({ order }: { order: ActiveOrder }) {
     const variant = orderStatusVariantMap[order.status] || 'default';
     const colorClass = orderStatusColorMap[order.status] || '';
   
@@ -191,8 +194,10 @@ function MenuItemCard({ item, onEditItem }: { item: MenuItem, onEditItem: (item:
 
 export default function RestaurantManagementDashboard() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
+  const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>(initialActiveOrders);
   const [isAddMenuItemModalOpen, setIsAddMenuItemModalOpen] = useState(false);
   const [isEditMenuItemModalOpen, setIsEditMenuItemModalOpen] = useState(false);
+  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | null>(null);
 
   const handleOpenAddMenuItemModal = () => {
@@ -237,6 +242,28 @@ export default function RestaurantManagementDashboard() {
     handleCloseEditMenuItemModal();
   };
 
+  const handleOpenNewOrderModal = () => {
+    setIsNewOrderModalOpen(true);
+  };
+
+  const handleCloseNewOrderModal = () => {
+    setIsNewOrderModalOpen(false);
+  };
+
+  const handleOrderAdded = (newOrderData: OrderFormValues) => {
+    const newOrder: ActiveOrder = {
+      id: `ORD${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+      status: 'pending',
+      table: newOrderData.table,
+      items: newOrderData.items,
+      time: 'Just now',
+      price: `$${newOrderData.price}`,
+      icon: <AlertCircle className="h-5 w-5 mr-2" />,
+    };
+    setActiveOrders(prevOrders => [newOrder, ...prevOrders]);
+    handleCloseNewOrderModal();
+  };
+
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
       <header className="flex flex-wrap items-center justify-between gap-4">
@@ -245,7 +272,7 @@ export default function RestaurantManagementDashboard() {
           <p className="text-muted-foreground">Manage menu items and orders</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleOpenNewOrderModal}>
             <Plus className="mr-2 h-4 w-4" />
             New Order
           </Button>
@@ -297,6 +324,11 @@ export default function RestaurantManagementDashboard() {
             menuItem={editingMenuItem}
         />
       )}
+      <NewOrderModal
+        isOpen={isNewOrderModalOpen}
+        onClose={handleCloseNewOrderModal}
+        onOrderAdded={handleOrderAdded}
+      />
     </div>
   );
 }
