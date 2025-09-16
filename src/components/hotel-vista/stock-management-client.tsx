@@ -117,7 +117,7 @@ export default function StockManagementDashboard() {
 
   const getStatus = (current: number, min: number): 'critical' | 'low' | 'normal' => {
     if (current < min) return 'critical';
-    if (current < min * 1.2) return 'low';
+    if (current < min * 2) return 'low';
     return 'normal';
   };
 

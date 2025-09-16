@@ -422,7 +422,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             if (stockItemsRes.success) {
                 const getStatus = (current: number, min: number): 'critical' | 'low' | 'normal' => {
                     if (current < min) return 'critical';
-                    if (current < min * 1.2) return 'low';
+                    if (current < min * 2) return 'low';
                     return 'normal';
                   };
                 const formattedStockItems = stockItemsRes.items.map((item: any) => ({
@@ -478,5 +478,3 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     </DataContext.Provider>
   );
 };
-
-    
