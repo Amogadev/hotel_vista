@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo, useContext, useTransition } from 'react';
 import { DataContext, type StockItem as StockItemType } from '@/context/data-provider';
 import {
   AlertTriangle,
@@ -13,6 +13,7 @@ import {
   Filter,
   Settings,
   Trash2,
+  Loader2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,12 +24,23 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { StockReport } from './stock-report';
 import { AddStockItemModal, StockItemFormValues } from './add-stock-item-modal';
 import { EditStockItemModal, EditStockItemFormValues } from './edit-stock-item-modal';
 import { useToast } from '@/hooks/use-toast';
+import { deleteStockItem } from '@/app/actions';
 
 const statusVariantMap: { [key: string]: 'destructive' | 'default' | 'outline' } = {
   critical: 'destructive',
@@ -58,6 +70,9 @@ export default function StockManagementDashboard() {
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [isEditItemModalOpen, setIsEditItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<StockItemType | null>(null);
+  const [deletingItem, setDeletingItem] = useState<StockItemType | null>(null);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const handlePrintReport = () => {
     const printWindow = window.open('', '', 'height=600,width=800');
@@ -136,8 +151,37 @@ export default function StockManagementDashboard() {
     handleCloseEditItemModal();
   };
 
-  const handleRemoveItem = (itemName: string) => {
-    toast({ title: "Remove Item", description: `Remove functionality for ${itemName} is not yet implemented.` });
+  const handleRemoveItem = (item: StockItemType) => {
+    setDeletingItem(item);
+    setIsDeleteAlertOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingItem) return;
+
+    startTransition(async () => {
+        try {
+            const result = await deleteStockItem(deletingItem.name);
+            if (result.success) {
+                toast({
+                    title: "Stock Item Deleted",
+                    description: `${deletingItem.name} has been successfully deleted.`,
+                });
+                setStockItems(prevItems => prevItems.filter(i => i.name !== deletingItem.name));
+            } else {
+                throw new Error(result.error || "Failed to delete stock item");
+            }
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to delete the stock item. Please try again.",
+            });
+        } finally {
+            setIsDeleteAlertOpen(false);
+            setDeletingItem(null);
+        }
+    });
   };
 
   const filteredStockItems = useMemo(() => {
@@ -287,7 +331,7 @@ export default function StockManagementDashboard() {
                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditItem(item)}>
                                     <Settings />
                                 </Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleRemoveItem(item.name)}>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleRemoveItem(item)}>
                                     <Trash2 />
                                 </Button>
                             </div>
@@ -310,6 +354,25 @@ export default function StockManagementDashboard() {
             item={editingItem}
         />
       )}
+       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to remove this item?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently remove {deletingItem?.name} from your inventory.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setDeletingItem(null)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDelete} disabled={isPending} className="bg-destructive hover:bg-destructive/90">
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Remove
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
+    

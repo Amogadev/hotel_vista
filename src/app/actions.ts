@@ -259,4 +259,21 @@ export async function updateStockItem(updatedItem: {
     }
 }
 
+export async function deleteStockItem(itemName: string) {
+    try {
+        const q = query(collection(db, "stockItems"), where("name", "==", itemName));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            const docId = querySnapshot.docs[0].id;
+            await deleteDoc(doc(db, "stockItems", docId));
+            return { success: true };
+        }
+        return { success: false, error: "Stock item not found" };
+    } catch (e) {
+        console.error("Error deleting document: ", e);
+        return { success: false, error: "Failed to delete stock item" };
+    }
+}
+    
+
     
