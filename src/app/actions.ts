@@ -37,3 +37,19 @@ export async function addRoom(newRoom: {
   await new Promise(resolve => setTimeout(resolve, 1000));
   return { success: true, room: newRoom };
 }
+
+export async function updateRoom(updatedRoom: {
+  originalNumber: string;
+  number: string;
+  type: string;
+  price: number;
+  status: string;
+  guest?: string;
+  checkIn?: string;
+  checkOut?: string;
+}) {
+  console.log("Updating room:", updatedRoom);
+  // This is a mock implementation. In a real app, you'd update in a database.
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  return { success: true, room: updatedRoom };
+}

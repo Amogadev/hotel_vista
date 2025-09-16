@@ -24,6 +24,7 @@ import {
 import { SidebarTrigger } from '../ui/sidebar';
 import { RoomDetailsModal } from './room-details-modal';
 import { AddRoomModal, RoomFormValues } from './add-room-modal';
+import { EditRoomModal, EditRoomFormValues } from './edit-room-modal';
 import { format } from 'date-fns';
 
 type Room = {
@@ -118,7 +119,7 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
     Maintenance: 'bg-red-400 text-red-950 border-red-500',
   };
 
-function RoomCard({ room, onSelectRoom }: { room: Room, onSelectRoom: (room: Room) => void }) {
+function RoomCard({ room, onSelectRoom, onEditRoom }: { room: Room, onSelectRoom: (room: Room) => void, onEditRoom: (room: Room) => void }) {
   const variant = statusVariantMap[room.status] || 'default';
   const colorClass = statusColorMap[room.status] || '';
 
@@ -146,7 +147,7 @@ function RoomCard({ room, onSelectRoom }: { room: Room, onSelectRoom: (room: Roo
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onSelectRoom(room)}>
               <Eye className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEditRoom(room)}>
               <Settings className="h-4 w-4" />
             </Button>
           </div>
@@ -159,8 +160,10 @@ function RoomCard({ room, onSelectRoom }: { room: Room, onSelectRoom: (room: Roo
 export default function RoomManagementDashboard() {
   const [rooms, setRooms] = useState<Room[]>(initialRooms);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const handleSelectRoom = (room: Room) => {
     setSelectedRoom(room);
@@ -193,6 +196,33 @@ export default function RoomManagementDashboard() {
     setRooms(prevRooms => [...prevRooms, newRoom]);
     handleCloseAddModal();
   };
+  
+  const handleEditRoom = (room: Room) => {
+    setEditingRoom(room);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingRoom(null);
+  };
+
+  const handleRoomUpdated = (updatedRoomData: EditRoomFormValues & { originalNumber: string }) => {
+    const updatedRoom: Room = {
+      number: updatedRoomData.number,
+      type: updatedRoomData.type,
+      status: updatedRoomData.status,
+      rate: `$${updatedRoomData.price}/night`,
+      guest: updatedRoomData.guest,
+      checkIn: updatedRoomData.checkIn ? format(new Date(updatedRoomData.checkIn), 'yyyy-MM-dd') : undefined,
+      checkOut: updatedRoomData.checkOut ? format(new Date(updatedRoomData.checkOut), 'yyyy-MM-dd') : undefined,
+    };
+    setRooms(prevRooms =>
+      prevRooms.map(r => (r.number === updatedRoomData.originalNumber ? updatedRoom : r))
+    );
+    handleCloseEditModal();
+  };
+
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
@@ -229,7 +259,7 @@ export default function RoomManagementDashboard() {
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {rooms.map((room, index) => (
-          <RoomCard key={`${room.number}-${index}`} room={room} onSelectRoom={handleSelectRoom} />
+          <RoomCard key={`${room.number}-${index}`} room={room} onSelectRoom={handleSelectRoom} onEditRoom={handleEditRoom} />
         ))}
       </div>
       {selectedRoom && (
@@ -244,6 +274,14 @@ export default function RoomManagementDashboard() {
         onClose={handleCloseAddModal}
         onRoomAdded={handleRoomAdded}
       />
+      {editingRoom && (
+        <EditRoomModal
+          room={editingRoom}
+          isOpen={isEditModalOpen}
+          onClose={handleCloseEditModal}
+          onRoomUpdated={handleRoomUpdated}
+        />
+      )}
     </div>
   );
 }
