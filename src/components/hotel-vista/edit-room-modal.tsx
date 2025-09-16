@@ -131,12 +131,12 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 py-4 md:grid-cols-2">
             <FormField
               control={form.control}
               name="number"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-1 md:col-span-2">
                   <FormLabel>Room Number</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., 101" {...field} />
@@ -149,7 +149,7 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
               control={form.control}
               name="type"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-1">
                   <FormLabel>Type</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
@@ -173,8 +173,8 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
               control={form.control}
               name="price"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price per night</FormLabel>
+                <FormItem  className="col-span-1">
+                  <FormLabel>Price</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="e.g., 120" {...field} />
                   </FormControl>
@@ -186,7 +186,7 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
               control={form.control}
               name="status"
               render={({ field }) => (
-                <FormItem>
+                <FormItem  className="col-span-1 md:col-span-2">
                   <FormLabel>Status</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
@@ -211,7 +211,7 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
                   control={form.control}
                   name="guest"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem  className="col-span-1 md:col-span-2">
                       <FormLabel>Guest Name</FormLabel>
                       <FormControl>
                         <Input placeholder="e.g., John Smith" {...field} />
@@ -224,7 +224,7 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
                   control={form.control}
                   name="checkIn"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
+                    <FormItem className="flex flex-col col-span-1">
                       <FormLabel>Check-in Date</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
@@ -263,7 +263,7 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
                   control={form.control}
                   name="checkOut"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
+                    <FormItem className="flex flex-col col-span-1">
                       <FormLabel>Check-out Date</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
@@ -300,7 +300,7 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
                 />
               </>
             )}
-            <DialogFooter>
+            <DialogFooter className="col-span-1 md:col-span-2">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
