@@ -138,9 +138,21 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
               render={({ field }) => (
                 <FormItem className="col-span-1 md:col-span-2">
                   <FormLabel>Room Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., 101" {...field} />
-                  </FormControl>
+                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a room number" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="101">101</SelectItem>
+                      <SelectItem value="102">102</SelectItem>
+                      <SelectItem value="103">103</SelectItem>
+                      <SelectItem value="201">201</SelectItem>
+                      <SelectItem value="202">202</SelectItem>
+                      <SelectItem value="203">203</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
