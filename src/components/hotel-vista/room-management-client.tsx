@@ -245,10 +245,6 @@ export default function RoomManagementDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
           <Button onClick={handleOpenAddModal}>
             <Plus className="mr-2 h-4 w-4" />
             Add Room
