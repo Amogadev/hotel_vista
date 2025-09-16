@@ -35,25 +35,26 @@ import { AddMenuItemModal, MenuItemFormValues } from './add-menu-item-modal';
 import { EditMenuItemModal, EditMenuItemFormValues } from './edit-menu-item-modal';
 import { NewOrderModal, OrderFormValues } from './new-order-modal';
 import { BillModal } from './bill-modal';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { deleteMenuItem } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 
 const useTimeAgo = (date: Date) => {
-  const [timeAgo, setTimeAgo] = useState(() =>
-    formatDistanceToNow(date, { addSuffix: true })
-  );
-
-  useEffect(() => {
-    const interval = setInterval(() => {
+    const [timeAgo, setTimeAgo] = useState<string | null>(null);
+  
+    useEffect(() => {
+      // Set the initial value on the client after hydration
       setTimeAgo(formatDistanceToNow(date, { addSuffix: true }));
-    }, 60000); // Update every minute
-
-    return () => clearInterval(interval);
-  }, [date]);
-
-  return timeAgo;
-};
+  
+      const interval = setInterval(() => {
+        setTimeAgo(formatDistanceToNow(date, { addSuffix: true }));
+      }, 60000); // Update every minute
+  
+      return () => clearInterval(interval);
+    }, [date]);
+  
+    return timeAgo;
+  };
 
 const initialActiveOrders = [
   {
@@ -159,7 +160,7 @@ function OrderCard({ order, onGenerateBill }: { order: ActiveOrder; onGenerateBi
               <p className="font-bold">{order.id}</p>
               <Badge variant={variant} className={`ml-2 capitalize ${colorClass}`}>{order.status}</Badge>
             </div>
-            <p className="text-sm text-muted-foreground">{timeAgo}</p>
+            <p className="text-sm text-muted-foreground">{timeAgo ?? 'Calculating...'}</p>
           </div>
           <div className="mt-2">
             <p className="text-sm text-muted-foreground">Table {order.table}</p>
@@ -193,7 +194,7 @@ function MenuItemCard({ item, onEditItem, onRemoveItem }: { item: MenuItem, onEd
                     <Badge variant={variant} className={`capitalize ${colorClass}`}>{item.status}</Badge>
                     <div className="flex items-center gap-1">
                         <Button variant="outline" size="sm" onClick={() => onEditItem(item)}>Edit</Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onRemoveItem(item)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-transparent" onClick={() => onRemoveItem(item)}>
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
