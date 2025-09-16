@@ -29,12 +29,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-[#0a192f] to-[#1e3a8a] p-4 text-white">
-      <Card className="w-full max-w-sm rounded-2xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-lg animate-fade-in-down">
+    <div className="flex min-h-screen w-full items-center justify-center bg-blue-100 p-4">
+      <Card className="w-full max-w-sm rounded-2xl border bg-white/50 p-8 shadow-2xl backdrop-blur-md animate-fade-in-down">
         <CardContent className="p-0">
           <div className="mb-8 flex justify-center">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-cyan-400/50 bg-cyan-400/10">
-              <Sofa className="h-12 w-12 text-cyan-400" />
+            <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-primary/50 bg-primary/10">
+              <Sofa className="h-12 w-12 text-primary" />
             </div>
           </div>
           <form onSubmit={handleLogin} className="space-y-6">
@@ -47,7 +47,7 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full rounded-lg border-none bg-blue-900/50 py-3 pl-10 text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
+                className="w-full rounded-lg border-gray-300 bg-white/80 py-3 pl-10 text-black placeholder-gray-500 focus:ring-2 focus:ring-primary"
               />
             </div>
             <div className="relative">
@@ -59,18 +59,18 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full rounded-lg border-none bg-blue-900/50 py-3 pl-10 text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
+                className="w-full rounded-lg border-gray-300 bg-white/80 py-3 pl-10 text-black placeholder-gray-500 focus:ring-2 focus:ring-primary"
               />
             </div>
              <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
-                <Checkbox id="remember" className="border-gray-400 data-[state=checked]:bg-cyan-400 data-[state=checked]:border-cyan-400"/>
-                <Label htmlFor="remember" className="cursor-pointer text-gray-300">Remember me</Label>
+                <Checkbox id="remember" className="border-gray-400 data-[state=checked]:bg-primary data-[state=checked]:border-primary"/>
+                <Label htmlFor="remember" className="cursor-pointer text-gray-700">Remember me</Label>
               </div>
-              <a href="#" className="text-gray-300 hover:text-cyan-400">Forgot Password?</a>
+              <a href="#" className="text-gray-700 hover:text-primary">Forgot Password?</a>
             </div>
-            {error && <p className="text-center text-sm text-red-400">{error}</p>}
-            <Button type="submit" className="w-full rounded-lg bg-cyan-500 py-3 text-base font-bold text-white transition-all hover:bg-cyan-600 hover:shadow-lg hover:shadow-cyan-500/50">
+            {error && <p className="text-center text-sm text-red-500">{error}</p>}
+            <Button type="submit" className="w-full rounded-lg bg-primary py-3 text-base font-bold text-white transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/50">
               LOGIN
             </Button>
           </form>
