@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import {
   UtensilsCrossed,
   DollarSign,
@@ -10,20 +10,33 @@ import {
   Eye,
   CheckCircle2,
   AlertCircle,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { AddMenuItemModal, MenuItemFormValues } from './add-menu-item-modal';
 import { EditMenuItemModal, EditMenuItemFormValues } from './edit-menu-item-modal';
 import { NewOrderModal, OrderFormValues } from './new-order-modal';
 import { formatDistanceToNow } from 'date-fns';
+import { deleteMenuItem } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const useTimeAgo = (date: Date) => {
   const [timeAgo, setTimeAgo] = useState(() =>
@@ -185,7 +198,7 @@ function OrderCard({ order }: { order: ActiveOrder }) {
     );
 }
 
-function MenuItemCard({ item, onEditItem }: { item: MenuItem, onEditItem: (item: MenuItem) => void }) {
+function MenuItemCard({ item, onEditItem, onRemoveItem }: { item: MenuItem, onEditItem: (item: MenuItem) => void, onRemoveItem: (item: MenuItem) => void }) {
     const variant = menuStatusVariantMap[item.status] || 'default';
     const colorClass = menuStatusColorMap[item.status] || '';
 
@@ -198,9 +211,14 @@ function MenuItemCard({ item, onEditItem }: { item: MenuItem, onEditItem: (item:
                     <p className="text-sm text-muted-foreground">{item.category}</p>
                     <p className="text-lg font-semibold text-yellow-600">{item.price}</p>
                 </div>
-                <div className="text-right">
-                    <Badge variant={variant} className={`capitalize mb-2 ${colorClass}`}>{item.status}</Badge>
-                    <Button variant="outline" size="sm" onClick={() => onEditItem(item)}>Edit</Button>
+                <div className="flex flex-col items-end gap-2">
+                    <Badge variant={variant} className={`capitalize ${colorClass}`}>{item.status}</Badge>
+                    <div className="flex items-center gap-1">
+                        <Button variant="outline" size="sm" onClick={() => onEditItem(item)}>Edit</Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => onRemoveItem(item)}>
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
             </div>
             </CardContent>
@@ -216,6 +234,10 @@ export default function RestaurantManagementDashboard() {
   const [isEditMenuItemModalOpen, setIsEditMenuItemModalOpen] = useState(false);
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | null>(null);
+  const [deletingMenuItem, setDeletingMenuItem] = useState<MenuItem | null>(null);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
 
   const handleOpenAddMenuItemModal = () => {
     setIsAddMenuItemModalOpen(true);
@@ -281,6 +303,38 @@ export default function RestaurantManagementDashboard() {
     handleCloseNewOrderModal();
   };
 
+  const handleRemoveMenuItem = (item: MenuItem) => {
+    setDeletingMenuItem(item);
+    setIsDeleteAlertOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingMenuItem) return;
+    startTransition(async () => {
+        try {
+            const result = await deleteMenuItem(deletingMenuItem.name);
+            if (result.success) {
+                toast({
+                    title: "Menu Item Deleted",
+                    description: `${deletingMenuItem.name} has been successfully deleted.`,
+                });
+                setMenuItems(prevItems => prevItems.filter(item => item.name !== deletingMenuItem.name));
+            } else {
+                throw new Error("Failed to delete menu item");
+            }
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to delete the menu item. Please try again.",
+            });
+        } finally {
+            setIsDeleteAlertOpen(false);
+            setDeletingMenuItem(null);
+        }
+    });
+  };
+
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
       <header className="flex flex-wrap items-center justify-between gap-4">
@@ -324,7 +378,7 @@ export default function RestaurantManagementDashboard() {
         <div className="space-y-4">
             <h2 className="text-xl font-semibold">Menu Items</h2>
             {menuItems.map((item) => (
-                <MenuItemCard key={item.name} item={item} onEditItem={handleEditMenuItem} />
+                <MenuItemCard key={item.name} item={item} onEditItem={handleEditMenuItem} onRemoveItem={handleRemoveMenuItem} />
             ))}
         </div>
       </div>
@@ -346,6 +400,23 @@ export default function RestaurantManagementDashboard() {
         onClose={handleCloseNewOrderModal}
         onOrderAdded={handleOrderAdded}
       />
+      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to remove this item?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently remove {deletingMenuItem?.name} from the menu.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setDeletingMenuItem(null)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDelete} disabled={isPending} className="bg-destructive hover:bg-destructive/90">
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Remove
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

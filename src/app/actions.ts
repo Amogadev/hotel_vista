@@ -86,6 +86,13 @@ export async function updateMenuItem(updatedMenuItem: {
   return { success: true, item: updatedMenuItem };
 }
 
+export async function deleteMenuItem(itemName: string) {
+    console.log("Deleting menu item:", itemName);
+    // This is a mock implementation. In a real app, you'd delete from a database.
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return { success: true };
+}
+
 export async function addOrder(newOrder: {
   table: number;
   items: string;
