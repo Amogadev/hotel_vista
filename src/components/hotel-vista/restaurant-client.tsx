@@ -1,5 +1,7 @@
+
 'use client';
 
+import React, { useState } from 'react';
 import {
   UtensilsCrossed,
   DollarSign,
@@ -19,6 +21,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { AddMenuItemModal, MenuItemFormValues } from './add-menu-item-modal';
+
 
 const stats = [
   {
@@ -73,7 +77,7 @@ const activeOrders = [
   },
 ];
 
-const menuItems = [
+const initialMenuItems = [
   {
     name: 'Grilled Salmon',
     category: 'Main Course',
@@ -99,6 +103,13 @@ const menuItems = [
     status: 'Available',
   },
 ];
+
+type MenuItem = {
+    name: string;
+    category: string;
+    price: string;
+    status: string;
+};
 
 const orderStatusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
     preparing: 'default',
@@ -154,7 +165,7 @@ function OrderCard({ order }: { order: (typeof activeOrders)[0] }) {
     );
 }
 
-function MenuItemCard({ item }: { item: (typeof menuItems)[0] }) {
+function MenuItemCard({ item }: { item: MenuItem }) {
     const variant = menuStatusVariantMap[item.status] || 'default';
     const colorClass = menuStatusColorMap[item.status] || '';
 
@@ -179,6 +190,28 @@ function MenuItemCard({ item }: { item: (typeof menuItems)[0] }) {
   
 
 export default function RestaurantManagementDashboard() {
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
+  const [isAddMenuItemModalOpen, setIsAddMenuItemModalOpen] = useState(false);
+
+  const handleOpenAddMenuItemModal = () => {
+    setIsAddMenuItemModalOpen(true);
+  };
+
+  const handleCloseAddMenuItemModal = () => {
+    setIsAddMenuItemModalOpen(false);
+  };
+
+  const handleMenuItemAdded = (newItemData: MenuItemFormValues) => {
+    const newMenuItem: MenuItem = {
+      name: newItemData.name,
+      category: newItemData.category,
+      price: `$${newItemData.price}`,
+      status: newItemData.status,
+    };
+    setMenuItems(prevItems => [...prevItems, newMenuItem]);
+    handleCloseAddMenuItemModal();
+  };
+
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
       <header className="flex flex-wrap items-center justify-between gap-4">
@@ -191,7 +224,7 @@ export default function RestaurantManagementDashboard() {
             <Plus className="mr-2 h-4 w-4" />
             New Order
           </Button>
-          <Button>
+          <Button onClick={handleOpenAddMenuItemModal}>
             <Plus className="mr-2 h-4 w-4" />
             Add Menu Item
           </Button>
@@ -226,6 +259,11 @@ export default function RestaurantManagementDashboard() {
             ))}
         </div>
       </div>
+      <AddMenuItemModal
+        isOpen={isAddMenuItemModalOpen}
+        onClose={handleCloseAddMenuItemModal}
+        onMenuItemAdded={handleMenuItemAdded}
+      />
     </div>
   );
 }

@@ -60,3 +60,15 @@ export async function deleteRoom(roomNumber: string) {
     await new Promise(resolve => setTimeout(resolve, 1000));
     return { success: true };
 }
+
+export async function addMenuItem(newMenuItem: {
+  name: string;
+  category: string;
+  price: number;
+  status: string;
+}) {
+  console.log("Adding new menu item:", newMenuItem);
+  // This is a mock implementation. In a real app, you'd save to a database.
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  return { success: true, item: newMenuItem };
+}
