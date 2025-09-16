@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { StockReport, type StockItem } from './stock-report';
 
 const stats = [
   {
@@ -39,7 +41,7 @@ const stats = [
   },
 ];
 
-const stockItems = [
+const stockItems: StockItem[] = [
   {
     name: 'Bath Towels',
     category: 'Linens',
@@ -121,6 +123,46 @@ const progressColorMap: { [key: string]: string } = {
   };
 
 export default function StockManagementDashboard() {
+
+  const handlePrintReport = () => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      const reportHtml = `
+        <html>
+          <head>
+            <title>Stock Report</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <style>
+              @media print {
+                body {
+                  margin: 1.5rem;
+                }
+                .no-print {
+                  display: none;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div id="report-root"></div>
+          </body>
+        </html>
+      `;
+      printWindow.document.write(reportHtml);
+      printWindow.document.close();
+
+      import('react-dom/client').then(ReactDOM => {
+        const root = ReactDOM.createRoot(printWindow.document.getElementById('report-root')!);
+        root.render(<StockReport items={stockItems} />);
+      });
+
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 500);
+    }
+  };
+
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
       <header className="flex flex-wrap items-center justify-between gap-4">
@@ -131,7 +173,7 @@ export default function StockManagementDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={handlePrintReport}>
             <Box className="mr-2 h-4 w-4" />
             Stock Report
           </Button>
