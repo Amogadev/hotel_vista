@@ -53,3 +53,10 @@ export async function updateRoom(updatedRoom: {
   await new Promise(resolve => setTimeout(resolve, 1000));
   return { success: true, room: updatedRoom };
 }
+
+export async function deleteRoom(roomNumber: string) {
+    console.log("Deleting room:", roomNumber);
+    // This is a mock implementation. In a real app, you'd delete from a database.
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return { success: true };
+}

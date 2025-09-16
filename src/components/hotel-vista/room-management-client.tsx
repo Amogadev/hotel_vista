@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import {
   Bed,
   Users,
@@ -11,6 +11,8 @@ import {
   Eye,
   Settings,
   ArrowLeft,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,11 +23,24 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { SidebarTrigger } from '../ui/sidebar';
 import { RoomDetailsModal } from './room-details-modal';
 import { AddRoomModal, RoomFormValues } from './add-room-modal';
 import { EditRoomModal, EditRoomFormValues } from './edit-room-modal';
 import { format } from 'date-fns';
+import { deleteRoom } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
+
 
 type Room = {
     number: string;
@@ -119,7 +134,7 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
     Maintenance: 'bg-red-400 text-red-950 border-red-500',
   };
 
-function RoomCard({ room, onSelectRoom, onEditRoom }: { room: Room, onSelectRoom: (room: Room) => void, onEditRoom: (room: Room) => void }) {
+function RoomCard({ room, onSelectRoom, onEditRoom, onDeleteRoom }: { room: Room, onSelectRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void }) {
   const variant = statusVariantMap[room.status] || 'default';
   const colorClass = statusColorMap[room.status] || '';
 
@@ -143,12 +158,15 @@ function RoomCard({ room, onSelectRoom, onEditRoom }: { room: Room, onSelectRoom
         )}
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold">{room.rate}</p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onSelectRoom(room)}>
               <Eye className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEditRoom(room)}>
               <Settings className="h-4 w-4" />
+            </Button>
+             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => onDeleteRoom(room)}>
+                <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -161,9 +179,14 @@ export default function RoomManagementDashboard() {
   const [rooms, setRooms] = useState<Room[]>(initialRooms);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
+  const [deletingRoom, setDeletingRoom] = useState<Room | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
+
 
   const handleSelectRoom = (room: Room) => {
     setSelectedRoom(room);
@@ -223,6 +246,38 @@ export default function RoomManagementDashboard() {
     handleCloseEditModal();
   };
 
+  const handleDeleteRoom = (room: Room) => {
+    setDeletingRoom(room);
+    setIsDeleteAlertOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingRoom) return;
+    startTransition(async () => {
+        try {
+            const result = await deleteRoom(deletingRoom.number);
+            if (result.success) {
+                toast({
+                    title: "Room Deleted",
+                    description: `Room ${deletingRoom.number} has been successfully deleted.`,
+                });
+                setRooms(prevRooms => prevRooms.filter(r => r.number !== deletingRoom.number));
+            } else {
+                throw new Error("Failed to delete room");
+            }
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to delete the room. Please try again.",
+            });
+        } finally {
+            setIsDeleteAlertOpen(false);
+            setDeletingRoom(null);
+        }
+    });
+  };
+
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
@@ -259,7 +314,7 @@ export default function RoomManagementDashboard() {
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {rooms.map((room, index) => (
-          <RoomCard key={`${room.number}-${index}`} room={room} onSelectRoom={handleSelectRoom} onEditRoom={handleEditRoom} />
+          <RoomCard key={`${room.number}-${index}`} room={room} onSelectRoom={handleSelectRoom} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} />
         ))}
       </div>
       {selectedRoom && (
@@ -282,6 +337,23 @@ export default function RoomManagementDashboard() {
           onRoomUpdated={handleRoomUpdated}
         />
       )}
+      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to delete this room?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete Room {deletingRoom?.number}.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setDeletingRoom(null)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDelete} disabled={isPending} className="bg-destructive hover:bg-destructive/90">
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Delete
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
