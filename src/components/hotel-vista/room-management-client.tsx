@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { AddRoomModal, RoomFormValues } from './add-room-modal';
 import { EditRoomModal, EditRoomFormValues } from './edit-room-modal';
+import { RoomDetailsModal } from './room-details-modal';
 import { format } from 'date-fns';
 import { deleteRoom } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -109,7 +110,7 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
     Maintenance: 'bg-red-400 text-red-950 border-red-500',
   };
 
-function RoomCard({ room, onEditRoom, onDeleteRoom }: { room: Room, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void }) {
+function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void }) {
   const variant = statusVariantMap[room.status] || 'default';
   const colorClass = statusColorMap[room.status] || '';
 
@@ -134,7 +135,7 @@ function RoomCard({ room, onEditRoom, onDeleteRoom }: { room: Room, onEditRoom: 
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold">{room.rate}</p>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onViewRoom(room)}>
               <Eye className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEditRoom(room)}>
@@ -152,9 +153,11 @@ function RoomCard({ room, onEditRoom, onDeleteRoom }: { room: Room, onEditRoom: 
 
 export default function RoomManagementDashboard() {
   const [rooms, setRooms] = useState<Room[]>(initialRooms);
+  const [viewingRoom, setViewingRoom] = useState<Room | null>(null);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [deletingRoom, setDeletingRoom] = useState<Room | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -213,6 +216,16 @@ export default function RoomManagementDashboard() {
     };
     setRooms(prevRooms => [...prevRooms, newRoom]);
     handleCloseAddModal();
+  };
+
+  const handleViewRoom = (room: Room) => {
+    setViewingRoom(room);
+    setIsViewModalOpen(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false);
+    setViewingRoom(null);
   };
   
   const handleEditRoom = (room: Room) => {
@@ -309,7 +322,7 @@ export default function RoomManagementDashboard() {
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {rooms.map((room, index) => (
-          <RoomCard key={`${room.number}-${index}`} room={room} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} />
+          <RoomCard key={`${room.number}-${index}`} room={room} onViewRoom={handleViewRoom} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} />
         ))}
       </div>
       <AddRoomModal
@@ -317,6 +330,13 @@ export default function RoomManagementDashboard() {
         onClose={handleCloseAddModal}
         onRoomAdded={handleRoomAdded}
       />
+      {viewingRoom && (
+        <RoomDetailsModal
+          room={viewingRoom}
+          isOpen={isViewModalOpen}
+          onClose={handleCloseViewModal}
+        />
+      )}
       {editingRoom && (
         <EditRoomModal
           room={editingRoom}
