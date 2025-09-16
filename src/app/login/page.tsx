@@ -9,12 +9,9 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Sofa, User, Lock } from 'lucide-react';
+import { Sofa, User, Lock, Eye, EyeOff } from 'lucide-react';
 import AnimatedShapes from '@/components/hotel-vista/animated-shapes';
 
 const users = [
@@ -29,6 +26,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [activeUser, setActiveUser] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -87,13 +85,20 @@ export default function LoginPage() {
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 id="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full rounded-lg border-gray-300 bg-white/80 py-3 pl-10 text-black placeholder-gray-500 focus:ring-2 focus:ring-primary"
+                className="w-full rounded-lg border-gray-300 bg-white/80 py-3 pl-10 pr-10 text-black placeholder-gray-500 focus:ring-2 focus:ring-primary"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400"
+              >
+                {showPassword ? <EyeOff /> : <Eye />}
+              </button>
             </div>
              <div className="flex items-center justify-between text-sm">
               <a href="#" className="text-gray-700 hover:text-primary">Forgot Password?</a>
