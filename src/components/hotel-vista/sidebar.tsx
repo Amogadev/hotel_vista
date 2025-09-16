@@ -92,7 +92,7 @@ export default function HotelVistaSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip={{ children: "Log out" }} className="hover:bg-destructive/10 text-red-700 hover:text-red-800">
-              <a href="#">
+              <a href="/login">
                 <LogOut />
                 <span>Log out</span>
               </a>
