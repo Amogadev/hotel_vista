@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useTransition, useEffect } from 'react';
@@ -33,6 +34,7 @@ import * as z from 'zod';
 import { updateStockItem } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { StockItem } from '@/context/data-provider';
 
 const stockItemSchema = z.object({
   name: z.string().min(1, 'Item name is required'),
@@ -45,16 +47,6 @@ const stockItemSchema = z.object({
 });
 
 export type EditStockItemFormValues = z.infer<typeof stockItemSchema>;
-
-type StockItem = {
-    name: string;
-    category: string;
-    current: number;
-    min: number;
-    max: number;
-    unit: string;
-    supplier: string;
-};
 
 type EditStockItemModalProps = {
   item: StockItem;

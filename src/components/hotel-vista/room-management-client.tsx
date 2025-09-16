@@ -2,7 +2,8 @@
 
 'use client';
 
-import React, { useState, useTransition, useMemo } from 'react';
+import React, { useState, useTransition, useMemo, useContext } from 'react';
+import { DataContext } from '@/context/data-provider';
 import {
   Bed,
   Users,
@@ -40,62 +41,8 @@ import { RoomDetailsModal } from './room-details-modal';
 import { format } from 'date-fns';
 import { deleteRoom } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
+import { Room } from '@/context/data-provider';
 
-
-type Room = {
-    number: string;
-    type: string;
-    status: string;
-    guest?: string;
-    checkIn?: string;
-    checkOut?: string;
-    rate: string;
-};
-
-const initialRooms: Room[] = [
-  {
-    number: '101',
-    type: 'Standard Single',
-    status: 'Occupied',
-    guest: 'John Smith',
-    checkIn: '2024-01-10',
-    checkOut: '2024-01-12',
-    rate: '₹120/night',
-  },
-  {
-    number: '102',
-    type: 'Deluxe Double',
-    status: 'Available',
-    rate: '₹180/night',
-  },
-  {
-    number: '103',
-    type: 'Suite',
-    status: 'Cleaning',
-    rate: '₹300/night',
-  },
-  {
-    number: '201',
-    type: 'Standard Double',
-    status: 'Occupied',
-    guest: 'Sarah Johnson',
-    checkIn: '2024-01-09',
-    checkOut: '2024-01-11',
-    rate: '₹150/night',
-  },
-  {
-    number: '202',
-    type: 'Deluxe Single',
-    status: 'Maintenance',
-    rate: '₹140/night',
-  },
-  {
-    number: '203',
-    type: 'Suite',
-    status: 'Available',
-    rate: '₹320/night',
-  },
-];
 
 const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
     Occupied: 'secondary',
@@ -153,7 +100,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom }: { room: Room, 
 }
 
 export default function RoomManagementDashboard() {
-  const [rooms, setRooms] = useState<Room[]>(initialRooms);
+  const { rooms, setRooms } = useContext(DataContext);
   const [viewingRoom, setViewingRoom] = useState<Room | null>(null);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [deletingRoom, setDeletingRoom] = useState<Room | null>(null);

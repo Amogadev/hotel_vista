@@ -1,7 +1,9 @@
 
+
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
+import { DataContext, type StockItem as StockItemType } from '@/context/data-provider';
 import {
   AlertTriangle,
   TrendingDown,
@@ -23,73 +25,10 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { StockReport, type StockItem } from './stock-report';
+import { StockReport } from './stock-report';
 import { AddStockItemModal, StockItemFormValues } from './add-stock-item-modal';
 import { EditStockItemModal, EditStockItemFormValues } from './edit-stock-item-modal';
 import { useToast } from '@/hooks/use-toast';
-
-const initialStockItems: StockItem[] = [
-  {
-    name: 'Bath Towels',
-    category: 'Linens',
-    current: 15,
-    min: 25,
-    max: 100,
-    unit: 'pieces',
-    supplier: 'Hotel Supplies Co.',
-    status: 'critical',
-  },
-  {
-    name: 'Toilet Paper',
-    category: 'Bathroom',
-    current: 45,
-    min: 30,
-    max: 200,
-    unit: 'rolls',
-    supplier: 'Clean Supply Inc.',
-    status: 'low',
-  },
-  {
-    name: 'Bed Sheets',
-    category: 'Linens',
-    current: 8,
-    min: 20,
-    max: 80,
-    unit: 'sets',
-    supplier: 'Hotel Supplies Co.',
-    status: 'critical',
-  },
-  {
-    name: 'Hand Soap',
-    category: 'Bathroom',
-    current: 35,
-    min: 15,
-    max: 60,
-    unit: 'bottles',
-    supplier: 'Clean Supply Inc.',
-    status: 'normal',
-  },
-  {
-    name: 'Coffee Pods',
-    category: 'Room Service',
-    current: 120,
-    min: 50,
-    max: 300,
-    unit: 'pods',
-    supplier: 'Beverage Direct',
-    status: 'normal',
-  },
-  {
-    name: 'Vacuum Bags',
-    category: 'Cleaning',
-    current: 5,
-    min: 10,
-    max: 50,
-    unit: 'pieces',
-    supplier: 'Clean Supply Inc.',
-    status: 'critical',
-  },
-];
 
 const statusVariantMap: { [key: string]: 'destructive' | 'default' | 'outline' } = {
   critical: 'destructive',
@@ -113,12 +52,12 @@ const categories = ['All', 'Linens', 'Bathroom', 'Room Service', 'Cleaning'];
 
 export default function StockManagementDashboard() {
   const { toast } = useToast();
-  const [stockItems, setStockItems] = useState<StockItem[]>(initialStockItems);
+  const { stockItems, setStockItems } = useContext(DataContext);
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [isEditItemModalOpen, setIsEditItemModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<StockItem | null>(null);
+  const [editingItem, setEditingItem] = useState<StockItemType | null>(null);
 
   const handlePrintReport = () => {
     const printWindow = window.open('', '', 'height=600,width=800');
@@ -168,7 +107,7 @@ export default function StockManagementDashboard() {
   };
 
   const handleItemAdded = (newItemData: StockItemFormValues) => {
-    const newItem: StockItem = {
+    const newItem: StockItemType = {
       ...newItemData,
       status: getStatus(newItemData.current, newItemData.min),
     };
@@ -176,7 +115,7 @@ export default function StockManagementDashboard() {
     handleCloseAddItemModal();
   };
 
-  const handleEditItem = (item: StockItem) => {
+  const handleEditItem = (item: StockItemType) => {
     setEditingItem(item);
     setIsEditItemModalOpen(true);
   };
@@ -187,7 +126,7 @@ export default function StockManagementDashboard() {
   };
 
   const handleItemUpdated = (updatedItemData: EditStockItemFormValues & { originalName: string }) => {
-    const updatedItem: StockItem = {
+    const updatedItem: StockItemType = {
       ...updatedItemData,
       status: getStatus(updatedItemData.current, updatedItemData.min),
     };
@@ -374,5 +313,3 @@ export default function StockManagementDashboard() {
     </div>
   );
 }
-
-    

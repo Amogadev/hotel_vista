@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React from 'react';
@@ -11,17 +12,8 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table';
+import { StockItem } from '@/context/data-provider';
 
-export type StockItem = {
-  name: string;
-  category: string;
-  current: number;
-  min: number;
-  max: number;
-  unit: string;
-  supplier: string;
-  status: 'critical' | 'low' | 'normal';
-};
 
 type StockReportProps = {
   items: StockItem[];

@@ -1,7 +1,8 @@
 
 "use client";
 
-import React from "react";
+import React, { useContext } from "react";
+import { DataContext } from "@/context/data-provider";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -67,31 +68,40 @@ const chartData = [
 ];
 
 export default function Dashboard() {
+  const { rooms, activeOrders } = useContext(DataContext);
+  const totalRevenue = rooms
+  .filter(room => room.status === 'Occupied')
+  .reduce((acc, room) => acc + parseFloat(room.rate.replace(/[^0-9.-]+/g, "")), 0);
+  const occupiedRooms = rooms.filter(room => room.status === 'Occupied').length;
+  const totalRooms = rooms.length;
+  const activeGuests = rooms.filter(room => room.status === 'Occupied' && room.guest).length; // Simplified guest count
+  const restaurantOrders = activeOrders.length;
+
   const stats = [
     {
       title: "Total Revenue",
-      value: "₹45,231",
+      value: `₹${totalRevenue.toLocaleString()}`,
       trend: "+12.5% from last month",
       trendColor: "text-green-600",
       icon: <DollarSign className="h-5 w-5 text-green-500" />,
     },
     {
       title: "Occupied Rooms",
-      value: "85 / 120",
+      value: `${occupiedRooms} / ${totalRooms}`,
       trend: "+6.3% from last month",
       trendColor: "text-blue-600",
       icon: <BedDouble className="h-5 w-5 text-blue-500" />,
     },
     {
       title: "Active Guests",
-      value: "203",
+      value: `${activeGuests}`,
       trend: "+8.2% from last month",
       trendColor: "text-orange-600",
       icon: <Users className="h-5 w-5 text-orange-500" />,
     },
     {
       title: "Restaurant Orders",
-      value: "47",
+      value: `${restaurantOrders}`,
       trend: "+15.3% from last month",
       trendColor: "text-yellow-600",
       icon: <UtensilsCrossed className="h-5 w-5 text-yellow-500" />,

@@ -1,7 +1,9 @@
 
+
 'use client';
 
-import React, { useState, useEffect, useTransition, useMemo } from 'react';
+import React, { useState, useEffect, useTransition, useMemo, useContext } from 'react';
+import { DataContext, MenuItem, ActiveOrder } from '@/context/data-provider';
 import {
   UtensilsCrossed,
   DollarSign,
@@ -56,71 +58,6 @@ const useTimeAgo = (date: Date) => {
     return timeAgo;
   };
 
-const initialActiveOrders = [
-  {
-    id: 'ORD001',
-    status: 'preparing',
-    table: 5,
-    items: 'Grilled Salmon, Caesar Salad',
-    time: new Date(Date.now() - 15 * 60 * 1000),
-    price: '₹40',
-    icon: <Clock className="h-5 w-5 mr-2" />,
-  },
-  {
-    id: 'ORD002',
-    status: 'pending',
-    table: 12,
-    items: 'Ribeye Steak, Chocolate Mousse',
-    time: new Date(Date.now() - 5 * 60 * 1000),
-    price: '₹54',
-    icon: <AlertCircle className="h-5 w-5 mr-2" />,
-  },
-  {
-    id: 'ORD003',
-    status: 'ready',
-    table: 3,
-    items: 'Caesar Salad, Chocolate Mousse',
-    time: new Date(Date.now() - 25 * 60 * 1000),
-    price: '₹21',
-    icon: <CheckCircle2 className="h-5 w-5 mr-2" />,
-  },
-];
-
-const initialMenuItems = [
-  {
-    name: 'Grilled Salmon',
-    category: 'Main Course',
-    price: '₹28',
-    status: 'Available',
-  },
-  {
-    name: 'Caesar Salad',
-    category: 'Appetizer',
-    price: '₹12',
-    status: 'Available',
-  },
-  {
-    name: 'Ribeye Steak',
-    category: 'Main Course',
-    price: '₹45',
-    status: 'Out of Stock',
-  },
-  {
-    name: 'Chocolate Mousse',
-    category: 'Dessert',
-    price: '₹9',
-    status: 'Available',
-  },
-];
-
-type MenuItem = {
-    name: string;
-    category: string;
-    price: string;
-    status: string;
-};
-
-type ActiveOrder = Omit<(typeof initialActiveOrders)[0], 'time'> & { time: Date };
 
 const orderStatusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
     preparing: 'default',
@@ -207,8 +144,7 @@ function MenuItemCard({ item, onEditItem, onRemoveItem }: { item: MenuItem, onEd
   
 
 export default function RestaurantManagementDashboard() {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
-  const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>(initialActiveOrders);
+  const { menuItems, setMenuItems, activeOrders, setActiveOrders } = useContext(DataContext);
   const [isAddMenuItemModalOpen, setIsAddMenuItemModalOpen] = useState(false);
   const [isEditMenuItemModalOpen, setIsEditMenuItemModalOpen] = useState(false);
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);

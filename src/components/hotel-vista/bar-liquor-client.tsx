@@ -1,7 +1,9 @@
 
+
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { DataContext, InventoryItem, RecentSale } from '@/context/data-provider';
 import {
   DollarSign,
   BarChart,
@@ -37,96 +39,6 @@ const useTimeAgo = (date: Date) => {
   }, [date]);
 
   return timeAgo;
-};
-
-const initialInventoryItems = [
-  {
-    name: 'Premium Whiskey',
-    type: 'Whiskey',
-    stock: 24,
-    price: 15,
-    status: 'good',
-  },
-  {
-    name: 'Vodka Premium',
-    type: 'Vodka',
-    stock: 8,
-    price: 12,
-    status: 'low',
-  },
-  {
-    name: 'Craft Beer',
-    type: 'Beer',
-    stock: 48,
-    price: 6,
-    status: 'good',
-  },
-  {
-    name: 'Red Wine',
-    type: 'Wine',
-    stock: 16,
-    price: 25,
-    status: 'good',
-  },
-  {
-    name: 'Gin Tonic',
-    type: 'Gin',
-    stock: 5,
-    price: 10,
-    status: 'low',
-  },
-  {
-    name: 'Champagne',
-    type: 'Champagne',
-    stock: 12,
-    price: 40,
-    status: 'good',
-  },
-];
-
-const initialRecentSales = [
-  {
-    name: 'Premium Whiskey',
-    qty: 2,
-    room: '204',
-    price: 30,
-    time: new Date(Date.now() - 5 * 60 * 1000),
-  },
-  {
-    name: 'Red Wine',
-    qty: 1,
-    price: 25,
-    time: new Date(Date.now() - 12 * 60 * 1000),
-  },
-  {
-    name: 'Craft Beer',
-    qty: 4,
-    price: 24,
-    time: new Date(Date.now() - 18 * 60 * 1000),
-  },
-  {
-    name: 'Champagne',
-    qty: 1,
-    room: '315',
-    price: 40,
-    time: new Date(Date.now() - 25 * 60 * 1000),
-  },
-];
-
-type InventoryItem = {
-  name: string;
-  type: string;
-  stock: number;
-  price: number;
-  status: 'good' | 'low' | 'critical';
-};
-
-type RecentSale = {
-  name: string;
-  qty: number;
-  room?: string;
-  price: number;
-  time: Date;
 };
 
 const getStatusFromStock = (stock: number): 'good' | 'low' | 'critical' => {
@@ -190,11 +102,15 @@ function RecentSaleItem({ sale }: { sale: RecentSale }) {
 
 
 export default function BarLiquorManagementDashboard() {
+  const {
+    inventoryItems,
+    setInventoryItems,
+    recentSales,
+    setRecentSales,
+  } = useContext(DataContext);
   const [isRecordSaleModalOpen, setIsRecordSaleModalOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [isUpdateStockModalOpen, setIsUpdateStockModalOpen] = useState(false);
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(initialInventoryItems);
-  const [recentSales, setRecentSales] = useState<RecentSale[]>(initialRecentSales);
   const [updatingItem, setUpdatingItem] = useState<InventoryItem | null>(null);
 
   const handleOpenRecordSaleModal = () => setIsRecordSaleModalOpen(true);
