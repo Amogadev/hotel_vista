@@ -9,6 +9,8 @@ import {
   Plus,
   Search,
   Filter,
+  Settings,
+  Trash2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -168,12 +170,12 @@ export default function StockManagementDashboard() {
     handleCloseAddItemModal();
   };
 
-  const handleUpdateItem = (itemName: string) => {
-    toast({ title: "Update Item", description: `Update functionality for ${itemName} is not yet implemented.` });
+  const handleEditItem = (itemName: string) => {
+    toast({ title: "Edit Item", description: `Edit functionality for ${itemName} is not yet implemented.` });
   };
 
-  const handleReorderItem = (itemName: string) => {
-    toast({ title: "Reorder Placed", description: `A reorder request for ${itemName} has been placed.` });
+  const handleRemoveItem = (itemName: string) => {
+    toast({ title: "Remove Item", description: `Remove functionality for ${itemName} is not yet implemented.` });
   };
 
   const filteredStockItems = useMemo(() => {
@@ -320,8 +322,12 @@ export default function StockManagementDashboard() {
                                 <p className="font-semibold">{item.supplier}</p>
                             </div>
                             <div className="flex gap-2">
-                                <Button variant="outline" onClick={() => handleUpdateItem(item.name)}>Update</Button>
-                                <Button variant="secondary" onClick={() => handleReorderItem(item.name)}>Reorder</Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditItem(item.name)}>
+                                    <Settings />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleRemoveItem(item.name)}>
+                                    <Trash2 />
+                                </Button>
                             </div>
                         </div>
                     </CardContent>
