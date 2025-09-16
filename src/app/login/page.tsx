@@ -100,9 +100,6 @@ export default function LoginPage() {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-             <div className="flex items-center justify-between text-sm">
-              <a href="#" className="text-gray-700 hover:text-primary">Forgot Password?</a>
-            </div>
             {error && <p className="text-center text-sm text-red-500">{error}</p>}
             <Button type="submit" className="w-full rounded-lg bg-primary py-3 text-base font-bold text-white transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/50">
               LOGIN
