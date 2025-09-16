@@ -122,3 +122,5 @@ export function UpdateStockModal({ isOpen, onClose, onStockUpdated, item }: Upda
     </Dialog>
   );
 }
+
+    
