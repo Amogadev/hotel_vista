@@ -96,10 +96,6 @@ export default function LoginPage() {
               />
             </div>
              <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <Checkbox id="remember" className="border-gray-400 data-[state=checked]:bg-primary data-[state=checked]:border-primary"/>
-                <Label htmlFor="remember" className="cursor-pointer text-gray-700">Remember me</Label>
-              </div>
               <a href="#" className="text-gray-700 hover:text-primary">Forgot Password?</a>
             </div>
             {error && <p className="text-center text-sm text-red-500">{error}</p>}
