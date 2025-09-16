@@ -22,7 +22,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { AddMenuItemModal, MenuItemFormValues } from './add-menu-item-modal';
-
+import { EditMenuItemModal, EditMenuItemFormValues } from './edit-menu-item-modal';
 
 const stats = [
   {
@@ -165,7 +165,7 @@ function OrderCard({ order }: { order: (typeof activeOrders)[0] }) {
     );
 }
 
-function MenuItemCard({ item }: { item: MenuItem }) {
+function MenuItemCard({ item, onEditItem }: { item: MenuItem, onEditItem: (item: MenuItem) => void }) {
     const variant = menuStatusVariantMap[item.status] || 'default';
     const colorClass = menuStatusColorMap[item.status] || '';
 
@@ -180,7 +180,7 @@ function MenuItemCard({ item }: { item: MenuItem }) {
                 </div>
                 <div className="text-right">
                     <Badge variant={variant} className={`capitalize mb-2 ${colorClass}`}>{item.status}</Badge>
-                    <Button variant="outline" size="sm">Edit</Button>
+                    <Button variant="outline" size="sm" onClick={() => onEditItem(item)}>Edit</Button>
                 </div>
             </div>
             </CardContent>
@@ -192,6 +192,8 @@ function MenuItemCard({ item }: { item: MenuItem }) {
 export default function RestaurantManagementDashboard() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
   const [isAddMenuItemModalOpen, setIsAddMenuItemModalOpen] = useState(false);
+  const [isEditMenuItemModalOpen, setIsEditMenuItemModalOpen] = useState(false);
+  const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | null>(null);
 
   const handleOpenAddMenuItemModal = () => {
     setIsAddMenuItemModalOpen(true);
@@ -210,6 +212,29 @@ export default function RestaurantManagementDashboard() {
     };
     setMenuItems(prevItems => [...prevItems, newMenuItem]);
     handleCloseAddMenuItemModal();
+  };
+
+  const handleEditMenuItem = (item: MenuItem) => {
+    setEditingMenuItem(item);
+    setIsEditMenuItemModalOpen(true);
+  };
+
+  const handleCloseEditMenuItemModal = () => {
+    setIsEditMenuItemModalOpen(false);
+    setEditingMenuItem(null);
+  };
+
+  const handleMenuItemUpdated = (updatedItemData: EditMenuItemFormValues & { originalName: string }) => {
+    const updatedMenuItem: MenuItem = {
+        name: updatedItemData.name,
+        category: updatedItemData.category,
+        price: `$${updatedItemData.price}`,
+        status: updatedItemData.status,
+    };
+    setMenuItems(prevItems =>
+        prevItems.map(item => (item.name === updatedItemData.originalName ? updatedMenuItem : item))
+    );
+    handleCloseEditMenuItemModal();
   };
 
   return (
@@ -255,7 +280,7 @@ export default function RestaurantManagementDashboard() {
         <div className="space-y-4">
             <h2 className="text-xl font-semibold">Menu Items</h2>
             {menuItems.map((item) => (
-                <MenuItemCard key={item.name} item={item} />
+                <MenuItemCard key={item.name} item={item} onEditItem={handleEditMenuItem} />
             ))}
         </div>
       </div>
@@ -264,6 +289,14 @@ export default function RestaurantManagementDashboard() {
         onClose={handleCloseAddMenuItemModal}
         onMenuItemAdded={handleMenuItemAdded}
       />
+      {editingMenuItem && (
+        <EditMenuItemModal
+            isOpen={isEditMenuItemModalOpen}
+            onClose={handleCloseEditMenuItemModal}
+            onMenuItemUpdated={handleMenuItemUpdated}
+            menuItem={editingMenuItem}
+        />
+      )}
     </div>
   );
 }

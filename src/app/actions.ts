@@ -72,3 +72,16 @@ export async function addMenuItem(newMenuItem: {
   await new Promise(resolve => setTimeout(resolve, 1000));
   return { success: true, item: newMenuItem };
 }
+
+export async function updateMenuItem(updatedMenuItem: {
+  originalName: string;
+  name: string;
+  category: string;
+  price: number;
+  status: string;
+}) {
+  console.log("Updating menu item:", updatedMenuItem);
+  // This is a mock implementation. In a real app, you'd update in a database.
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  return { success: true, item: updatedMenuItem };
+}
