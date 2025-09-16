@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Sofa, User, Lock } from 'lucide-react';
+import AnimatedShapes from '@/components/hotel-vista/animated-shapes';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -29,8 +30,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-blue-100 p-4">
-      <Card className="w-full max-w-sm rounded-2xl border bg-white/50 p-8 shadow-2xl backdrop-blur-md animate-fade-in-down">
+    <div className="relative flex min-h-screen w-full items-center justify-center bg-blue-100 p-4 overflow-hidden">
+      <AnimatedShapes />
+      <Card className="w-full max-w-sm rounded-2xl border bg-white/50 p-8 shadow-2xl backdrop-blur-md animate-fade-in-down z-10">
         <CardContent className="p-0">
           <div className="mb-8 flex justify-center">
             <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-primary/50 bg-primary/10">
