@@ -7,7 +7,7 @@ import {
   DollarSign,
   Clock,
   Plus,
-  Eye,
+  Receipt,
   CheckCircle2,
   AlertCircle,
   Trash2,
@@ -34,6 +34,7 @@ import {
 import { AddMenuItemModal, MenuItemFormValues } from './add-menu-item-modal';
 import { EditMenuItemModal, EditMenuItemFormValues } from './edit-menu-item-modal';
 import { NewOrderModal, OrderFormValues } from './new-order-modal';
+import { BillModal } from './bill-modal';
 import { formatDistanceToNow } from 'date-fns';
 import { deleteMenuItem } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -167,7 +168,7 @@ const menuStatusColorMap: { [key: string]: string } = {
 };
 
 
-function OrderCard({ order }: { order: ActiveOrder }) {
+function OrderCard({ order, onGenerateBill }: { order: ActiveOrder; onGenerateBill: (order: ActiveOrder) => void; }) {
     const variant = orderStatusVariantMap[order.status] || 'default';
     const colorClass = orderStatusColorMap[order.status] || '';
     const timeAgo = useTimeAgo(order.time);
@@ -189,8 +190,8 @@ function OrderCard({ order }: { order: ActiveOrder }) {
           </div>
           <div className="mt-4 flex items-center justify-between">
             <p className="text-lg font-bold">{order.price}</p>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Eye className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onGenerateBill(order)}>
+              <Receipt className="h-4 w-4" />
             </Button>
           </div>
         </CardContent>
@@ -236,6 +237,8 @@ export default function RestaurantManagementDashboard() {
   const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | null>(null);
   const [deletingMenuItem, setDeletingMenuItem] = useState<MenuItem | null>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [billingOrder, setBillingOrder] = useState<ActiveOrder | null>(null);
+  const [isBillModalOpen, setIsBillModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
@@ -335,6 +338,16 @@ export default function RestaurantManagementDashboard() {
     });
   };
 
+  const handleGenerateBill = (order: ActiveOrder) => {
+    setBillingOrder(order);
+    setIsBillModalOpen(true);
+  };
+
+  const handleCloseBillModal = () => {
+    setIsBillModalOpen(false);
+    setBillingOrder(null);
+  };
+
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
       <header className="flex flex-wrap items-center justify-between gap-4">
@@ -372,7 +385,7 @@ export default function RestaurantManagementDashboard() {
         <div className="space-y-4">
             <h2 className="text-xl font-semibold">Active Orders</h2>
             {activeOrders.map((order) => (
-                <OrderCard key={order.id} order={order} />
+                <OrderCard key={order.id} order={order} onGenerateBill={handleGenerateBill} />
             ))}
         </div>
         <div className="space-y-4">
@@ -400,6 +413,13 @@ export default function RestaurantManagementDashboard() {
         onClose={handleCloseNewOrderModal}
         onOrderAdded={handleOrderAdded}
       />
+       {billingOrder && (
+        <BillModal
+          order={billingOrder}
+          isOpen={isBillModalOpen}
+          onClose={handleCloseBillModal}
+        />
+      )}
       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
         <AlertDialogContent>
             <AlertDialogHeader>
@@ -420,3 +440,5 @@ export default function RestaurantManagementDashboard() {
     </div>
   );
 }
+
+    
