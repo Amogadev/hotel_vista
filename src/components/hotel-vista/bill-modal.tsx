@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -36,7 +37,7 @@ export function BillModal({ order, isOpen, onClose }: BillModalProps) {
       name,
       quantity,
       // In a real app, you would look up the price
-      price: parseFloat(order.price.replace('$', '')) / (order.items.split(', ').length)
+      price: parseFloat(order.price.replace('₹', '')) / (order.items.split(', ').length)
     };
   });
   
@@ -59,7 +60,7 @@ export function BillModal({ order, isOpen, onClose }: BillModalProps) {
             {items.map((item, index) => (
               <div key={index} className="flex justify-between">
                 <span>{item.quantity}x {item.name}</span>
-                <span>${(item.price * Number(item.quantity)).toFixed(2)}</span>
+                <span>₹{(item.price * Number(item.quantity)).toFixed(2)}</span>
               </div>
             ))}
           </div>
@@ -67,17 +68,17 @@ export function BillModal({ order, isOpen, onClose }: BillModalProps) {
           <div className="space-y-2 font-medium">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>₹{subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>Tax (10%)</span>
-              <span>${tax.toFixed(2)}</span>
+              <span>₹{tax.toFixed(2)}</span>
             </div>
           </div>
           <Separator />
           <div className="flex justify-between text-lg font-bold">
             <span>Total</span>
-            <span>${total.toFixed(2)}</span>
+            <span>₹{total.toFixed(2)}</span>
           </div>
         </div>
         <DialogFooter>
@@ -95,5 +96,3 @@ export function BillModal({ order, isOpen, onClose }: BillModalProps) {
     </Dialog>
   );
 }
-
-    

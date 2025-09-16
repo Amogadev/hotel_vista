@@ -62,7 +62,7 @@ const initialActiveOrders = [
     table: 5,
     items: 'Grilled Salmon, Caesar Salad',
     time: new Date(Date.now() - 15 * 60 * 1000),
-    price: '$40',
+    price: '₹40',
     icon: <Clock className="h-5 w-5 mr-2" />,
   },
   {
@@ -71,7 +71,7 @@ const initialActiveOrders = [
     table: 12,
     items: 'Ribeye Steak, Chocolate Mousse',
     time: new Date(Date.now() - 5 * 60 * 1000),
-    price: '$54',
+    price: '₹54',
     icon: <AlertCircle className="h-5 w-5 mr-2" />,
   },
   {
@@ -80,7 +80,7 @@ const initialActiveOrders = [
     table: 3,
     items: 'Caesar Salad, Chocolate Mousse',
     time: new Date(Date.now() - 25 * 60 * 1000),
-    price: '$21',
+    price: '₹21',
     icon: <CheckCircle2 className="h-5 w-5 mr-2" />,
   },
 ];
@@ -89,25 +89,25 @@ const initialMenuItems = [
   {
     name: 'Grilled Salmon',
     category: 'Main Course',
-    price: '$28',
+    price: '₹28',
     status: 'Available',
   },
   {
     name: 'Caesar Salad',
     category: 'Appetizer',
-    price: '$12',
+    price: '₹12',
     status: 'Available',
   },
   {
     name: 'Ribeye Steak',
     category: 'Main Course',
-    price: '$45',
+    price: '₹45',
     status: 'Out of Stock',
   },
   {
     name: 'Chocolate Mousse',
     category: 'Dessert',
-    price: '$9',
+    price: '₹9',
     status: 'Available',
   },
 ];
@@ -222,7 +222,7 @@ export default function RestaurantManagementDashboard() {
   const stats = useMemo(() => {
     const totalOrders = activeOrders.length;
     const revenue = activeOrders.reduce((sum, order) => {
-      return sum + parseFloat(order.price.replace('$', ''));
+      return sum + parseFloat(order.price.replace('₹', ''));
     }, 0);
     const activeOrdersCount = activeOrders.filter(
       (order) => order.status === 'preparing' || order.status === 'pending'
@@ -237,7 +237,7 @@ export default function RestaurantManagementDashboard() {
       },
       {
         title: 'Revenue',
-        value: `$${revenue.toFixed(2)}`,
+        value: `₹${revenue.toFixed(2)}`,
         icon: <DollarSign className="h-6 w-6 text-green-500" />,
       },
       {
@@ -247,7 +247,7 @@ export default function RestaurantManagementDashboard() {
       },
       {
         title: 'Avg. Order Value',
-        value: `$${avgOrderValue.toFixed(2)}`,
+        value: `₹${avgOrderValue.toFixed(2)}`,
         icon: <DollarSign className="h-6 w-6 text-yellow-500" />,
       },
     ];
@@ -265,7 +265,7 @@ export default function RestaurantManagementDashboard() {
     const newMenuItem: MenuItem = {
       name: newItemData.name,
       category: newItemData.category,
-      price: `$${newItemData.price}`,
+      price: `₹${newItemData.price}`,
       status: newItemData.status,
     };
     setMenuItems(prevItems => [...prevItems, newMenuItem]);
@@ -286,7 +286,7 @@ export default function RestaurantManagementDashboard() {
     const updatedMenuItem: MenuItem = {
         name: updatedItemData.name,
         category: updatedItemData.category,
-        price: `$${updatedItemData.price}`,
+        price: `₹${updatedItemData.price}`,
         status: updatedItemData.status,
     };
     setMenuItems(prevItems =>
@@ -310,7 +310,7 @@ export default function RestaurantManagementDashboard() {
       table: newOrderData.table,
       items: newOrderData.items,
       time: new Date(),
-      price: `$${newOrderData.price}`,
+      price: `₹${newOrderData.price}`,
       icon: <AlertCircle className="h-5 w-5 mr-2" />,
     };
     setActiveOrders(prevOrders => [newOrder, ...prevOrders]);
@@ -451,7 +451,3 @@ export default function RestaurantManagementDashboard() {
     </div>
   );
 }
-
-    
-
-    

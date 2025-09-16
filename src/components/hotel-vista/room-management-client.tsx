@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import React, { useState, useTransition, useMemo } from 'react';
+import React, 'useState, useTransition, useMemo } from 'react';
 import {
   Bed,
   Users,
@@ -59,19 +60,19 @@ const initialRooms: Room[] = [
     guest: 'John Smith',
     checkIn: '2024-01-10',
     checkOut: '2024-01-12',
-    rate: '$120/night',
+    rate: '₹120/night',
   },
   {
     number: '102',
     type: 'Deluxe Double',
     status: 'Available',
-    rate: '$180/night',
+    rate: '₹180/night',
   },
   {
     number: '103',
     type: 'Suite',
     status: 'Cleaning',
-    rate: '$300/night',
+    rate: '₹300/night',
   },
   {
     number: '201',
@@ -80,19 +81,19 @@ const initialRooms: Room[] = [
     guest: 'Sarah Johnson',
     checkIn: '2024-01-09',
     checkOut: '2024-01-11',
-    rate: '$150/night',
+    rate: '₹150/night',
   },
   {
     number: '202',
     type: 'Deluxe Single',
     status: 'Maintenance',
-    rate: '$140/night',
+    rate: '₹140/night',
   },
   {
     number: '203',
     type: 'Suite',
     status: 'Available',
-    rate: '$320/night',
+    rate: '₹320/night',
   },
 ];
 
@@ -189,7 +190,7 @@ export default function RoomManagementDashboard() {
       },
       {
         title: 'Revenue Today',
-        value: `$${revenue.toLocaleString()}`,
+        value: `₹${revenue.toLocaleString()}`,
         icon: <DollarSign className="h-6 w-6 text-yellow-500" />,
       },
     ];
@@ -209,7 +210,7 @@ export default function RoomManagementDashboard() {
       number: newRoomData.number,
       type: newRoomData.type,
       status: newRoomData.status,
-      rate: `$${newRoomData.price}/night`,
+      rate: `₹${newRoomData.price}/night`,
       guest: newRoomData.guest,
       checkIn: newRoomData.checkIn ? format(newRoomData.checkIn, 'yyyy-MM-dd') : undefined,
       checkOut: newRoomData.checkOut ? format(newRoomData.checkOut, 'yyyy-MM-dd') : undefined,
@@ -243,7 +244,7 @@ export default function RoomManagementDashboard() {
       number: updatedRoomData.number,
       type: updatedRoomData.type,
       status: updatedRoomData.status,
-      rate: `$${updatedRoomData.price}/night`,
+      rate: `₹${updatedRoomData.price}/night`,
       guest: updatedRoomData.guest,
       checkIn: updatedRoomData.checkIn ? format(new Date(updatedRoomData.checkIn), 'yyyy-MM-dd') : undefined,
       checkOut: updatedRoomData.checkOut ? format(new Date(updatedRoomData.checkOut), 'yyyy-MM-dd') : undefined,

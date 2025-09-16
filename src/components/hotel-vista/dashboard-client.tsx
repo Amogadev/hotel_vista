@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useTransition } from "react";
@@ -71,7 +72,7 @@ export default function Dashboard() {
   const stats = [
     {
       title: "Total Revenue",
-      value: "$45,231",
+      value: "₹45,231",
       trend: "+12.5% from last month",
       trendColor: "text-green-600",
       icon: <DollarSign className="h-5 w-5 text-green-500" />,

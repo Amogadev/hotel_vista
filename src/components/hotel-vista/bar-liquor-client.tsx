@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -24,7 +25,7 @@ import { Separator } from '@/components/ui/separator';
 const stats = [
   {
     title: "Today's Sales",
-    value: '$1,245',
+    value: '₹1,245',
     icon: <DollarSign className="h-6 w-6 text-green-500" />,
   },
   {
@@ -39,7 +40,7 @@ const stats = [
   },
   {
     title: 'Avg. Sale',
-    value: '$18.60',
+    value: '₹18.60',
     icon: <TrendingUp className="h-6 w-6 text-orange-500" />,
   },
 ];
@@ -192,7 +193,7 @@ export default function BarLiquorManagementDashboard() {
                       </div>
                       <div>
                         <p className="text-muted-foreground">Price</p>
-                        <p className="font-semibold text-yellow-600">${item.price}</p>
+                        <p className="font-semibold text-yellow-600">₹{item.price}</p>
                       </div>
                     </div>
                     <Button variant="outline" size="sm">Update Stock</Button>
@@ -221,7 +222,7 @@ export default function BarLiquorManagementDashboard() {
                         </p>
                     </div>
                     <div className="text-right">
-                        <p className="font-semibold text-green-600">${sale.price}</p>
+                        <p className="font-semibold text-green-600">₹{sale.price}</p>
                         <p className="text-sm text-muted-foreground">{sale.time}</p>
                     </div>
                 </div>
