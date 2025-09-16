@@ -33,7 +33,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { RoomDetailsModal } from './room-details-modal';
 import { AddRoomModal, RoomFormValues } from './add-room-modal';
 import { EditRoomModal, EditRoomFormValues } from './edit-room-modal';
 import { format } from 'date-fns';
@@ -110,7 +109,7 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
     Maintenance: 'bg-red-400 text-red-950 border-red-500',
   };
 
-function RoomCard({ room, onSelectRoom, onEditRoom, onDeleteRoom }: { room: Room, onSelectRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void }) {
+function RoomCard({ room, onEditRoom, onDeleteRoom }: { room: Room, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void }) {
   const variant = statusVariantMap[room.status] || 'default';
   const colorClass = statusColorMap[room.status] || '';
 
@@ -135,7 +134,7 @@ function RoomCard({ room, onSelectRoom, onEditRoom, onDeleteRoom }: { room: Room
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold">{room.rate}</p>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onSelectRoom(room)}>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
               <Eye className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEditRoom(room)}>
@@ -153,10 +152,8 @@ function RoomCard({ room, onSelectRoom, onEditRoom, onDeleteRoom }: { room: Room
 
 export default function RoomManagementDashboard() {
   const [rooms, setRooms] = useState<Room[]>(initialRooms);
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [deletingRoom, setDeletingRoom] = useState<Room | null>(null);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
@@ -195,16 +192,6 @@ export default function RoomManagementDashboard() {
     ];
   }, [rooms]);
 
-
-  const handleSelectRoom = (room: Room) => {
-    setSelectedRoom(room);
-    setIsDetailsModalOpen(true);
-  };
-
-  const handleCloseDetailsModal = () => {
-    setIsDetailsModalOpen(false);
-    setSelectedRoom(null);
-  };
 
   const handleOpenAddModal = () => {
     setIsAddModalOpen(true);
@@ -322,16 +309,9 @@ export default function RoomManagementDashboard() {
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {rooms.map((room, index) => (
-          <RoomCard key={`${room.number}-${index}`} room={room} onSelectRoom={handleSelectRoom} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} />
+          <RoomCard key={`${room.number}-${index}`} room={room} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} />
         ))}
       </div>
-      {selectedRoom && (
-        <RoomDetailsModal
-          room={selectedRoom}
-          isOpen={isDetailsModalOpen}
-          onClose={handleCloseDetailsModal}
-        />
-      )}
       <AddRoomModal
         isOpen={isAddModalOpen}
         onClose={handleCloseAddModal}
