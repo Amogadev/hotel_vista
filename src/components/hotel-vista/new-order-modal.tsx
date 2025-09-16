@@ -18,6 +18,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
@@ -26,7 +33,6 @@ import * as z from 'zod';
 import { addOrder } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { Textarea } from '../ui/textarea';
 
 const orderSchema = z.object({
   table: z.coerce.number().min(1, 'Table number is required'),
@@ -123,9 +129,20 @@ export function NewOrderModal({ isOpen, onClose, onOrderAdded }: NewOrderModalPr
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Items</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="e.g., 1x Grilled Salmon, 2x Caesar Salad" {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select an item" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Grilled Salmon">Grilled Salmon</SelectItem>
+                        <SelectItem value="Caesar Salad">Caesar Salad</SelectItem>
+                        <SelectItem value="Ribeye Steak">Ribeye Steak</SelectItem>
+                        <SelectItem value="Chocolate Mousse">Chocolate Mousse</SelectItem>
+                        <SelectItem value="1x Grilled Salmon, 2x Caesar Salad">1x Grilled Salmon, 2x Caesar Salad</SelectItem>
+                      </SelectContent>
+                    </Select>
                   <FormMessage />
                 </FormItem>
               )}
