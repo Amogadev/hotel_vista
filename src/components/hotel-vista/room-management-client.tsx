@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useMemo } from 'react';
 import {
   Bed,
   Users,
@@ -51,29 +51,6 @@ type Room = {
     checkOut?: string;
     rate: string;
 };
-
-const stats = [
-  {
-    title: 'Total Rooms',
-    value: '120',
-    icon: <Bed className="h-6 w-6 text-blue-500" />,
-  },
-  {
-    title: 'Occupied',
-    value: '85',
-    icon: <Users className="h-6 w-6 text-green-500" />,
-  },
-  {
-    title: 'Available',
-    value: '28',
-    icon: <CalendarDays className="h-6 w-6 text-blue-500" />,
-  },
-  {
-    title: 'Revenue Today',
-    value: '$12,750',
-    icon: <DollarSign className="h-6 w-6 text-yellow-500" />,
-  },
-];
 
 const initialRooms: Room[] = [
   {
@@ -186,6 +163,38 @@ export default function RoomManagementDashboard() {
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+
+  const stats = useMemo(() => {
+    const totalRooms = rooms.length;
+    const occupied = rooms.filter(room => room.status === 'Occupied').length;
+    const available = rooms.filter(room => room.status === 'Available').length;
+    const revenue = rooms
+        .filter(room => room.status === 'Occupied')
+        .reduce((acc, room) => acc + parseFloat(room.rate.replace(/[^0-9.-]+/g, "")), 0);
+
+    return [
+      {
+        title: 'Total Rooms',
+        value: totalRooms.toString(),
+        icon: <Bed className="h-6 w-6 text-blue-500" />,
+      },
+      {
+        title: 'Occupied',
+        value: occupied.toString(),
+        icon: <Users className="h-6 w-6 text-green-500" />,
+      },
+      {
+        title: 'Available',
+        value: available.toString(),
+        icon: <CalendarDays className="h-6 w-6 text-blue-500" />,
+      },
+      {
+        title: 'Revenue Today',
+        value: `$${revenue.toLocaleString()}`,
+        icon: <DollarSign className="h-6 w-6 text-yellow-500" />,
+      },
+    ];
+  }, [rooms]);
 
 
   const handleSelectRoom = (room: Room) => {
