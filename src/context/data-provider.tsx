@@ -58,6 +58,11 @@ export type StockItem = {
     status: 'critical' | 'low' | 'normal';
 };
 
+export type TotalBill = {
+    room: string;
+    restaurant: number;
+};
+
 type DataContextType = {
   rooms: Room[];
   setRooms: React.Dispatch<React.SetStateAction<Room[]>>;
@@ -71,6 +76,8 @@ type DataContextType = {
   setRecentSales: React.Dispatch<React.SetStateAction<RecentSale[]>>;
   stockItems: StockItem[];
   setStockItems: React.Dispatch<React.SetStateAction<StockItem[]>>;
+  totalBill: TotalBill[];
+  setTotalBill: React.Dispatch<React.SetStateAction<TotalBill[]>>;
 };
 
 const initialRooms: Room[] = [
@@ -224,7 +231,7 @@ const initialRecentSales = [
     {
       name: 'Premium Whiskey',
       qty: 2,
-      room: '204',
+      room: '201',
       price: 30,
       time: new Date(Date.now() - 5 * 60 * 1000),
     },
@@ -243,7 +250,7 @@ const initialRecentSales = [
     {
       name: 'Champagne',
       qty: 1,
-      room: '315',
+      room: '101',
       price: 40,
       time: new Date(Date.now() - 25 * 60 * 1000),
     },
@@ -312,6 +319,17 @@ const initialStockItems: StockItem[] = [
     },
 ];
 
+const initialTotalBill: TotalBill[] = [
+    {
+        room: '101',
+        restaurant: 50,
+    },
+    {
+        room: '201',
+        restaurant: 35,
+    }
+];
+
 export const DataContext = createContext<DataContextType>({
   rooms: [],
   setRooms: () => {},
@@ -325,6 +343,8 @@ export const DataContext = createContext<DataContextType>({
   setRecentSales: () => {},
   stockItems: [],
   setStockItems: () => {},
+  totalBill: [],
+  setTotalBill: () => {},
 });
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
@@ -334,6 +354,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(initialInventoryItems);
   const [recentSales, setRecentSales] = useState<RecentSale[]>(initialRecentSales);
   const [stockItems, setStockItems] = useState<StockItem[]>(initialStockItems);
+  const [totalBill, setTotalBill] = useState<TotalBill[]>(initialTotalBill);
 
   return (
     <DataContext.Provider
@@ -349,7 +370,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         recentSales,
         setRecentSales,
         stockItems,
-        setStockItems
+        setStockItems,
+        totalBill,
+        setTotalBill,
       }}
     >
       {children}

@@ -10,6 +10,7 @@ import {
   Box,
   Settings,
   LogOut,
+  FileText,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useUserRole } from '@/hooks/use-user-role';
@@ -49,6 +50,12 @@ const allMenuItems = [
     icon: Box,
     roles: ['admin'],
   },
+  {
+    href: '/total-bill',
+    label: 'Total Bill',
+    icon: FileText,
+    roles: ['admin', 'reception'],
+  },
 ];
 
 export default function Topbar() {
@@ -67,14 +74,7 @@ export default function Topbar() {
     if (userRole === 'admin')
       return allMenuItems.filter((item) => item.roles.includes('admin'));
     if (userRole === 'reception') {
-      return [
-        {
-          href: '/room-management',
-          label: 'Room Management',
-          icon: BedDouble,
-          roles: ['admin', 'reception'],
-        },
-      ];
+        return allMenuItems.filter(item => item.roles.includes('reception'));
     }
     return allMenuItems.filter((item) => item.roles.includes(userRole));
   }, [userRole]);
