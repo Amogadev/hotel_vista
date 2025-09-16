@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { StatCard } from "./stat-card";
 
 import {
@@ -107,7 +106,6 @@ export default function Dashboard() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
       <header className="flex items-center gap-4">
-        <SidebarTrigger className="md:hidden" />
         <h1 className="font-headline text-2xl font-bold tracking-tight md:text-3xl">
           Dashboard
         </h1>

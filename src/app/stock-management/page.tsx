@@ -1,14 +1,13 @@
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import HotelVistaSidebar from '@/components/hotel-vista/sidebar';
+import Topbar from '@/components/hotel-vista/topbar';
 import StockManagementDashboard from '@/components/hotel-vista/stock-management-client';
 
 export default function StockManagementPage() {
   return (
-    <SidebarProvider>
-      <HotelVistaSidebar collapsible="icon" />
-      <SidebarInset>
+    <div className="flex flex-col min-h-screen">
+      <Topbar />
+      <main className="flex-1 pt-16">
         <StockManagementDashboard />
-      </SidebarInset>
-    </SidebarProvider>
+      </main>
+    </div>
   );
 }

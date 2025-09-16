@@ -33,7 +33,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { SidebarTrigger } from '../ui/sidebar';
 import { RoomDetailsModal } from './room-details-modal';
 import { AddRoomModal, RoomFormValues } from './add-room-modal';
 import { EditRoomModal, EditRoomFormValues } from './edit-room-modal';
