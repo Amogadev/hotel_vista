@@ -7,13 +7,11 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { BedDouble, LogIn } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Camera, User, Lock } from 'lucide-react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -31,49 +29,49 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-primary/10 via-background to-background p-4">
-      <Card className="w-full max-w-md animate-fade-in-down shadow-2xl">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 animate-pulse">
-            <BedDouble className="h-10 w-10 text-primary" />
+    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-[#0a192f] to-[#1e3a8a] p-4 text-white">
+      <Card className="w-full max-w-sm rounded-2xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-lg animate-fade-in-down">
+        <CardContent className="p-0">
+          <div className="mb-8 flex justify-center">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-cyan-400/50 bg-cyan-400/10">
+              <Camera className="h-12 w-12 text-cyan-400" />
+            </div>
           </div>
-          <CardTitle className="text-4xl font-bold tracking-tight text-primary">
-            Hotel Vista
-          </CardTitle>
-          <CardDescription className="text-lg">
-            Welcome back. Please sign in to continue.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
           <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 id="username"
                 type="text"
-                placeholder="admin"
+                placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="transition-all duration-300 focus:scale-105"
+                className="w-full rounded-lg border-none bg-blue-900/50 py-3 pl-10 text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 id="password"
                 type="password"
-                placeholder="admin"
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="transition-all duration-300 focus:scale-105"
+                className="w-full rounded-lg border-none bg-blue-900/50 py-3 pl-10 text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
               />
             </div>
-            {error && <p className="text-center text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full text-lg transition-transform duration-300 hover:scale-105">
-              <LogIn className="mr-2 h-5 w-5" />
-              Sign In
+             <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <Checkbox id="remember" className="border-gray-400 data-[state=checked]:bg-cyan-400 data-[state=checked]:border-cyan-400"/>
+                <Label htmlFor="remember" className="cursor-pointer text-gray-300">Remember me</Label>
+              </div>
+              <a href="#" className="text-gray-300 hover:text-cyan-400">Forgot Password?</a>
+            </div>
+            {error && <p className="text-center text-sm text-red-400">{error}</p>}
+            <Button type="submit" className="w-full rounded-lg bg-cyan-500 py-3 text-base font-bold text-white transition-all hover:bg-cyan-600 hover:shadow-lg hover:shadow-cyan-500/50">
+              LOGIN
             </Button>
           </form>
         </CardContent>
