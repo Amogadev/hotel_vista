@@ -12,7 +12,6 @@ import {
   Plus,
   Eye,
   Settings,
-  ArrowLeft,
   Trash2,
   Loader2,
 } from 'lucide-react';
