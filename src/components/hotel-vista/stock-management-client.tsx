@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { StockReport, type StockItem } from './stock-report';
 import { AddStockItemModal, StockItemFormValues } from './add-stock-item-modal';
+import { EditStockItemModal, EditStockItemFormValues } from './edit-stock-item-modal';
 import { useToast } from '@/hooks/use-toast';
 
 const initialStockItems: StockItem[] = [
@@ -116,6 +117,8 @@ export default function StockManagementDashboard() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
+  const [isEditItemModalOpen, setIsEditItemModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<StockItem | null>(null);
 
   const handlePrintReport = () => {
     const printWindow = window.open('', '_blank');
@@ -155,13 +158,13 @@ export default function StockManagementDashboard() {
   const handleOpenAddItemModal = () => setIsAddItemModalOpen(true);
   const handleCloseAddItemModal = () => setIsAddItemModalOpen(false);
 
-  const handleItemAdded = (newItemData: StockItemFormValues) => {
-    const getStatus = (current: number, min: number): 'critical' | 'low' | 'normal' => {
-      if (current < min) return 'critical';
-      if (current < min * 1.2) return 'low';
-      return 'normal';
-    };
+  const getStatus = (current: number, min: number): 'critical' | 'low' | 'normal' => {
+    if (current < min) return 'critical';
+    if (current < min * 1.2) return 'low';
+    return 'normal';
+  };
 
+  const handleItemAdded = (newItemData: StockItemFormValues) => {
     const newItem: StockItem = {
       ...newItemData,
       status: getStatus(newItemData.current, newItemData.min),
@@ -170,8 +173,25 @@ export default function StockManagementDashboard() {
     handleCloseAddItemModal();
   };
 
-  const handleEditItem = (itemName: string) => {
-    toast({ title: "Edit Item", description: `Edit functionality for ${itemName} is not yet implemented.` });
+  const handleEditItem = (item: StockItem) => {
+    setEditingItem(item);
+    setIsEditItemModalOpen(true);
+  };
+  
+  const handleCloseEditItemModal = () => {
+    setEditingItem(null);
+    setIsEditItemModalOpen(false);
+  };
+
+  const handleItemUpdated = (updatedItemData: EditStockItemFormValues & { originalName: string }) => {
+    const updatedItem: StockItem = {
+      ...updatedItemData,
+      status: getStatus(updatedItemData.current, updatedItemData.min),
+    };
+    setStockItems(prevItems =>
+      prevItems.map(item => (item.name === updatedItemData.originalName ? updatedItem : item))
+    );
+    handleCloseEditItemModal();
   };
 
   const handleRemoveItem = (itemName: string) => {
@@ -322,7 +342,7 @@ export default function StockManagementDashboard() {
                                 <p className="font-semibold">{item.supplier}</p>
                             </div>
                             <div className="flex gap-2">
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditItem(item.name)}>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditItem(item)}>
                                     <Settings />
                                 </Button>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleRemoveItem(item.name)}>
@@ -340,6 +360,14 @@ export default function StockManagementDashboard() {
         onClose={handleCloseAddItemModal}
         onItemAdded={handleItemAdded}
       />
+      {editingItem && (
+        <EditStockItemModal
+            isOpen={isEditItemModalOpen}
+            onClose={handleCloseEditItemModal}
+            onItemUpdated={handleItemUpdated}
+            item={editingItem}
+        />
+      )}
     </div>
   );
 }
