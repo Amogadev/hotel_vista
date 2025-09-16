@@ -5,7 +5,7 @@ import BarLiquorManagementDashboard from '@/components/hotel-vista/bar-liquor-cl
 export default function BarLiquorManagementPage() {
   return (
     <SidebarProvider>
-      <HotelVistaSidebar />
+      <HotelVistaSidebar collapsible="icon" />
       <SidebarInset>
         <BarLiquorManagementDashboard />
       </SidebarInset>

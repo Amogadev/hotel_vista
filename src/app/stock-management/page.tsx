@@ -5,7 +5,7 @@ import StockManagementDashboard from '@/components/hotel-vista/stock-management-
 export default function StockManagementPage() {
   return (
     <SidebarProvider>
-      <HotelVistaSidebar />
+      <HotelVistaSidebar collapsible="icon" />
       <SidebarInset>
         <StockManagementDashboard />
       </SidebarInset>

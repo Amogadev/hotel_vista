@@ -10,6 +10,8 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  useSidebar,
+  SidebarRail,
 } from "@/components/ui/sidebar";
 import {
   Home,
@@ -23,6 +25,7 @@ import {
 } from "lucide-react";
 import { usePathname } from 'next/navigation';
 import { useUserRole } from "@/hooks/use-user-role";
+import { Button } from "../ui/button";
 
 const allMenuItems = [
   {
@@ -57,9 +60,15 @@ const allMenuItems = [
   },
 ];
 
-export default function HotelVistaSidebar() {
+type HotelVistaSidebarProps = {
+    collapsible?: "icon" | "offcanvas" | "none";
+}
+
+export default function HotelVistaSidebar({ collapsible = "none" }: HotelVistaSidebarProps) {
   const pathname = usePathname();
   const userRole = useUserRole();
+  const { toggleSidebar } = useSidebar();
+
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
@@ -75,15 +84,22 @@ export default function HotelVistaSidebar() {
   }, [userRole]);
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <BedDouble className="h-5 w-5" />
-          </div>
-          <span className="text-lg font-semibold">HotelVista</span>
-        </div>
-      </SidebarHeader>
+    <Sidebar collapsible={collapsible}>
+        {collapsible === 'icon' && <SidebarRail />}
+        <Button
+            variant="ghost"
+            className="h-auto w-full justify-start p-2 hover:bg-sidebar-accent"
+            onClick={toggleSidebar}
+        >
+            <SidebarHeader>
+                <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                    <BedDouble className="h-5 w-5" />
+                </div>
+                <span className="text-lg font-semibold">HotelVista</span>
+                </div>
+            </SidebarHeader>
+        </Button>
       <SidebarContent>
         <SidebarMenu>
           {menuItems.map((item) => (
