@@ -111,7 +111,7 @@ export default function HotelVistaSidebar({ collapsible = "none" }: HotelVistaSi
               >
                 <a href={item.href}>
                   <item.icon />
-                  <span>{item.label}</span>
+                  {state === 'expanded' && <span>{item.label}</span>}
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -124,7 +124,7 @@ export default function HotelVistaSidebar({ collapsible = "none" }: HotelVistaSi
             <SidebarMenuButton asChild tooltip={{ children: "Settings" }}>
               <a href="#">
                 <Settings />
-                <span>Settings</span>
+                {state === 'expanded' && <span>Settings</span>}
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -132,7 +132,7 @@ export default function HotelVistaSidebar({ collapsible = "none" }: HotelVistaSi
             <SidebarMenuButton asChild tooltip={{ children: "Log out" }} className="hover:bg-destructive/10 text-red-700 hover:text-red-800" onClick={handleLogout}>
               <a href="/login">
                 <LogOut />
-                <span>Log out</span>
+                {state === 'expanded' && <span>Log out</span>}
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
