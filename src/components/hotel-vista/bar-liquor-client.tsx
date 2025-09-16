@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useTransition } from 'react';
 import { DataContext, InventoryItem, RecentSale } from '@/context/data-provider';
 import {
   DollarSign,
@@ -12,6 +12,9 @@ import {
   Wine,
   Plus,
   Clock,
+  Settings,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,11 +25,24 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Separator } from '@/components/ui/separator';
 import { RecordSaleModal, SaleFormValues } from './record-sale-modal';
 import { AddBarProductModal, BarProductFormValues } from './add-bar-product-modal';
+import { EditBarProductModal, EditBarProductFormValues } from './edit-bar-product-modal';
 import { UpdateStockModal } from './update-stock-modal';
 import { formatDistanceToNow } from 'date-fns';
+import { deleteBarProduct } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const useTimeAgo = (date: Date) => {
   const [timeAgo, setTimeAgo] = useState<string | null>(null);
@@ -102,6 +118,8 @@ function RecentSaleItem({ sale }: { sale: RecentSale }) {
 
 
 export default function BarLiquorManagementDashboard() {
+  const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
   const {
     inventoryItems,
     setInventoryItems,
@@ -110,14 +128,27 @@ export default function BarLiquorManagementDashboard() {
   } = useContext(DataContext);
   const [isRecordSaleModalOpen, setIsRecordSaleModalOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
   const [isUpdateStockModalOpen, setIsUpdateStockModalOpen] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [updatingItem, setUpdatingItem] = useState<InventoryItem | null>(null);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [deletingItem, setDeletingItem] = useState<InventoryItem | null>(null);
 
   const handleOpenRecordSaleModal = () => setIsRecordSaleModalOpen(true);
   const handleCloseRecordSaleModal = () => setIsRecordSaleModalOpen(false);
 
   const handleOpenAddProductModal = () => setIsAddProductModalOpen(true);
   const handleCloseAddProductModal = () => setIsAddProductModalOpen(false);
+  
+  const handleOpenEditProductModal = (item: InventoryItem) => {
+    setEditingItem(item);
+    setIsEditProductModalOpen(true);
+  }
+  const handleCloseEditProductModal = () => {
+    setEditingItem(null);
+    setIsEditProductModalOpen(false);
+  }
 
   const handleOpenUpdateStockModal = (item: InventoryItem) => {
     setUpdatingItem(item);
@@ -127,6 +158,11 @@ export default function BarLiquorManagementDashboard() {
     setUpdatingItem(null);
     setIsUpdateStockModalOpen(false);
   };
+
+  const handleOpenDeleteAlert = (item: InventoryItem) => {
+    setDeletingItem(item);
+    setIsDeleteAlertOpen(true);
+  }
 
   const handleSaleRecorded = (saleData: SaleFormValues) => {
     const selectedItem = inventoryItems.find(item => item.name === saleData.name);
@@ -164,6 +200,15 @@ export default function BarLiquorManagementDashboard() {
     handleCloseAddProductModal();
   };
 
+  const handleProductUpdated = (updatedProductData: EditBarProductFormValues & { originalName: string }) => {
+    setInventoryItems(prevItems => prevItems.map(item =>
+        item.name === updatedProductData.originalName
+            ? { ...item, ...updatedProductData, status: getStatusFromStock(updatedProductData.stock) }
+            : item
+    ));
+    handleCloseEditProductModal();
+  };
+
   const handleStockUpdated = (productName: string, newStock: number) => {
     setInventoryItems(prevItems => prevItems.map(item =>
         item.name === productName
@@ -171,6 +216,34 @@ export default function BarLiquorManagementDashboard() {
             : item
     ));
     handleCloseUpdateStockModal();
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingItem) return;
+
+    startTransition(async () => {
+        try {
+            const result = await deleteBarProduct(deletingItem.name);
+            if (result.success) {
+                toast({
+                    title: "Product Deleted",
+                    description: `${deletingItem.name} has been removed from inventory.`,
+                });
+                setInventoryItems(prevItems => prevItems.filter(i => i.name !== deletingItem.name));
+            } else {
+                throw new Error(result.error || "Failed to delete product");
+            }
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to delete the product. Please try again.",
+            });
+        } finally {
+            setIsDeleteAlertOpen(false);
+            setDeletingItem(null);
+        }
+    });
   };
 
   return (
@@ -238,7 +311,15 @@ export default function BarLiquorManagementDashboard() {
                         <p className="font-semibold text-yellow-600">₹{item.price}</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => handleOpenUpdateStockModal(item)}>Update Stock</Button>
+                    <div className="flex items-center gap-1">
+                        <Button variant="outline" size="sm" onClick={() => handleOpenUpdateStockModal(item)}>Update Stock</Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenEditProductModal(item)}>
+                            <Settings className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleOpenDeleteAlert(item)}>
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
                   </div>
                 </div>
               </React.Fragment>
@@ -282,6 +363,31 @@ export default function BarLiquorManagementDashboard() {
           item={updatingItem}
         />
       )}
+      {editingItem && (
+        <EditBarProductModal
+            isOpen={isEditProductModalOpen}
+            onClose={handleCloseEditProductModal}
+            onProductUpdated={handleProductUpdated}
+            product={editingItem}
+        />
+      )}
+       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to remove this product?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently remove {deletingItem?.name} from your inventory.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setDeletingItem(null)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDelete} disabled={isPending} className="bg-destructive hover:bg-destructive/90">
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Remove
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

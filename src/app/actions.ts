@@ -209,6 +209,45 @@ export async function updateBarProductStock(productName: string, newStock: numbe
     }
 }
 
+export async function updateBarProduct(updatedProduct: {
+    originalName: string;
+    name: string;
+    type: string;
+    price: number;
+    stock: number;
+}) {
+    try {
+        const q = query(collection(db, "barProducts"), where("name", "==", updatedProduct.originalName));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            const docId = querySnapshot.docs[0].id;
+            const { originalName, ...productData } = updatedProduct;
+            await updateDoc(doc(db, "barProducts", docId), productData);
+            return { success: true, product: updatedProduct };
+        }
+        return { success: false, error: "Product not found" };
+    } catch (e) {
+        console.error("Error updating document: ", e);
+        return { success: false, error: "Failed to update product" };
+    }
+}
+
+export async function deleteBarProduct(productName: string) {
+    try {
+        const q = query(collection(db, "barProducts"), where("name", "==", productName));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            const docId = querySnapshot.docs[0].id;
+            await deleteDoc(doc(db, "barProducts", docId));
+            return { success: true };
+        }
+        return { success: false, error: "Product not found" };
+    } catch (e) {
+        console.error("Error deleting document: ", e);
+        return { success: false, error: "Failed to delete product" };
+    }
+}
+
 export async function getStockItems() {
     const querySnapshot = await getDocs(collection(db, "stockItems"));
     const items = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
