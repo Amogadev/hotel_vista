@@ -30,7 +30,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center bg-blue-100 p-4 overflow-hidden">
+    <div className="relative flex min-h-screen w-full items-center justify-center bg-gradient-to-r from-blue-900 to-cyan-500 p-4 overflow-hidden">
       <AnimatedShapes />
       <Card className="w-full max-w-sm rounded-2xl border bg-white/50 p-8 shadow-2xl backdrop-blur-md animate-fade-in-down z-10">
         <CardContent className="p-0">
