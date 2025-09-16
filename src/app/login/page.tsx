@@ -14,6 +14,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Sofa, User, Lock } from 'lucide-react';
 import AnimatedShapes from '@/components/hotel-vista/animated-shapes';
 
+const users = [
+  { username: 'admin', password: 'admin', role: 'admin', redirect: '/' },
+  { username: 'staff', password: 'staff', role: 'reception', redirect: '/room-management' },
+  { username: 'hotel', password: 'hotel', role: 'restaurant', redirect: '/restaurant' },
+  { username: 'bar', password: 'bar', role: 'bar', redirect: '/bar-liquor' },
+];
+
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -22,8 +29,12 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'admin') {
-      router.push('/');
+    const user = users.find(
+      (u) => u.username === username && u.password === password
+    );
+
+    if (user) {
+      router.push(user.redirect);
     } else {
       setError('Invalid username or password');
     }
