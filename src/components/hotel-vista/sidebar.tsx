@@ -67,7 +67,7 @@ type HotelVistaSidebarProps = {
 export default function HotelVistaSidebar({ collapsible = "none" }: HotelVistaSidebarProps) {
   const pathname = usePathname();
   const userRole = useUserRole();
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, state } = useSidebar();
 
 
   const handleLogout = () => {
@@ -86,19 +86,19 @@ export default function HotelVistaSidebar({ collapsible = "none" }: HotelVistaSi
   return (
     <Sidebar collapsible={collapsible}>
         {collapsible === 'icon' && <SidebarRail onClick={toggleSidebar} />}
-        <SidebarHeader>
-            <Button
-                variant="ghost"
-                className="h-auto w-full justify-start p-2 hover:bg-sidebar-accent"
-                onClick={toggleSidebar}
-            >
-                <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                        <BedDouble className="h-5 w-5" />
-                    </div>
-                    <span className="text-lg font-semibold">HotelVista</span>
-                </div>
-            </Button>
+        <SidebarHeader className="p-0">
+          <div 
+              className="flex h-12 items-center justify-center"
+              role="button"
+              onClick={toggleSidebar}
+          >
+              <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                      <BedDouble className="h-5 w-5" />
+                  </div>
+                  {state === 'expanded' && <span className="text-lg font-semibold">HotelVista</span>}
+              </div>
+          </div>
         </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
