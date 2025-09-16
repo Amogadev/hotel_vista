@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition, useMemo } from 'react';
 import {
   UtensilsCrossed,
   DollarSign,
@@ -54,29 +54,6 @@ const useTimeAgo = (date: Date) => {
 
   return timeAgo;
 };
-
-const stats = [
-  {
-    title: "Today's Orders",
-    value: '47',
-    icon: <UtensilsCrossed className="h-6 w-6 text-blue-500" />,
-  },
-  {
-    title: 'Revenue',
-    value: '$2,340',
-    icon: <DollarSign className="h-6 w-6 text-green-500" />,
-  },
-  {
-    title: 'Active Orders',
-    value: '12',
-    icon: <Clock className="h-6 w-6 text-yellow-500" />,
-  },
-  {
-    title: 'Avg. Order Value',
-    value: '$49.79',
-    icon: <DollarSign className="h-6 w-6 text-yellow-500" />,
-  },
-];
 
 const initialActiveOrders = [
   {
@@ -241,6 +218,40 @@ export default function RestaurantManagementDashboard() {
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+
+  const stats = useMemo(() => {
+    const totalOrders = activeOrders.length;
+    const revenue = activeOrders.reduce((sum, order) => {
+      return sum + parseFloat(order.price.replace('$', ''));
+    }, 0);
+    const activeOrdersCount = activeOrders.filter(
+      (order) => order.status === 'preparing' || order.status === 'pending'
+    ).length;
+    const avgOrderValue = totalOrders > 0 ? revenue / totalOrders : 0;
+
+    return [
+      {
+        title: "Today's Orders",
+        value: totalOrders.toString(),
+        icon: <UtensilsCrossed className="h-6 w-6 text-blue-500" />,
+      },
+      {
+        title: 'Revenue',
+        value: `$${revenue.toFixed(2)}`,
+        icon: <DollarSign className="h-6 w-6 text-green-500" />,
+      },
+      {
+        title: 'Active Orders',
+        value: activeOrdersCount.toString(),
+        icon: <Clock className="h-6 w-6 text-yellow-500" />,
+      },
+      {
+        title: 'Avg. Order Value',
+        value: `$${avgOrderValue.toFixed(2)}`,
+        icon: <DollarSign className="h-6 w-6 text-yellow-500" />,
+      },
+    ];
+  }, [activeOrders]);
 
   const handleOpenAddMenuItemModal = () => {
     setIsAddMenuItemModalOpen(true);
