@@ -34,9 +34,15 @@ export default function LoginPage() {
     );
 
     if (user) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('userRole', user.role);
+      }
       router.push(user.redirect);
     } else {
       setError('Invalid username or password');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('userRole');
+      }
     }
   };
 

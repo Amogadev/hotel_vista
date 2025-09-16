@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -21,36 +22,56 @@ import {
   LogOut,
 } from "lucide-react";
 import { usePathname } from 'next/navigation';
+import { useUserRole } from "@/hooks/use-user-role";
+
+const allMenuItems = [
+  {
+    href: "/",
+    label: "Dashboard",
+    icon: Home,
+    roles: ["admin"],
+  },
+  {
+    href: "/room-management",
+    label: "Room Management",
+    icon: BedDouble,
+    roles: ["admin", "reception"],
+  },
+  {
+    href: "/restaurant",
+    label: "Restaurant",
+    icon: UtensilsCrossed,
+    roles: ["admin", "restaurant"],
+  },
+  {
+    href: "/bar-liquor",
+    label: "Bar & Liquor",
+    icon: Wine,
+    roles: ["admin", "bar"],
+  },
+  {
+    href: "/stock-management",
+    label: "Stock Management",
+    icon: Box,
+    roles: ["admin"],
+  },
+];
 
 export default function HotelVistaSidebar() {
   const pathname = usePathname();
-  const menuItems = [
-    {
-      href: "/",
-      label: "Dashboard",
-      icon: Home,
-    },
-    {
-      href: "/room-management",
-      label: "Room Management",
-      icon: BedDouble,
-    },
-    {
-      href: "/restaurant",
-      label: "Restaurant",
-      icon: UtensilsCrossed,
-    },
-    {
-      href: "/bar-liquor",
-      label: "Bar & Liquor",
-      icon: Wine,
-    },
-    {
-      href: "/stock-management",
-      label: "Stock Management",
-      icon: Box,
-    },
-  ];
+  const userRole = useUserRole();
+
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('userRole');
+    }
+  };
+
+  const menuItems = React.useMemo(() => {
+    if (!userRole) return [];
+    if (userRole === 'admin') return allMenuItems.filter(item => item.roles.includes('admin'));
+    return allMenuItems.filter(item => item.roles.includes(userRole));
+  }, [userRole]);
 
   return (
     <Sidebar collapsible="icon">
@@ -91,7 +112,7 @@ export default function HotelVistaSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={{ children: "Log out" }} className="hover:bg-destructive/10 text-red-700 hover:text-red-800">
+            <SidebarMenuButton asChild tooltip={{ children: "Log out" }} className="hover:bg-destructive/10 text-red-700 hover:text-red-800" onClick={handleLogout}>
               <a href="/login">
                 <LogOut />
                 <span>Log out</span>
