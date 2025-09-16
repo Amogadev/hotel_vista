@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   UtensilsCrossed,
   DollarSign,
@@ -10,7 +10,6 @@ import {
   Eye,
   CheckCircle2,
   AlertCircle,
-  CircleHelp,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,6 +23,23 @@ import {
 import { AddMenuItemModal, MenuItemFormValues } from './add-menu-item-modal';
 import { EditMenuItemModal, EditMenuItemFormValues } from './edit-menu-item-modal';
 import { NewOrderModal, OrderFormValues } from './new-order-modal';
+import { formatDistanceToNow } from 'date-fns';
+
+const useTimeAgo = (date: Date) => {
+  const [timeAgo, setTimeAgo] = useState(() =>
+    formatDistanceToNow(date, { addSuffix: true })
+  );
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeAgo(formatDistanceToNow(date, { addSuffix: true }));
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, [date]);
+
+  return timeAgo;
+};
 
 const stats = [
   {
@@ -54,7 +70,7 @@ const initialActiveOrders = [
     status: 'preparing',
     table: 5,
     items: 'Grilled Salmon, Caesar Salad',
-    time: '15 mins ago',
+    time: new Date(Date.now() - 15 * 60 * 1000),
     price: '$40',
     icon: <Clock className="h-5 w-5 mr-2" />,
   },
@@ -63,7 +79,7 @@ const initialActiveOrders = [
     status: 'pending',
     table: 12,
     items: 'Ribeye Steak, Chocolate Mousse',
-    time: '5 mins ago',
+    time: new Date(Date.now() - 5 * 60 * 1000),
     price: '$54',
     icon: <AlertCircle className="h-5 w-5 mr-2" />,
   },
@@ -72,7 +88,7 @@ const initialActiveOrders = [
     status: 'ready',
     table: 3,
     items: 'Caesar Salad, Chocolate Mousse',
-    time: '25 mins ago',
+    time: new Date(Date.now() - 25 * 60 * 1000),
     price: '$21',
     icon: <CheckCircle2 className="h-5 w-5 mr-2" />,
   },
@@ -112,7 +128,7 @@ type MenuItem = {
     status: string;
 };
 
-type ActiveOrder = (typeof initialActiveOrders)[0];
+type ActiveOrder = Omit<(typeof initialActiveOrders)[0], 'time'> & { time: Date };
 
 const orderStatusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
     preparing: 'default',
@@ -141,6 +157,7 @@ const menuStatusColorMap: { [key: string]: string } = {
 function OrderCard({ order }: { order: ActiveOrder }) {
     const variant = orderStatusVariantMap[order.status] || 'default';
     const colorClass = orderStatusColorMap[order.status] || '';
+    const timeAgo = useTimeAgo(order.time);
   
     return (
       <Card>
@@ -151,7 +168,7 @@ function OrderCard({ order }: { order: ActiveOrder }) {
               <p className="font-bold">{order.id}</p>
               <Badge variant={variant} className={`ml-2 capitalize ${colorClass}`}>{order.status}</Badge>
             </div>
-            <p className="text-sm text-muted-foreground">{order.time}</p>
+            <p className="text-sm text-muted-foreground">{timeAgo}</p>
           </div>
           <div className="mt-2">
             <p className="text-sm text-muted-foreground">Table {order.table}</p>
@@ -256,7 +273,7 @@ export default function RestaurantManagementDashboard() {
       status: 'pending',
       table: newOrderData.table,
       items: newOrderData.items,
-      time: 'Just now',
+      time: new Date(),
       price: `$${newOrderData.price}`,
       icon: <AlertCircle className="h-5 w-5 mr-2" />,
     };
