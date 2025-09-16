@@ -109,11 +109,6 @@ export default function Topbar() {
             </nav>
           </div>
           <div className="flex items-center gap-0">
-             <Button variant="ghost" size="icon" asChild>
-                <Link href="#">
-                    <Settings className="h-5 w-5" />
-                </Link>
-             </Button>
             <Button
               variant="ghost"
               size="icon"
