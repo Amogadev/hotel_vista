@@ -35,6 +35,12 @@ const allMenuItems = [
     roles: ["admin"],
   },
   {
+    href: "/room-management",
+    label: "Room Management",
+    icon: BedDouble,
+    roles: ["admin", "reception"],
+  },
+  {
     href: "/restaurant",
     label: "Restaurant",
     icon: UtensilsCrossed,
@@ -74,6 +80,16 @@ export default function HotelVistaSidebar({ collapsible = "none" }: HotelVistaSi
   const menuItems = React.useMemo(() => {
     if (!userRole) return [];
     if (userRole === 'admin') return allMenuItems.filter(item => item.roles.includes('admin'));
+    if (userRole === 'reception') {
+      return [
+        {
+          href: "/room-management",
+          label: "Room Management",
+          icon: BedDouble,
+          roles: ["admin", "reception"],
+        }
+      ]
+    }
     return allMenuItems.filter(item => item.roles.includes(userRole));
   }, [userRole]);
 
