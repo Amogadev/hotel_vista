@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   DollarSign,
   BarChart,
@@ -21,6 +21,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { RecordSaleModal, SaleFormValues } from './record-sale-modal';
+import { useToast } from '@/hooks/use-toast';
 
 const stats = [
   {
@@ -90,7 +92,7 @@ const inventoryItems = [
   },
 ];
 
-const recentSales = [
+const initialRecentSales = [
   {
     name: 'Premium Whiskey',
     qty: 2,
@@ -131,6 +133,34 @@ const statusColorMap: { [key: string]: string } = {
 
 
 export default function BarLiquorManagementDashboard() {
+  const [isRecordSaleModalOpen, setIsRecordSaleModalOpen] = useState(false);
+  const [recentSales, setRecentSales] = useState(initialRecentSales);
+  const { toast } = useToast();
+
+  const handleOpenRecordSaleModal = () => {
+    setIsRecordSaleModalOpen(true);
+  };
+
+  const handleCloseRecordSaleModal = () => {
+    setIsRecordSaleModalOpen(false);
+  };
+
+  const handleSaleRecorded = (saleData: SaleFormValues) => {
+    const selectedItem = inventoryItems.find(item => item.name === saleData.name);
+    if (!selectedItem) return;
+
+    const newSale = {
+      name: saleData.name,
+      qty: saleData.qty,
+      price: selectedItem.price * saleData.qty,
+      room: saleData.room,
+      time: 'Just now',
+    };
+
+    setRecentSales(prevSales => [newSale, ...prevSales]);
+    handleCloseRecordSaleModal();
+  };
+
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
       <header className="flex flex-wrap items-center justify-between gap-4">
@@ -139,7 +169,7 @@ export default function BarLiquorManagementDashboard() {
           <p className="text-muted-foreground">Track sales and manage liquor inventory</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleOpenRecordSaleModal}>
             <Plus className="mr-2 h-4 w-4" />
             Record Sale
           </Button>
@@ -232,6 +262,12 @@ export default function BarLiquorManagementDashboard() {
           </CardContent>
         </Card>
       </div>
+      <RecordSaleModal
+        isOpen={isRecordSaleModalOpen}
+        onClose={handleCloseRecordSaleModal}
+        onSaleRecorded={handleSaleRecorded}
+        inventoryItems={inventoryItems}
+      />
     </div>
   );
 }
