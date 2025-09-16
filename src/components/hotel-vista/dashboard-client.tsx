@@ -1,13 +1,10 @@
 
 "use client";
 
-import React, { useState, useTransition } from "react";
-import { getTrendAnalysis } from "@/app/actions";
-import type { AnalyzeDashboardTrendsOutput } from "@/ai/flows/analyze-dashboard-trends";
+import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { StatCard } from "./stat-card";
 import {
   LineChart,
@@ -25,15 +22,11 @@ import {
   UtensilsCrossed,
   Wine,
   Plus,
-  ArrowRight,
-  Sparkles,
-  Loader2,
   CalendarCheck,
   PackagePlus,
   ClipboardList
 } from "lucide-react";
 import Link from "next/link";
-import { useToast } from "@/hooks/use-toast";
 
 
 const activityItems = [
@@ -74,26 +67,6 @@ const chartData = [
 ];
 
 export default function Dashboard() {
-  const [analysis, setAnalysis] = useState<AnalyzeDashboardTrendsOutput | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const { toast } = useToast();
-
-  const handleAnalyzeTrends = () => {
-    startTransition(async () => {
-      try {
-        const result = await getTrendAnalysis();
-        setAnalysis(result);
-      } catch (error) {
-        console.error("Failed to analyze trends:", error);
-        toast({
-          variant: "destructive",
-          title: "Analysis Failed",
-          description: "Could not retrieve AI-powered insights. Please try again later.",
-        });
-      }
-    });
-  };
-  
   const stats = [
     {
       title: "Total Revenue",
@@ -101,7 +74,6 @@ export default function Dashboard() {
       trend: "+12.5% from last month",
       trendColor: "text-green-600",
       icon: <DollarSign className="h-5 w-5 text-green-500" />,
-      isAnomalous: analysis?.isAnomalousRevenueTrend,
     },
     {
       title: "Occupied Rooms",
@@ -109,7 +81,6 @@ export default function Dashboard() {
       trend: "+6.3% from last month",
       trendColor: "text-blue-600",
       icon: <BedDouble className="h-5 w-5 text-blue-500" />,
-      isAnomalous: analysis?.isAnomalousOccupancyTrend,
     },
     {
       title: "Active Guests",
@@ -117,7 +88,6 @@ export default function Dashboard() {
       trend: "+8.2% from last month",
       trendColor: "text-orange-600",
       icon: <Users className="h-5 w-5 text-orange-500" />,
-      isAnomalous: analysis?.isAnomalousGuestTrend,
     },
     {
       title: "Restaurant Orders",
@@ -125,7 +95,6 @@ export default function Dashboard() {
       trend: "+15.3% from last month",
       trendColor: "text-yellow-600",
       icon: <UtensilsCrossed className="h-5 w-5 text-yellow-500" />,
-      isAnomalous: analysis?.isAnomalousRestaurantOrderTrend,
     },
   ];
 
@@ -135,24 +104,9 @@ export default function Dashboard() {
         <h1 className="font-headline text-2xl font-bold tracking-tight md:text-3xl">
           Dashboard
         </h1>
-        <Button onClick={handleAnalyzeTrends} disabled={isPending}>
-          {isPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Sparkles className="mr-2 h-4 w-4" />
-          )}
-          Analyze Trends
-        </Button>
       </header>
 
       <main className="flex flex-1 flex-col gap-4 md:gap-8">
-        {analysis?.insights && (
-          <Alert>
-            <Sparkles className="h-4 w-4" />
-            <AlertTitle className="font-headline">AI-Powered Insights</AlertTitle>
-            <AlertDescription>{analysis.insights}</AlertDescription>
-          </Alert>
-        )}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
             <StatCard key={stat.title} {...stat} />

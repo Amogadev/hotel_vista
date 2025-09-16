@@ -7,7 +7,6 @@ type StatCardProps = {
   trend: string;
   trendColor: string;
   icon: React.ReactNode;
-  isAnomalous?: boolean;
 };
 
 export function StatCard({
@@ -16,10 +15,9 @@ export function StatCard({
   trend,
   trendColor,
   icon,
-  isAnomalous,
 }: StatCardProps) {
   return (
-    <Card className={cn("transition-all", isAnomalous && "ring-2 ring-destructive")}>
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <div className="text-muted-foreground">{icon}</div>
