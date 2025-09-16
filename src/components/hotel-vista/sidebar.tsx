@@ -35,12 +35,6 @@ const allMenuItems = [
     roles: ["admin"],
   },
   {
-    href: "/room-management",
-    label: "Room Management",
-    icon: BedDouble,
-    roles: ["admin", "reception"],
-  },
-  {
     href: "/restaurant",
     label: "Restaurant",
     icon: UtensilsCrossed,
