@@ -123,7 +123,7 @@ export async function deleteMenuItem(itemName: string) {
             await deleteDoc(doc(db, "menuItems", docId));
             return { success: true };
         }
-        return { success: false, error: "Menu item not found" };
+        return { success: false, error: "Stock item not found" };
     } catch (e) {
         console.error("Error deleting document: ", e);
         return { success: false, error: "Failed to delete menu item" };

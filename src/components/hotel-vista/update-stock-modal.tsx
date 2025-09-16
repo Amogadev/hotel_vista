@@ -69,6 +69,7 @@ export function UpdateStockModal({ isOpen, onClose, onStockUpdated, item }: Upda
             description: `${item.name} stock has been updated to ${values.newStock}.`,
           });
           onStockUpdated(item.name, values.newStock);
+          onClose();
         } else {
           throw new Error('Failed to update stock');
         }
