@@ -59,15 +59,6 @@ export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center bg-gradient-to-r from-blue-900 to-cyan-500 p-4 overflow-hidden">
       <AnimatedShapes />
-      <div className="absolute top-4 left-4 grid grid-cols-2 gap-4 text-white">
-        {users.map(u => (
-            <div key={u.username} className="rounded-lg bg-white/10 p-3 text-sm backdrop-blur-sm">
-                <p>User: <strong>{u.username}</strong></p>
-                <p>Pass: <strong>{u.password}</strong></p>
-                <p>Status: <span className={activeUser === u.username ? "text-green-400 font-bold" : "text-red-400"}>{activeUser === u.username ? 'Active' : 'Inactive'}</span></p>
-            </div>
-        ))}
-      </div>
       <Card className="w-full max-w-sm rounded-2xl border bg-white/50 p-8 shadow-2xl backdrop-blur-md animate-fade-in-down z-10">
         <CardContent className="p-0">
           <div className="mb-8 flex justify-center">
