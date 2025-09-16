@@ -97,7 +97,7 @@ export default function LoginPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400"
               >
-                {showPassword ? <EyeOff /> : <Eye />}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
              <div className="flex items-center justify-between text-sm">
