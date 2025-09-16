@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   DollarSign,
   BarChart,
@@ -24,29 +24,20 @@ import { Separator } from '@/components/ui/separator';
 import { RecordSaleModal, SaleFormValues } from './record-sale-modal';
 import { AddBarProductModal, BarProductFormValues } from './add-bar-product-modal';
 import { UpdateStockModal } from './update-stock-modal';
+import { formatDistanceToNow } from 'date-fns';
 
-const stats = [
-  {
-    title: "Today's Sales",
-    value: '₹1,245',
-    icon: <DollarSign className="h-6 w-6 text-green-500" />,
-  },
-  {
-    title: 'Items Sold',
-    value: '67',
-    icon: <BarChart className="h-6 w-6 text-blue-500" />,
-  },
-  {
-    title: 'Low Stock Items',
-    value: '3',
-    icon: <Box className="h-6 w-6 text-yellow-500" />,
-  },
-  {
-    title: 'Avg. Sale',
-    value: '₹18.60',
-    icon: <TrendingUp className="h-6 w-6 text-orange-500" />,
-  },
-];
+const useTimeAgo = (date: Date) => {
+  const [timeAgo, setTimeAgo] = useState<string | null>(null);
+
+  useEffect(() => {
+    const update = () => setTimeAgo(formatDistanceToNow(date, { addSuffix: true }));
+    update();
+    const interval = setInterval(update, 60000); // Update every minute
+    return () => clearInterval(interval);
+  }, [date]);
+
+  return timeAgo;
+};
 
 const initialInventoryItems = [
   {
@@ -99,26 +90,26 @@ const initialRecentSales = [
     qty: 2,
     room: '204',
     price: 30,
-    time: '5 mins ago',
+    time: new Date(Date.now() - 5 * 60 * 1000),
   },
   {
     name: 'Red Wine',
     qty: 1,
     price: 25,
-    time: '12 mins ago',
+    time: new Date(Date.now() - 12 * 60 * 1000),
   },
   {
     name: 'Craft Beer',
     qty: 4,
     price: 24,
-    time: '18 mins ago',
+    time: new Date(Date.now() - 18 * 60 * 1000),
   },
   {
     name: 'Champagne',
     qty: 1,
     room: '315',
     price: 40,
-    time: '25 mins ago',
+    time: new Date(Date.now() - 25 * 60 * 1000),
   },
 ];
 
@@ -128,6 +119,14 @@ type InventoryItem = {
   stock: number;
   price: number;
   status: 'good' | 'low' | 'critical';
+};
+
+type RecentSale = {
+  name: string;
+  qty: number;
+  room?: string;
+  price: number;
+  time: Date;
 };
 
 const getStatusFromStock = (stock: number): 'good' | 'low' | 'critical' => {
@@ -148,13 +147,54 @@ const statusColorMap: { [key: string]: string } = {
     critical: 'bg-red-400 text-red-950 border-red-500'
 };
 
+const stats = [
+  {
+    title: "Today's Sales",
+    value: '₹1,245',
+    icon: <DollarSign className="h-6 w-6 text-green-500" />,
+  },
+  {
+    title: 'Items Sold',
+    value: '67',
+    icon: <BarChart className="h-6 w-6 text-blue-500" />,
+  },
+  {
+    title: 'Low Stock Items',
+    value: '3',
+    icon: <Box className="h-6 w-6 text-yellow-500" />,
+  },
+  {
+    title: 'Avg. Sale',
+    value: '₹18.60',
+    icon: <TrendingUp className="h-6 w-6 text-orange-500" />,
+  },
+];
+
+function RecentSaleItem({ sale }: { sale: RecentSale }) {
+  const timeAgo = useTimeAgo(sale.time);
+  return (
+    <div className="flex items-start justify-between">
+      <div>
+        <p className="font-semibold">{sale.name}</p>
+        <p className="text-sm text-muted-foreground">
+          Qty: {sale.qty} {sale.room && `| Room ${sale.room}`}
+        </p>
+      </div>
+      <div className="text-right">
+        <p className="font-semibold text-green-600">₹{sale.price}</p>
+        <p className="text-sm text-muted-foreground">{timeAgo ?? 'Calculating...'}</p>
+      </div>
+    </div>
+  );
+}
+
 
 export default function BarLiquorManagementDashboard() {
   const [isRecordSaleModalOpen, setIsRecordSaleModalOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [isUpdateStockModalOpen, setIsUpdateStockModalOpen] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(initialInventoryItems);
-  const [recentSales, setRecentSales] = useState(initialRecentSales);
+  const [recentSales, setRecentSales] = useState<RecentSale[]>(initialRecentSales);
   const [updatingItem, setUpdatingItem] = useState<InventoryItem | null>(null);
 
   const handleOpenRecordSaleModal = () => setIsRecordSaleModalOpen(true);
@@ -176,12 +216,12 @@ export default function BarLiquorManagementDashboard() {
     const selectedItem = inventoryItems.find(item => item.name === saleData.name);
     if (!selectedItem) return;
 
-    const newSale = {
+    const newSale: RecentSale = {
       name: saleData.name,
       qty: saleData.qty,
       price: selectedItem.price * saleData.qty,
       room: saleData.room,
-      time: 'Just now',
+      time: new Date(),
     };
 
     setRecentSales(prevSales => [newSale, ...prevSales]);
@@ -297,18 +337,7 @@ export default function BarLiquorManagementDashboard() {
           <CardContent className="space-y-4">
             {recentSales.map((sale, index) => (
                <React.Fragment key={index}>
-                <div className="flex items-start justify-between">
-                    <div>
-                        <p className="font-semibold">{sale.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                            Qty: {sale.qty} {sale.room && `| Room ${sale.room}`}
-                        </p>
-                    </div>
-                    <div className="text-right">
-                        <p className="font-semibold text-green-600">₹{sale.price}</p>
-                        <p className="text-sm text-muted-foreground">{sale.time}</p>
-                    </div>
-                </div>
+                <RecentSaleItem sale={sale} />
                 {index < recentSales.length - 1 && <Separator />}
               </React.Fragment>
             ))}
