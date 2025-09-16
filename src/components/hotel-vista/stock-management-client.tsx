@@ -150,11 +150,14 @@ export default function StockManagementDashboard() {
       `;
       printWindow.document.write(reportHtml);
       printWindow.document.close();
-
-      import('react-dom/client').then(ReactDOM => {
-        const root = ReactDOM.createRoot(printWindow.document.getElementById('report-root')!);
-        root.render(<StockReport items={stockItems} />);
-      });
+      
+      const reportRoot = printWindow.document.getElementById('report-root');
+      if (reportRoot) {
+        import('react-dom/client').then(ReactDOM => {
+            const root = ReactDOM.createRoot(reportRoot);
+            root.render(<StockReport items={stockItems} />);
+        });
+      }
 
       setTimeout(() => {
         printWindow.print();
