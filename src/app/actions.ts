@@ -115,3 +115,15 @@ export async function recordBarSale(newSale: {
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return { success: true, sale: newSale };
 }
+
+export async function addBarProduct(newProduct: {
+  name: string;
+  type: string;
+  price: number;
+  stock: number;
+}) {
+  console.log("Adding new bar product:", newProduct);
+  // This is a mock implementation. In a real app, you'd save to a database.
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  return { success: true, product: newProduct };
+}

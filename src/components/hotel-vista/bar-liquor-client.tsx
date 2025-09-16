@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { RecordSaleModal, SaleFormValues } from './record-sale-modal';
-import { useToast } from '@/hooks/use-toast';
+import { AddBarProductModal, BarProductFormValues } from './add-bar-product-modal';
 
 const stats = [
   {
@@ -47,7 +47,7 @@ const stats = [
   },
 ];
 
-const inventoryItems = [
+const initialInventoryItems = [
   {
     name: 'Premium Whiskey',
     type: 'Whiskey',
@@ -121,29 +121,44 @@ const initialRecentSales = [
   },
 ];
 
+type InventoryItem = {
+  name: string;
+  type: string;
+  stock: number;
+  price: number;
+  status: 'good' | 'low' | 'critical';
+};
+
+const getStatusFromStock = (stock: number): 'good' | 'low' | 'critical' => {
+    if (stock < 10) return 'critical';
+    if (stock < 20) return 'low';
+    return 'good';
+}
+
 const statusVariantMap: { [key: string]: 'default' | 'destructive' } = {
   good: 'default',
   low: 'destructive',
+  critical: 'destructive'
 };
 
 const statusColorMap: { [key: string]: string } = {
     good: 'bg-green-400 text-green-950 border-green-500',
-    low: 'bg-red-400 text-red-950 border-red-500',
+    low: 'bg-yellow-400 text-yellow-950 border-yellow-500',
+    critical: 'bg-red-400 text-red-950 border-red-500'
 };
 
 
 export default function BarLiquorManagementDashboard() {
   const [isRecordSaleModalOpen, setIsRecordSaleModalOpen] = useState(false);
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(initialInventoryItems);
   const [recentSales, setRecentSales] = useState(initialRecentSales);
-  const { toast } = useToast();
 
-  const handleOpenRecordSaleModal = () => {
-    setIsRecordSaleModalOpen(true);
-  };
+  const handleOpenRecordSaleModal = () => setIsRecordSaleModalOpen(true);
+  const handleCloseRecordSaleModal = () => setIsRecordSaleModalOpen(false);
 
-  const handleCloseRecordSaleModal = () => {
-    setIsRecordSaleModalOpen(false);
-  };
+  const handleOpenAddProductModal = () => setIsAddProductModalOpen(true);
+  const handleCloseAddProductModal = () => setIsAddProductModalOpen(false);
 
   const handleSaleRecorded = (saleData: SaleFormValues) => {
     const selectedItem = inventoryItems.find(item => item.name === saleData.name);
@@ -158,7 +173,24 @@ export default function BarLiquorManagementDashboard() {
     };
 
     setRecentSales(prevSales => [newSale, ...prevSales]);
+    
+    // Decrease stock
+    setInventoryItems(prevItems => prevItems.map(item =>
+        item.name === saleData.name
+            ? { ...item, stock: item.stock - saleData.qty, status: getStatusFromStock(item.stock - saleData.qty) }
+            : item
+    ));
+
     handleCloseRecordSaleModal();
+  };
+
+  const handleProductAdded = (productData: BarProductFormValues) => {
+    const newProduct: InventoryItem = {
+      ...productData,
+      status: getStatusFromStock(productData.stock),
+    };
+    setInventoryItems(prevItems => [newProduct, ...prevItems].sort((a, b) => a.name.localeCompare(b.name)));
+    handleCloseAddProductModal();
   };
 
   return (
@@ -173,7 +205,7 @@ export default function BarLiquorManagementDashboard() {
             <Plus className="mr-2 h-4 w-4" />
             Record Sale
           </Button>
-          <Button>
+          <Button onClick={handleOpenAddProductModal}>
             <Plus className="mr-2 h-4 w-4" />
             Add Product
           </Button>
@@ -267,6 +299,11 @@ export default function BarLiquorManagementDashboard() {
         onClose={handleCloseRecordSaleModal}
         onSaleRecorded={handleSaleRecorded}
         inventoryItems={inventoryItems}
+      />
+      <AddBarProductModal
+        isOpen={isAddProductModalOpen}
+        onClose={handleCloseAddProductModal}
+        onProductAdded={handleProductAdded}
       />
     </div>
   );
