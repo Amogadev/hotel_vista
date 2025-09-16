@@ -190,10 +190,7 @@ export default function BarLiquorManagementDashboard() {
 
   const handleProductAdded = (productData: BarProductFormValues) => {
     const newProduct: InventoryItem = {
-      name: productData.name,
-      type: productData.type,
-      price: productData.price,
-      stock: productData.stock,
+      ...productData,
       status: getStatusFromStock(productData.stock),
     };
     setInventoryItems(prevItems => [newProduct, ...prevItems].sort((a, b) => a.name.localeCompare(b.name)));
@@ -391,3 +388,5 @@ export default function BarLiquorManagementDashboard() {
     </div>
   );
 }
+
+    
