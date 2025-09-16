@@ -1,8 +1,10 @@
 
 'use client';
 
-import React, { createContext, useState, ReactNode } from 'react';
-import { AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import React, { createContext, useState, ReactNode, useEffect } from 'react';
+import { AlertCircle, CheckCircle2, Clock, Loader2 } from 'lucide-react';
+import { getRooms, getMenuItems, getOrders, getBarProducts, getBarSales, getStockItems } from '@/app/actions';
+import { format } from 'date-fns';
 
 export type Room = {
     number: string;
@@ -78,6 +80,7 @@ type DataContextType = {
   setStockItems: React.Dispatch<React.SetStateAction<StockItem[]>>;
   totalBill: TotalBill[];
   setTotalBill: React.Dispatch<React.SetStateAction<TotalBill[]>>;
+  loading: boolean;
 };
 
 const initialRooms: Room[] = [
@@ -345,16 +348,105 @@ export const DataContext = createContext<DataContextType>({
   setStockItems: () => {},
   totalBill: [],
   setTotalBill: () => {},
+  loading: true,
 });
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-  const [rooms, setRooms] = useState<Room[]>(initialRooms);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
-  const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>(initialActiveOrders);
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(initialInventoryItems);
-  const [recentSales, setRecentSales] = useState<RecentSale[]>(initialRecentSales);
-  const [stockItems, setStockItems] = useState<StockItem[]>(initialStockItems);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [recentSales, setRecentSales] = useState<RecentSale[]>([]);
+  const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [totalBill, setTotalBill] = useState<TotalBill[]>(initialTotalBill);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const [roomsRes, menuItemsRes, ordersRes, barProductsRes, barSalesRes, stockItemsRes] = await Promise.all([
+                getRooms(),
+                getMenuItems(),
+                getOrders(),
+                getBarProducts(),
+                getBarSales(),
+                getStockItems()
+            ]);
+
+            if (roomsRes.success) {
+                const formattedRooms = roomsRes.rooms.map((room: any) => ({
+                    ...room,
+                    rate: `₹${room.price}/night`,
+                    checkIn: room.checkIn ? format(new Date(room.checkIn), 'yyyy-MM-dd') : undefined,
+                    checkOut: room.checkOut ? format(new Date(room.checkOut), 'yyyy-MM-dd') : undefined,
+                }));
+                setRooms(formattedRooms.length > 0 ? formattedRooms : initialRooms);
+            }
+
+            if (menuItemsRes.success) {
+                const formattedMenuItems = menuItemsRes.items.map((item: any) => ({
+                    ...item,
+                    price: `₹${item.price}`
+                }));
+                setMenuItems(formattedMenuItems.length > 0 ? formattedMenuItems : initialMenuItems);
+            }
+
+            if (ordersRes.success) {
+                const formattedOrders = ordersRes.orders.map((order: any) => ({
+                    ...order,
+                    price: `₹${order.price}`,
+                    status: 'pending', // You might want to store status in DB
+                    icon: <AlertCircle className="h-5 w-5 mr-2" />,
+                }));
+                setActiveOrders(formattedOrders.length > 0 ? formattedOrders : initialActiveOrders);
+            }
+            
+            if (barProductsRes.success) {
+                const getStatus = (stock: number): 'good' | 'low' | 'critical' => {
+                    if (stock < 10) return 'critical';
+                    if (stock < 20) return 'low';
+                    return 'good';
+                }
+                const formattedBarProducts = barProductsRes.products.map((item: any) => ({
+                    ...item,
+                    status: getStatus(item.stock),
+                }));
+                setInventoryItems(formattedBarProducts.length > 0 ? formattedBarProducts : initialInventoryItems);
+            }
+
+            if (barSalesRes.success) {
+                setRecentSales(barSalesRes.sales.length > 0 ? barSalesRes.sales : initialRecentSales);
+            }
+
+            if (stockItemsRes.success) {
+                const getStatus = (current: number, min: number): 'critical' | 'low' | 'normal' => {
+                    if (current < min) return 'critical';
+                    if (current < min * 1.2) return 'low';
+                    return 'normal';
+                  };
+                const formattedStockItems = stockItemsRes.items.map((item: any) => ({
+                    ...item,
+                    status: getStatus(item.current, item.min),
+                }));
+                setStockItems(formattedStockItems.length > 0 ? formattedStockItems : initialStockItems);
+            }
+            
+        } catch (error) {
+            console.error("Failed to fetch initial data", error);
+            // Fallback to initial data if fetch fails
+            setRooms(initialRooms);
+            setMenuItems(initialMenuItems);
+            setActiveOrders(initialActiveOrders);
+            setInventoryItems(initialInventoryItems);
+            setRecentSales(initialRecentSales);
+            setStockItems(initialStockItems);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchData();
+  }, []);
 
   return (
     <DataContext.Provider
@@ -373,9 +465,18 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setStockItems,
         totalBill,
         setTotalBill,
+        loading,
       }}
     >
-      {children}
+      {loading ? (
+        <div className="flex h-screen items-center justify-center">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+       ) : (
+        children
+       )}
     </DataContext.Provider>
   );
 };
+
+    

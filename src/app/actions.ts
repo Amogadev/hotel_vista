@@ -4,6 +4,12 @@
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 
+export async function getRooms() {
+    const querySnapshot = await getDocs(collection(db, "rooms"));
+    const rooms = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    return { success: true, rooms };
+}
+
 export async function addRoom(newRoom: {
   number: string;
   type: string;
@@ -64,6 +70,12 @@ export async function deleteRoom(roomNumber: string) {
     }
 }
 
+export async function getMenuItems() {
+    const querySnapshot = await getDocs(collection(db, "menuItems"));
+    const items = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    return { success: true, items };
+}
+
 export async function addMenuItem(newMenuItem: {
   name: string;
   category: string;
@@ -118,6 +130,12 @@ export async function deleteMenuItem(itemName: string) {
     }
 }
 
+export async function getOrders() {
+    const querySnapshot = await getDocs(collection(db, "orders"));
+    const orders = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, time: doc.data().time.toDate() }));
+    return { success: true, orders };
+}
+
 export async function addOrder(newOrder: {
   table: number;
   items: string;
@@ -130,6 +148,12 @@ export async function addOrder(newOrder: {
         console.error("Error adding document: ", e);
         return { success: false, error: "Failed to add order" };
     }
+}
+
+export async function getBarSales() {
+    const querySnapshot = await getDocs(collection(db, "barSales"));
+    const sales = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, time: doc.data().time.toDate() }));
+    return { success: true, sales };
 }
 
 export async function recordBarSale(newSale: {
@@ -145,6 +169,12 @@ export async function recordBarSale(newSale: {
         console.error("Error adding document: ", e);
         return { success: false, error: "Failed to record bar sale" };
     }
+}
+
+export async function getBarProducts() {
+    const querySnapshot = await getDocs(collection(db, "barProducts"));
+    const products = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    return { success: true, products };
 }
 
 export async function addBarProduct(newProduct: {
@@ -177,6 +207,12 @@ export async function updateBarProductStock(productName: string, newStock: numbe
         console.error("Error updating document: ", e);
         return { success: false, error: "Failed to update product stock" };
     }
+}
+
+export async function getStockItems() {
+    const querySnapshot = await getDocs(collection(db, "stockItems"));
+    const items = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    return { success: true, items };
 }
 
 export async function addStockItem(newItem: {
@@ -222,3 +258,5 @@ export async function updateStockItem(updatedItem: {
         return { success: false, error: "Failed to update stock item" };
     }
 }
+
+    
