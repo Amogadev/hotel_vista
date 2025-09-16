@@ -64,6 +64,7 @@ export default function HotelVistaSidebar() {
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('userRole');
+      localStorage.removeItem('activeUser');
     }
   };
 
