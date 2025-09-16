@@ -82,22 +82,23 @@ export default function Topbar() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b shadow-sm">
       <div className="px-4">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between h-14">
+          <div className="flex items-center gap-1">
             <Link href="/" className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <BedDouble className="h-5 w-5" />
               </div>
               <span className="text-lg font-semibold">HotelVista</span>
             </Link>
-             <Separator orientation="vertical" className="h-6 mx-2" />
-            <nav className="hidden md:flex items-center gap-1">
+             <Separator orientation="vertical" className="h-6 mx-1" />
+            <nav className="hidden md:flex items-center gap-0">
               {menuItems.map((item) => (
                 <Button
                   key={item.label}
                   variant={pathname === item.href ? 'secondary' : 'ghost'}
                   asChild
                   className="text-sm"
+                  size="sm"
                 >
                   <Link href={item.href} className="flex items-center gap-2">
                     <item.icon className="h-4 w-4" />
@@ -107,7 +108,7 @@ export default function Topbar() {
               ))}
             </nav>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0">
              <Button variant="ghost" size="icon" asChild>
                 <Link href="#">
                     <Settings className="h-5 w-5" />

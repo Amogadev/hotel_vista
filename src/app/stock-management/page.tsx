@@ -5,7 +5,7 @@ export default function StockManagementPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Topbar />
-      <main className="flex-1 pt-16">
+      <main className="flex-1 pt-14">
         <StockManagementDashboard />
       </main>
     </div>
