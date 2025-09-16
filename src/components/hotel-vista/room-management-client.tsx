@@ -9,6 +9,7 @@ import {
   Plus,
   Eye,
   Settings,
+  ArrowLeft,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -151,10 +152,16 @@ export default function RoomManagementDashboard() {
             Monitor and manage all hotel rooms
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Room
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Room
+          </Button>
+        </div>
       </header>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
