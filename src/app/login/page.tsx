@@ -68,7 +68,6 @@ export default function LoginPage() {
               <Sofa className="h-12 w-12 text-primary" />
             </div>
             <CardTitle className="text-3xl font-bold text-primary">Hotel Vista</CardTitle>
-            <CardDescription>Welcome! Please login to continue.</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <form onSubmit={handleLogin} className="space-y-6">
