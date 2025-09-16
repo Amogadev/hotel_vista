@@ -98,7 +98,7 @@ export default function HotelVistaSidebar({ collapsible = "none" }: HotelVistaSi
         {collapsible === 'icon' && <SidebarRail onClick={toggleSidebar} />}
         <SidebarHeader className="p-0">
           <div 
-              className="flex h-12 items-center justify-center"
+              className="flex h-12 items-center justify-start px-3"
               role="button"
               onClick={toggleSidebar}
           >
