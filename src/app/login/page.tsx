@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -60,12 +63,14 @@ export default function LoginPage() {
     <div className="relative flex min-h-screen w-full items-center justify-center bg-gradient-to-r from-blue-900 to-cyan-500 p-4 overflow-hidden">
       <AnimatedShapes />
       <Card className="w-full max-w-sm rounded-2xl border bg-white/50 p-8 shadow-2xl backdrop-blur-md animate-fade-in-down z-10">
-        <CardContent className="p-0">
-          <div className="mb-8 flex justify-center">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-primary/50 bg-primary/10">
+        <CardHeader className="p-0 mb-8 items-center text-center">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-primary/50 bg-primary/10 mb-4">
               <Sofa className="h-12 w-12 text-primary" />
             </div>
-          </div>
+            <CardTitle className="text-3xl font-bold text-primary">Hotel Vista</CardTitle>
+            <CardDescription>Welcome! Please login to continue.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
