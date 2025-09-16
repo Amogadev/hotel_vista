@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Trash2,
   Loader2,
+  Settings,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -130,8 +131,10 @@ function MenuItemCard({ item, onEditItem, onRemoveItem }: { item: MenuItem, onEd
                 <div className="flex flex-col items-end gap-2">
                     <Badge variant={variant} className={`capitalize ${colorClass}`}>{item.status}</Badge>
                     <div className="flex items-center gap-1">
-                        <Button variant="outline" size="sm" onClick={() => onEditItem(item)}>Edit</Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-transparent" onClick={() => onRemoveItem(item)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEditItem(item)}>
+                            <Settings className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => onRemoveItem(item)}>
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
@@ -205,7 +208,7 @@ export default function RestaurantManagementDashboard() {
       price: `₹${newItemData.price}`,
       status: newItemData.status,
     };
-    setMenuItems(prevItems => [...prevItems, newMenuItem]);
+    setMenuItems(prevItems => [...prevItems, newMenuItem].sort((a,b) => a.name.localeCompare(b.name)));
     handleCloseAddMenuItemModal();
   };
 
@@ -227,7 +230,7 @@ export default function RestaurantManagementDashboard() {
         status: updatedItemData.status,
     };
     setMenuItems(prevItems =>
-        prevItems.map(item => (item.name === updatedItemData.originalName ? updatedMenuItem : item))
+        prevItems.map(item => (item.name === updatedItemData.originalName ? updatedMenuItem : item)).sort((a,b) => a.name.localeCompare(b.name))
     );
     handleCloseEditMenuItemModal();
   };
