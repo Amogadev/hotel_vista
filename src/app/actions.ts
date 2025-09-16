@@ -24,10 +24,13 @@ export async function getTrendAnalysis(): Promise<AnalyzeDashboardTrendsOutput> 
 }
 
 export async function addRoom(newRoom: {
-  number: string,
-  type: string,
-  price: number,
-  status: string
+  number: string;
+  type: string;
+  price: number;
+  status: string;
+  guest?: string;
+  checkIn?: string;
+  checkOut?: string;
 }) {
   console.log("Adding new room:", newRoom);
   // This is a mock implementation. In a real app, you'd save to a database.

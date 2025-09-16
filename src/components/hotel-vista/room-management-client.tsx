@@ -23,7 +23,8 @@ import {
 } from '@/components/ui/card';
 import { SidebarTrigger } from '../ui/sidebar';
 import { RoomDetailsModal } from './room-details-modal';
-import { AddRoomModal } from './add-room-modal';
+import { AddRoomModal, RoomFormValues } from './add-room-modal';
+import { format } from 'date-fns';
 
 type Room = {
     number: string;
@@ -179,12 +180,15 @@ export default function RoomManagementDashboard() {
     setIsAddModalOpen(false);
   };
 
-  const handleRoomAdded = (newRoomData: { number: string; type: string; price: number; status: string; }) => {
+  const handleRoomAdded = (newRoomData: RoomFormValues) => {
     const newRoom: Room = {
       number: newRoomData.number,
       type: newRoomData.type,
       status: newRoomData.status,
       rate: `$${newRoomData.price}/night`,
+      guest: newRoomData.guest,
+      checkIn: newRoomData.checkIn ? format(newRoomData.checkIn, 'yyyy-MM-dd') : undefined,
+      checkOut: newRoomData.checkOut ? format(newRoomData.checkOut, 'yyyy-MM-dd') : undefined,
     };
     setRooms(prevRooms => [...prevRooms, newRoom]);
     handleCloseAddModal();
