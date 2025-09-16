@@ -135,3 +135,18 @@ export async function updateBarProductStock(productName: string, newStock: numbe
     await new Promise(resolve => setTimeout(resolve, 1000));
     return { success: true, productName, newStock };
 }
+
+export async function addStockItem(newItem: {
+  name: string;
+  category: string;
+  current: number;
+  min: number;
+  max: number;
+  unit: string;
+  supplier: string;
+}) {
+  console.log("Adding new stock item:", newItem);
+  // This is a mock implementation. In a real app, you'd save to a database.
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  return { success: true, item: newItem };
+}

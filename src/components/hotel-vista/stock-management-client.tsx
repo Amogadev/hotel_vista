@@ -22,6 +22,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { StockReport, type StockItem } from './stock-report';
+import { AddStockItemModal, StockItemFormValues } from './add-stock-item-modal';
 import { useToast } from '@/hooks/use-toast';
 
 const initialStockItems: StockItem[] = [
@@ -109,8 +110,10 @@ const categories = ['All', 'Linens', 'Bathroom', 'Room Service', 'Cleaning'];
 
 export default function StockManagementDashboard() {
   const { toast } = useToast();
+  const [stockItems, setStockItems] = useState<StockItem[]>(initialStockItems);
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
 
   const handlePrintReport = () => {
     const printWindow = window.open('', '_blank');
@@ -121,8 +124,6 @@ export default function StockManagementDashboard() {
       const reportRoot = printWindow.document.getElementById('report-root');
       if (reportRoot) {
         import('react-dom/client').then(ReactDOM => {
-          const root = ReactDOM.createRoot(reportRoot);
-          // We need to inject Tailwind CSS for styling in the new window
           const style = document.createElement('style');
           style.innerHTML = `
             @import url('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css');
@@ -136,19 +137,35 @@ export default function StockManagementDashboard() {
             }
           `;
           printWindow.document.head.appendChild(style);
-          root.render(<StockReport items={initialStockItems} />);
+          
+          const root = ReactDOM.createRoot(reportRoot);
+          root.render(<StockReport items={stockItems} />);
+          
+          setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+          }, 500);
         });
       }
-
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 500);
     }
   };
 
-  const handleAddItem = () => {
-    toast({ title: "Add Item", description: "This feature is not yet implemented." });
+  const handleOpenAddItemModal = () => setIsAddItemModalOpen(true);
+  const handleCloseAddItemModal = () => setIsAddItemModalOpen(false);
+
+  const handleItemAdded = (newItemData: StockItemFormValues) => {
+    const getStatus = (current: number, min: number): 'critical' | 'low' | 'normal' => {
+      if (current < min) return 'critical';
+      if (current < min * 1.2) return 'low';
+      return 'normal';
+    };
+
+    const newItem: StockItem = {
+      ...newItemData,
+      status: getStatus(newItemData.current, newItemData.min),
+    };
+    setStockItems(prevItems => [newItem, ...prevItems].sort((a,b) => a.name.localeCompare(b.name)));
+    handleCloseAddItemModal();
   };
 
   const handleUpdateItem = (itemName: string) => {
@@ -160,7 +177,7 @@ export default function StockManagementDashboard() {
   };
 
   const filteredStockItems = useMemo(() => {
-    let items = initialStockItems;
+    let items = stockItems;
 
     if (activeFilter !== 'All') {
       items = items.filter(item => item.category === activeFilter);
@@ -171,27 +188,27 @@ export default function StockManagementDashboard() {
     }
 
     return items;
-  }, [activeFilter, searchTerm]);
+  }, [activeFilter, searchTerm, stockItems]);
 
   const stats = useMemo(() => {
     return [
       {
         title: 'Critical Stock',
-        value: initialStockItems.filter(i => i.status === 'critical').length.toString(),
+        value: stockItems.filter(i => i.status === 'critical').length.toString(),
         icon: <AlertTriangle className="h-6 w-6 text-red-500" />,
       },
       {
         title: 'Low Stock',
-        value: initialStockItems.filter(i => i.status === 'low').length.toString(),
+        value: stockItems.filter(i => i.status === 'low').length.toString(),
         icon: <TrendingDown className="h-6 w-6 text-yellow-500" />,
       },
       {
         title: 'Total Items',
-        value: initialStockItems.length.toString(),
+        value: stockItems.length.toString(),
         icon: <Box className="h-6 w-6 text-blue-500" />,
       },
     ];
-  }, [initialStockItems]);
+  }, [stockItems]);
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
@@ -207,7 +224,7 @@ export default function StockManagementDashboard() {
             <Box className="mr-2 h-4 w-4" />
             Stock Report
           </Button>
-          <Button onClick={handleAddItem}>
+          <Button onClick={handleOpenAddItemModal}>
             <Plus className="mr-2 h-4 w-4" />
             Add Item
           </Button>
@@ -312,6 +329,11 @@ export default function StockManagementDashboard() {
             )
         })}
       </div>
+       <AddStockItemModal
+        isOpen={isAddItemModalOpen}
+        onClose={handleCloseAddItemModal}
+        onItemAdded={handleItemAdded}
+      />
     </div>
   );
 }
