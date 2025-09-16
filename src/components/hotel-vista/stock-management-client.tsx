@@ -121,35 +121,38 @@ export default function StockManagementDashboard() {
   const [editingItem, setEditingItem] = useState<StockItem | null>(null);
 
   const handlePrintReport = () => {
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open('', '', 'height=600,width=800');
     if (printWindow) {
-      printWindow.document.write('<html><head><title>Stock Report</title></head><body><div id="report-root"></div></body></html>');
-      printWindow.document.close();
+      printWindow.document.write('<html><head><title>Stock Report</title>');
+
+      // Grab all stylesheets from the current document
+      const links = document.getElementsByTagName('link');
+      for (let i = 0; i < links.length; i++) {
+        if (links[i].rel === 'stylesheet') {
+          printWindow.document.write(links[i].outerHTML);
+        }
+      }
       
+      const styles = document.getElementsByTagName('style');
+      for (let i = 0; i < styles.length; i++) {
+        printWindow.document.write(styles[i].outerHTML);
+      }
+
+      printWindow.document.write('</head><body><div id="report-root"></div></body></html>');
+      printWindow.document.close();
+
       const reportRoot = printWindow.document.getElementById('report-root');
       if (reportRoot) {
         import('react-dom/client').then(ReactDOM => {
-          const style = document.createElement('style');
-          style.innerHTML = `
-            @import url('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css');
-            @media print {
-              body {
-                margin: 1.5rem;
-              }
-              .no-print {
-                display: none;
-              }
-            }
-          `;
-          printWindow.document.head.appendChild(style);
-          
           const root = ReactDOM.createRoot(reportRoot);
           root.render(<StockReport items={stockItems} />);
-          
+
+          // Wait for images and styles to load
           setTimeout(() => {
+            printWindow.focus();
             printWindow.print();
             printWindow.close();
-          }, 500);
+          }, 1000); 
         });
       }
     }
@@ -371,3 +374,5 @@ export default function StockManagementDashboard() {
     </div>
   );
 }
+
+    
