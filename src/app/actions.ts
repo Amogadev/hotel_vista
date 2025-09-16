@@ -127,3 +127,11 @@ export async function addBarProduct(newProduct: {
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return { success: true, product: newProduct };
 }
+
+
+export async function updateBarProductStock(productName: string, newStock: number) {
+    console.log(`Updating stock for ${productName} to ${newStock}`);
+    // This is a mock implementation. In a real app, you'd update the database.
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return { success: true, productName, newStock };
+}

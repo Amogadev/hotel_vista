@@ -23,6 +23,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { RecordSaleModal, SaleFormValues } from './record-sale-modal';
 import { AddBarProductModal, BarProductFormValues } from './add-bar-product-modal';
+import { UpdateStockModal } from './update-stock-modal';
 
 const stats = [
   {
@@ -151,14 +152,25 @@ const statusColorMap: { [key: string]: string } = {
 export default function BarLiquorManagementDashboard() {
   const [isRecordSaleModalOpen, setIsRecordSaleModalOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [isUpdateStockModalOpen, setIsUpdateStockModalOpen] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(initialInventoryItems);
   const [recentSales, setRecentSales] = useState(initialRecentSales);
+  const [updatingItem, setUpdatingItem] = useState<InventoryItem | null>(null);
 
   const handleOpenRecordSaleModal = () => setIsRecordSaleModalOpen(true);
   const handleCloseRecordSaleModal = () => setIsRecordSaleModalOpen(false);
 
   const handleOpenAddProductModal = () => setIsAddProductModalOpen(true);
   const handleCloseAddProductModal = () => setIsAddProductModalOpen(false);
+
+  const handleOpenUpdateStockModal = (item: InventoryItem) => {
+    setUpdatingItem(item);
+    setIsUpdateStockModalOpen(true);
+  };
+  const handleCloseUpdateStockModal = () => {
+    setUpdatingItem(null);
+    setIsUpdateStockModalOpen(false);
+  };
 
   const handleSaleRecorded = (saleData: SaleFormValues) => {
     const selectedItem = inventoryItems.find(item => item.name === saleData.name);
@@ -191,6 +203,15 @@ export default function BarLiquorManagementDashboard() {
     };
     setInventoryItems(prevItems => [newProduct, ...prevItems].sort((a, b) => a.name.localeCompare(b.name)));
     handleCloseAddProductModal();
+  };
+
+  const handleStockUpdated = (productName: string, newStock: number) => {
+    setInventoryItems(prevItems => prevItems.map(item =>
+        item.name === productName
+            ? { ...item, stock: newStock, status: getStatusFromStock(newStock) }
+            : item
+    ));
+    handleCloseUpdateStockModal();
   };
 
   return (
@@ -258,7 +279,7 @@ export default function BarLiquorManagementDashboard() {
                         <p className="font-semibold text-yellow-600">₹{item.price}</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">Update Stock</Button>
+                    <Button variant="outline" size="sm" onClick={() => handleOpenUpdateStockModal(item)}>Update Stock</Button>
                   </div>
                 </div>
               </React.Fragment>
@@ -305,6 +326,14 @@ export default function BarLiquorManagementDashboard() {
         onClose={handleCloseAddProductModal}
         onProductAdded={handleProductAdded}
       />
+      {updatingItem && (
+        <UpdateStockModal
+          isOpen={isUpdateStockModalOpen}
+          onClose={handleCloseUpdateStockModal}
+          onStockUpdated={handleStockUpdated}
+          item={updatingItem}
+        />
+      )}
     </div>
   );
 }
