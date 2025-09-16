@@ -193,7 +193,7 @@ function MenuItemCard({ item, onEditItem, onRemoveItem }: { item: MenuItem, onEd
                     <Badge variant={variant} className={`capitalize ${colorClass}`}>{item.status}</Badge>
                     <div className="flex items-center gap-1">
                         <Button variant="outline" size="sm" onClick={() => onEditItem(item)}>Edit</Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => onRemoveItem(item)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onRemoveItem(item)}>
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
@@ -451,5 +451,7 @@ export default function RestaurantManagementDashboard() {
     </div>
   );
 }
+
+    
 
     
