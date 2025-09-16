@@ -11,7 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Camera, User, Lock } from 'lucide-react';
+import { Hotel, User, Lock } from 'lucide-react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -34,7 +34,7 @@ export default function LoginPage() {
         <CardContent className="p-0">
           <div className="mb-8 flex justify-center">
             <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-cyan-400/50 bg-cyan-400/10">
-              <Camera className="h-12 w-12 text-cyan-400" />
+              <Hotel className="h-12 w-12 text-cyan-400" />
             </div>
           </div>
           <form onSubmit={handleLogin} className="space-y-6">
