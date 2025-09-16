@@ -1,6 +1,7 @@
 
 'use client';
 
+import React, { useState } from 'react';
 import {
   Bed,
   Users,
@@ -21,6 +22,17 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { SidebarTrigger } from '../ui/sidebar';
+import { RoomDetailsModal } from './room-details-modal';
+
+type Room = {
+    number: string;
+    type: string;
+    status: string;
+    guest?: string;
+    checkIn?: string;
+    checkOut?: string;
+    rate: string;
+};
 
 const stats = [
   {
@@ -45,7 +57,7 @@ const stats = [
   },
 ];
 
-const rooms = [
+const rooms: Room[] = [
   {
     number: '101',
     type: 'Standard Single',
@@ -104,7 +116,7 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
     Maintenance: 'bg-red-400 text-red-950 border-red-500',
   };
 
-function RoomCard({ room }: { room: (typeof rooms)[0] }) {
+function RoomCard({ room, onSelectRoom }: { room: Room, onSelectRoom: (room: Room) => void }) {
   const variant = statusVariantMap[room.status] || 'default';
   const colorClass = statusColorMap[room.status] || '';
 
@@ -129,7 +141,7 @@ function RoomCard({ room }: { room: (typeof rooms)[0] }) {
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold">{room.rate}</p>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onSelectRoom(room)}>
               <Eye className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -143,6 +155,19 @@ function RoomCard({ room }: { room: (typeof rooms)[0] }) {
 }
 
 export default function RoomManagementDashboard() {
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleSelectRoom = (room: Room) => {
+    setSelectedRoom(room);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedRoom(null);
+  };
+
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
       <header className="flex items-start justify-between">
@@ -178,9 +203,16 @@ export default function RoomManagementDashboard() {
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {rooms.map((room) => (
-          <RoomCard key={room.number} room={room} />
+          <RoomCard key={room.number} room={room} onSelectRoom={handleSelectRoom} />
         ))}
       </div>
+      {selectedRoom && (
+        <RoomDetailsModal
+          room={selectedRoom}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }
