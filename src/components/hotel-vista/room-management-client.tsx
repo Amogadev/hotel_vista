@@ -93,7 +93,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availa
       <CardContent 
         className={cn(
             "flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg",
-            availability ? (displayStatus === 'BOOKED' ? 'bg-red-100 text-red-800 border-red-200' : 'bg-green-100 text-green-800 border-green-200') : colorClass
+            availability ? (displayStatus === 'BOOKED' ? 'bg-red-100 border-red-200' : 'bg-green-100 border-green-200') : colorClass
         )}
         onClick={() => onViewRoom(room)}
       >
@@ -137,7 +137,7 @@ export default function RoomManagementDashboard() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeView, setActiveView] = useState('all-rooms');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const router = useRouter();
 
@@ -264,17 +264,38 @@ const roomAvailabilities = useMemo(() => {
 }, [rooms, searchTerm, activeFilter, roomAvailabilities]);
 
 
-  const stats = useMemo(() => {
-    const today = new Date();
+const stats = useMemo(() => {
+    const date = selectedDate || new Date();
     const totalRooms = rooms.length;
-    const occupied = rooms.filter(room => room.status === 'Occupied').length;
-    const available = rooms.filter(room => room.status === 'Available').length;
-    const bookedRooms = rooms.filter(r => r.status === 'Occupied').length;
     
+    let occupiedCount = 0;
+    let availableCount = 0;
+    let bookedCount = 0;
+
+    rooms.forEach(room => {
+        const availability = roomAvailabilities?.get(room.number);
+        if (availability) {
+            if (availability.status === 'BOOKED') {
+                bookedCount++;
+            } else {
+                availableCount++;
+            }
+        } else {
+            // Fallback to current status if no date is selected
+            if(room.status === 'Occupied') occupiedCount++;
+            if(room.status === 'Available') availableCount++;
+        }
+    });
+
+    if(roomAvailabilities){
+        occupiedCount = bookedCount;
+    }
+
+
     return [
       {
         title: 'Date',
-        value: format(today, 'PPP'),
+        value: format(date, 'PPP'),
         icon: <CalendarIcon className="h-6 w-6 text-orange-300" />,
       },
       {
@@ -283,22 +304,22 @@ const roomAvailabilities = useMemo(() => {
         icon: <BedDouble className="h-6 w-6 text-blue-500" />,
       },
       {
-        title: 'Booked Rooms',
-        value: bookedRooms.toString(),
+        title: 'Booked',
+        value: bookedCount.toString(),
         icon: <Bed className="h-6 w-6 text-red-500" />,
       },
       {
         title: 'Occupied',
-        value: occupied.toString(),
+        value: occupiedCount.toString(),
         icon: <Users className="h-6 w-6 text-green-500" />,
       },
       {
         title: 'Available',
-        value: available.toString(),
+        value: availableCount.toString(),
         icon: <CalendarDays className="h-6 w-6 text-blue-500" />,
       },
     ];
-  }, [rooms]);
+  }, [rooms, selectedDate, roomAvailabilities]);
 
 
   const handleOpenAddModal = () => {
@@ -600,6 +621,8 @@ const roomAvailabilities = useMemo(() => {
 
 
 
+
+    
 
     
 
