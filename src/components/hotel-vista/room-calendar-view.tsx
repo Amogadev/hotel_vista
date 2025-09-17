@@ -57,9 +57,9 @@ export function RoomCalendarView({ rooms }: RoomCalendarViewProps) {
     const status = getDayStatus(props.day);
     let colorClass = '';
     switch(status) {
-      case 'fully-booked': colorClass = 'bg-red-200 dark:bg-red-800'; break;
-      case 'partially-booked': colorClass = 'bg-yellow-200 dark:bg-yellow-800'; break;
-      case 'available': colorClass = 'bg-green-200 dark:bg-green-800'; break;
+      case 'fully-booked': colorClass = 'bg-red-100 dark:bg-red-900'; break;
+      case 'partially-booked': colorClass = 'bg-yellow-100 dark:bg-yellow-900'; break;
+      case 'available': colorClass = 'bg-green-100 dark:bg-green-900'; break;
     }
 
     return (
@@ -98,15 +98,15 @@ export function RoomCalendarView({ rooms }: RoomCalendarViewProps) {
                 <h3 className="font-semibold text-lg mb-2 border-b pb-2">Calendar Legend</h3>
                  <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded-full bg-green-200 dark:bg-green-800" />
+                        <div className="h-4 w-4 rounded-full bg-green-100 dark:bg-green-900" />
                         <span>Available</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded-full bg-yellow-200 dark:bg-yellow-800" />
+                        <div className="h-4 w-4 rounded-full bg-yellow-100 dark:bg-yellow-900" />
                         <span>Partially Booked / Maintenance</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded-full bg-red-200 dark:bg-red-800" />
+                        <div className="h-4 w-4 rounded-full bg-red-100 dark:bg-red-900" />
                         <span>Fully Booked</span>
                     </div>
                 </div>
