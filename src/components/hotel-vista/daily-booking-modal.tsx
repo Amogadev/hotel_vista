@@ -19,6 +19,7 @@ import { format, isSameDay, parseISO } from 'date-fns';
 import { Separator } from '../ui/separator';
 import { getDailyNote } from '@/app/actions';
 import { EditNotesModal } from './edit-notes-modal';
+import { cn } from '@/lib/utils';
 
 type DailyBookingModalProps = {
   date: Date;
@@ -64,7 +65,7 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-4xl h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Daily Overview: {formattedDate}</DialogTitle>
             <DialogDescription>
@@ -72,15 +73,14 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
             </DialogDescription>
           </DialogHeader>
           
-          <ScrollArea className="max-h-[60vh] -mx-6 px-6">
-            <div className="space-y-6 py-4">
-
-              {/* Daily Updates Section */}
-              <div>
-                <h3 className="font-semibold text-lg mb-3">Daily Updates</h3>
+          <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 overflow-hidden">
+            <ScrollArea className="h-full pr-6 -mr-6">
+               {/* Daily Updates Section */}
+              <div className="space-y-6">
+                <h3 className="font-semibold text-lg">Daily Updates</h3>
                 <div className="space-y-4 rounded-lg border p-4">
                   <div className="flex items-start gap-4">
-                    <LogIn className="w-5 h-5 text-green-500 mt-1" />
+                    <LogIn className="w-5 h-5 text-green-500 mt-1 flex-shrink-0" />
                     <div>
                       <h4 className="font-semibold">Check-ins</h4>
                       {checkIns.length > 0 ? (
@@ -92,7 +92,7 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
                   </div>
                   <Separator/>
                   <div className="flex items-start gap-4">
-                    <LogOut className="w-5 h-5 text-red-500 mt-1" />
+                    <LogOut className="w-5 h-5 text-red-500 mt-1 flex-shrink-0" />
                     <div>
                       <h4 className="font-semibold">Check-outs</h4>
                        {checkOuts.length > 0 ? (
@@ -104,7 +104,7 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
                   </div>
                    <Separator/>
                   <div className="flex items-start gap-4">
-                    <Wrench className="w-5 h-5 text-yellow-500 mt-1" />
+                    <Wrench className="w-5 h-5 text-yellow-500 mt-1 flex-shrink-0" />
                     <div>
                       <h4 className="font-semibold">Maintenance</h4>
                        {maintenanceRooms.length > 0 ? (
@@ -116,7 +116,7 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
                   </div>
                   <Separator/>
                   <div className="flex items-start gap-4">
-                    <Sparkles className="w-5 h-5 text-blue-500 mt-1" />
+                    <Sparkles className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
                     <div className="flex-grow">
                       <div className="flex justify-between items-center">
                         <h4 className="font-semibold">Special Notes</h4>
@@ -131,51 +131,49 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
                   </div>
                 </div>
               </div>
-              
-              {/* Room Status Section */}
-              <div>
-                <h3 className="font-semibold text-lg mb-3">Room Status</h3>
-                <div className="space-y-4">
-                  <div>
-                      <h4 className="font-medium text-muted-foreground mb-2">Booked Rooms ({bookedRooms.length})</h4>
-                      {bookedRooms.length > 0 ? bookedRooms.map(room => (
-                          <div key={room.number} className="p-3 border rounded-lg bg-muted/50 mb-2 flex justify-between items-center">
-                              <div>
-                                  <p className="font-bold text-primary">Room {room.number}</p>
-                                  <p className="text-sm text-muted-foreground">{room.type}</p>
-                              </div>
-                              <div className="text-right">
-                                  <p className="text-sm font-medium flex items-center gap-2"><User className="w-4 h-4"/>{room.guest}</p>
-                                  {room.checkIn && room.checkOut &&
-                                    <p className="text-xs text-muted-foreground flex items-center gap-2"><Calendar className="w-4 h-4"/>{format(parseISO(room.checkIn), 'MMM d')} - {format(parseISO(room.checkOut), 'MMM d')}</p>
-                                  }
-                              </div>
-                          </div>
-                      )) : <p className="text-center text-muted-foreground py-4 text-sm">No rooms booked for this date.</p>}
-                  </div>
-                  <Separator />
-                  <div>
-                      <h4 className="font-medium text-muted-foreground mb-2">Available Rooms ({availableRooms.length})</h4>
-                      {availableRooms.length > 0 ? availableRooms.map(room => (
-                          <div key={room.number} className="p-3 border rounded-lg flex justify-between items-center mb-2">
-                              <div>
-                                  <p className="font-bold text-green-600">Room {room.number}</p>
-                                  <p className="text-sm text-muted-foreground">{room.type}</p>
-                              </div>
-                              <Button size="sm" onClick={() => onOccupy(room.number)}>Book Now</Button>
-                          </div>
-                      )) : <p className="text-center text-muted-foreground py-4 text-sm">No rooms available for this date.</p>}
-                  </div>
+            </ScrollArea>
+             <ScrollArea className="h-full pr-6 -mr-6">
+                {/* Room Status Section */}
+                <div className="space-y-6">
+                    <h3 className="font-semibold text-lg">Room Status</h3>
+                    <div className="space-y-4">
+                        <div>
+                            <h4 className="font-medium text-muted-foreground mb-2">Booked Rooms ({bookedRooms.length})</h4>
+                            {bookedRooms.length > 0 ? bookedRooms.map(room => (
+                                <div key={room.number} className="p-3 border rounded-lg bg-muted/50 mb-2 flex justify-between items-center">
+                                    <div>
+                                        <p className="font-bold text-primary">Room {room.number}</p>
+                                        <p className="text-sm text-muted-foreground">{room.type}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm font-medium flex items-center gap-2"><User className="w-4 h-4"/>{room.guest}</p>
+                                        {room.checkIn && room.checkOut &&
+                                            <p className="text-xs text-muted-foreground flex items-center gap-2"><Calendar className="w-4 h-4"/>{format(parseISO(room.checkIn), 'MMM d')} - {format(parseISO(room.checkOut), 'MMM d')}</p>
+                                        }
+                                    </div>
+                                </div>
+                            )) : <p className="text-center text-muted-foreground py-4 text-sm rounded-lg border">No rooms booked for this date.</p>}
+                        </div>
+                        <div>
+                            <h4 className="font-medium text-muted-foreground mb-2">Available Rooms ({availableRooms.length})</h4>
+                            {availableRooms.length > 0 ? availableRooms.map(room => (
+                                <div key={room.number} className="p-3 border rounded-lg flex justify-between items-center mb-2">
+                                    <div>
+                                        <p className="font-bold text-green-600">Room {room.number}</p>
+                                        <p className="text-sm text-muted-foreground">{room.type}</p>
+                                    </div>
+                                    <Button size="sm" onClick={() => onOccupy(room.number)}>Book Now</Button>
+                                </div>
+                            )) : <p className="text-center text-muted-foreground py-4 text-sm rounded-lg border">No rooms available for this date.</p>}
+                        </div>
+                    </div>
                 </div>
-              </div>
+            </ScrollArea>
+          </div>
 
-            </div>
-          </ScrollArea>
-
-          <DialogFooter className="border-t pt-4 -mx-6 px-6">
+          <DialogFooter className="border-t pt-4">
             <Button variant="outline" onClick={onClose}>Close</Button>
           </DialogFooter>
-
         </DialogContent>
       </Dialog>
       <EditNotesModal 
