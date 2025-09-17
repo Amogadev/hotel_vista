@@ -96,52 +96,7 @@ type DataContextType = {
   loading: boolean;
 };
 
-const initialRooms: Room[] = [
-    {
-      number: '101',
-      type: 'Standard Single',
-      status: 'Occupied',
-      guest: 'John Smith',
-      checkIn: '2024-01-10',
-      checkOut: '2024-01-12',
-      price: 120,
-      totalPrice: 240
-    },
-    {
-      number: '102',
-      type: 'Deluxe Double',
-      status: 'Available',
-      price: 180,
-    },
-    {
-      number: '103',
-      type: 'Suite',
-      status: 'Cleaning',
-      price: 300,
-    },
-    {
-      number: '201',
-      type: 'Standard Double',
-      status: 'Occupied',
-      guest: 'Sarah Johnson',
-      checkIn: '2024-01-09',
-      checkOut: '2024-01-11',
-      price: 150,
-      totalPrice: 300,
-    },
-    {
-      number: '202',
-      type: 'Deluxe Single',
-      status: 'Maintenance',
-      price: 140,
-    },
-    {
-      number: '203',
-      type: 'Suite',
-      status: 'Available',
-      price: 320,
-    },
-];
+const initialRooms: Room[] = [];
 
 const initialMenuItems = [
     {
