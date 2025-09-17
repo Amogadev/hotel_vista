@@ -138,183 +138,188 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
         <DialogHeader>
           <DialogTitle>Add New Room</DialogTitle>
           <DialogDescription>
-            Enter the details for the new room. Fill in guest details to automatically set status to Occupied.
+            Enter room details. Fill guest info to auto-set status to Occupied.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
-                <FormField
+              <FormField
                 control={form.control}
                 name="number"
                 render={({ field }) => (
-                    <FormItem>
+                  <FormItem>
                     <FormLabel>Room Number</FormLabel>
                     <FormControl>
-                        <Input placeholder="e.g., 101" {...field} />
+                      <Input placeholder="e.g., 101" {...field} />
                     </FormControl>
                     <FormMessage />
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
+              />
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a room type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Standard Single">Standard Single</SelectItem>
+                        <SelectItem value="Standard Double">Standard Double</SelectItem>
+                        <SelectItem value="Deluxe Single">Deluxe Single</SelectItem>
+                        <SelectItem value="Deluxe Double">Deluxe Double</SelectItem>
+                        <SelectItem value="Suite">Suite</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="space-y-2 rounded-md border p-4">
+                 <h4 className="font-medium text-sm">Guest Information</h4>
                 <FormField
                 control={form.control}
-                name="price"
+                name="guest"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Price per Night</FormLabel>
+                    <FormLabel>Guest Name</FormLabel>
                     <FormControl>
-                        <Input type="number" placeholder="e.g., 120" {...field} />
+                        <Input placeholder="e.g., John Smith" {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
                 )}
                 />
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                    control={form.control}
+                    name="checkIn"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Check-in</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={'outline'}
+                                className={cn(
+                                    'w-full pl-3 text-left font-normal',
+                                    !field.value && 'text-muted-foreground'
+                                )}
+                                >
+                                {field.value ? (
+                                    format(field.value, 'PPP')
+                                ) : (
+                                    <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="checkOut"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Check-out</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={'outline'}
+                                className={cn(
+                                    'w-full pl-3 text-left font-normal',
+                                    !field.value && 'text-muted-foreground'
+                                )}
+                                >
+                                {field.value ? (
+                                    format(field.value, 'PPP')
+                                ) : (
+                                    <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => date < (checkIn || new Date('1900-01-01'))}
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
             </div>
 
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a room type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Standard Single">Standard Single</SelectItem>
-                      <SelectItem value="Standard Double">Standard Double</SelectItem>
-                      <SelectItem value="Deluxe Single">Deluxe Single</SelectItem>
-                      <SelectItem value="Deluxe Double">Deluxe Double</SelectItem>
-                      <SelectItem value="Suite">Suite</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="guest"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Guest Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., John Smith" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <div className="grid grid-cols-2 gap-4">
                 <FormField
-                control={form.control}
-                name="checkIn"
-                render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                    <FormLabel>Check-in Date</FormLabel>
-                    <Popover>
-                        <PopoverTrigger asChild>
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Price/Night (₹)</FormLabel>
                         <FormControl>
-                            <Button
-                            variant={'outline'}
-                            className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
-                            )}
-                            >
-                            {field.value ? (
-                                format(field.value, 'PPP')
-                            ) : (
-                                <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
+                            <Input type="number" placeholder="e.g., 120" {...field} />
                         </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                        />
-                        </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                    </FormItem>
-                )}
+                        <FormMessage />
+                        </FormItem>
+                    )}
                 />
                 <FormField
-                control={form.control}
-                name="checkOut"
-                render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                    <FormLabel>Check-out Date</FormLabel>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                        <FormControl>
-                            <Button
-                            variant={'outline'}
-                            className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
-                            )}
-                            >
-                            {field.value ? (
-                                format(field.value, 'PPP')
-                            ) : (
-                                <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                        </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < (checkIn || new Date('1900-01-01'))}
-                            initialFocus
-                        />
-                        </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                    </FormItem>
-                )}
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!!(guest || checkIn || checkOut)}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a status" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            <SelectItem value="Available">Available</SelectItem>
+                            <SelectItem value="Occupied">Occupied</SelectItem>
+                            <SelectItem value="Cleaning">Cleaning</SelectItem>
+                            <SelectItem value="Maintenance">Maintenance</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
                 />
             </div>
             
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={!!(guest || checkIn || checkOut)}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Available">Available</SelectItem>
-                      <SelectItem value="Occupied">Occupied</SelectItem>
-                      <SelectItem value="Cleaning">Cleaning</SelectItem>
-                      <SelectItem value="Maintenance">Maintenance</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
             {totalPrice > 0 && (
-                <div className="col-span-2 mt-2 text-lg font-semibold text-center bg-muted p-2 rounded-md">
+                <div className="col-span-2 text-lg font-semibold text-center bg-muted p-2 rounded-md">
                     Total Price: <span className="text-primary">₹{totalPrice.toLocaleString()}</span>
                 </div>
             )}
@@ -334,5 +339,3 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
     </Dialog>
   );
 }
-
-    
