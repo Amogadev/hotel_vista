@@ -37,6 +37,8 @@ export async function addRoom(newRoom: {
     const resultRoom = { 
         ...newRoom, 
         id: docRef.id,
+        checkIn: newRoom.checkIn,
+        checkOut: newRoom.checkOut
     };
     return { success: true, room: resultRoom };
   } catch (e) {
@@ -70,7 +72,9 @@ export async function updateRoom(updatedRoom: {
             await updateDoc(doc(db, "rooms", docId), updateData);
             
             const resultRoom = { 
-                ...updatedRoom
+                ...updatedRoom,
+                checkIn: updatedRoom.checkIn,
+                checkOut: updatedRoom.checkOut
             };
             return { success: true, room: resultRoom };
         }
@@ -347,6 +351,57 @@ export async function deleteStockItem(itemName: string) {
     }
 }
 
+export async function getGuests() {
+    const querySnapshot = await getDocs(collection(db, "guests"));
+    const guests = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    return { success: true, guests };
+}
+
+export async function addGuest(newGuest: {
+  name: string;
+  phone: string;
+  email: string;
+  idProof: string;
+  address: string;
+  bookingHistory: string[];
+}) {
+    try {
+        const docRef = await addDoc(collection(db, "guests"), newGuest);
+        return { success: true, guest: { ...newGuest, id: docRef.id } };
+    } catch (e) {
+        console.error("Error adding document: ", e);
+        return { success: false, error: "Failed to add guest" };
+    }
+}
+
+export async function updateGuest(updatedGuest: {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  idProof: string;
+  address: string;
+  bookingHistory: string[];
+}) {
+    try {
+        const { id, ...guestData } = updatedGuest;
+        await updateDoc(doc(db, "guests", id), guestData);
+        return { success: true, guest: updatedGuest };
+    } catch (e) {
+        console.error("Error updating document: ", e);
+        return { success: false, error: "Failed to update guest" };
+    }
+}
+
+export async function deleteGuest(guestId: string) {
+    try {
+        await deleteDoc(doc(db, "guests", guestId));
+        return { success: true };
+    } catch (e) {
+        console.error("Error deleting document: ", e);
+        return { success: false, error: "Failed to delete guest" };
+    }
+}
     
 
     

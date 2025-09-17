@@ -3,7 +3,7 @@
 
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { AlertCircle, CheckCircle2, Clock, Loader2 } from 'lucide-react';
-import { getRooms, getMenuItems, getOrders, getBarProducts, getBarSales, getStockItems } from '@/app/actions';
+import { getRooms, getMenuItems, getOrders, getBarProducts, getBarSales, getStockItems, getGuests } from '@/app/actions';
 import { format, isPast, parseISO } from 'date-fns';
 
 export type Room = {
@@ -61,6 +61,16 @@ export type StockItem = {
     status: 'critical' | 'low' | 'normal';
 };
 
+export type Guest = {
+    id: string;
+    name: string;
+    phone: string;
+    email: string;
+    idProof: string;
+    address: string;
+    bookingHistory: string[];
+};
+
 export type TotalBill = {
     room: string;
     restaurant: number;
@@ -79,6 +89,8 @@ type DataContextType = {
   setRecentSales: React.Dispatch<React.SetStateAction<RecentSale[]>>;
   stockItems: StockItem[];
   setStockItems: React.Dispatch<React.SetStateAction<StockItem[]>>;
+  guests: Guest[];
+  setGuests: React.Dispatch<React.SetStateAction<Guest[]>>;
   totalBill: TotalBill[];
   setTotalBill: React.Dispatch<React.SetStateAction<TotalBill[]>>;
   loading: boolean;
@@ -325,6 +337,27 @@ const initialStockItems: StockItem[] = [
     },
 ];
 
+const initialGuests: Guest[] = [
+    {
+        id: 'guest-1',
+        name: 'John Smith',
+        email: 'john.smith@example.com',
+        phone: '+1-202-555-0104',
+        address: '123 Main St, Anytown USA',
+        idProof: 'Passport A1234567',
+        bookingHistory: ['Room 101 - 2024-01-10 to 2024-01-12']
+    },
+    {
+        id: 'guest-2',
+        name: 'Sarah Johnson',
+        email: 'sarah.j@example.com',
+        phone: '+44 20 7946 0958',
+        address: '456 Oak Ave, Anytown USA',
+        idProof: 'DL B1234567',
+        bookingHistory: ['Room 201 - 2024-01-09 to 2024-01-11']
+    }
+];
+
 const initialTotalBill: TotalBill[] = [
     {
         room: '101',
@@ -349,6 +382,8 @@ export const DataContext = createContext<DataContextType>({
   setRecentSales: () => {},
   stockItems: [],
   setStockItems: () => {},
+  guests: [],
+  setGuests: () => {},
   totalBill: [],
   setTotalBill: () => {},
   loading: true,
@@ -361,6 +396,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [recentSales, setRecentSales] = useState<RecentSale[]>([]);
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
+  const [guests, setGuests] = useState<Guest[]>([]);
   const [totalBill, setTotalBill] = useState<TotalBill[]>(initialTotalBill);
   const [loading, setLoading] = useState(true);
 
@@ -368,13 +404,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [roomsRes, menuItemsRes, ordersRes, barProductsRes, barSalesRes, stockItemsRes] = await Promise.all([
+            const [roomsRes, menuItemsRes, ordersRes, barProductsRes, barSalesRes, stockItemsRes, guestsRes] = await Promise.all([
                 getRooms(),
                 getMenuItems(),
                 getOrders(),
                 getBarProducts(),
                 getBarSales(),
-                getStockItems()
+                getStockItems(),
+                getGuests()
             ]);
 
             if (roomsRes.success) {
@@ -434,7 +471,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             }
 
             if (barSalesRes.success) {
-                setRecentSales(barSalesRes.sales.length > 0 ? barSalesRes.sales.sort((a: RecentSale, b: RecentSale) => b.time.getTime() - a.time.getTime()) : initialRecentSales);
+                setRecentSales(barSalesRes.sales.length > 0 ? barSalesRes.sales.sort((a: RecentSale, b: RecentSale) => new Date(b.time).getTime() - new Date(a.time).getTime()) : initialRecentSales);
             }
 
             if (stockItemsRes.success) {
@@ -449,6 +486,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 }));
                 setStockItems(formattedStockItems.length > 0 ? formattedStockItems.sort((a:StockItem,b:StockItem) => a.name.localeCompare(b.name)) : initialStockItems);
             }
+
+            if (guestsRes.success) {
+                setGuests(guestsRes.guests.length > 0 ? guestsRes.guests.sort((a:Guest,b:Guest) => a.name.localeCompare(b.name)) : initialGuests);
+            }
             
         } catch (error) {
             console.error("Failed to fetch initial data", error);
@@ -459,6 +500,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             setInventoryItems(initialInventoryItems);
             setRecentSales(initialRecentSales);
             setStockItems(initialStockItems);
+            setGuests(initialGuests);
         } finally {
             setLoading(false);
         }
@@ -481,6 +523,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setRecentSales,
         stockItems,
         setStockItems,
+        guests,
+        setGuests,
         totalBill,
         setTotalBill,
         loading,
@@ -496,7 +540,3 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     </DataContext.Provider>
   );
 };
-
-    
-
-    
