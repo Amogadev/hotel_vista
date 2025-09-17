@@ -77,7 +77,7 @@ export function RoomCalendarView({ rooms }: RoomCalendarViewProps) {
                 <CardTitle>Booking Calendar</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col lg:flex-row gap-6 items-start">
-                <div className="flex-grow rounded-lg border p-4 flex justify-center">
+                <div className="flex-grow rounded-lg border p-4 flex justify-center bg-muted/50">
                     <Calendar
                         mode="single"
                         numberOfMonths={2}
