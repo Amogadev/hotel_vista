@@ -104,7 +104,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availa
         
         {guestName ? (
             <div className="mt-3 text-xs text-center space-y-1">
-                <p className="font-semibold truncate flex items-center justify-center gap-1 text-foreground">
+                <p className="font-semibold truncate flex items-center justify-center gap-1">
                     <User className="h-3 w-3" />
                     {guestName}
                 </p>
