@@ -51,7 +51,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 
-import { format, differenceInCalendarDays, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { format, differenceInCalendarDays, parseISO, isWithinInterval, startOfDay, endOfDay, isSameDay } from 'date-fns';
 import { deleteRoom, updateRoom } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Room } from '@/context/data-provider';
@@ -443,7 +443,7 @@ const roomAvailabilities = useMemo(() => {
 
         {activeView === 'all-rooms' && (
           <>
-             <Card>
+            <Card>
                 <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
                     <div className="flex items-center gap-2">
                         <Popover>
@@ -463,7 +463,13 @@ const roomAvailabilities = useMemo(() => {
                             <Calendar
                                 mode="single"
                                 selected={selectedDate}
-                                onSelect={setSelectedDate}
+                                onSelect={(day) => {
+                                    if (selectedDate && day && isSameDay(selectedDate, day)) {
+                                        setSelectedDate(undefined);
+                                    } else {
+                                        setSelectedDate(day || undefined);
+                                    }
+                                }}
                                 initialFocus
                             />
                             </PopoverContent>
@@ -573,3 +579,4 @@ const roomAvailabilities = useMemo(() => {
     
 
     
+
