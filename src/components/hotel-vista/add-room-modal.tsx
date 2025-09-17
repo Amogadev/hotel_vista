@@ -64,7 +64,7 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
     resolver: zodResolver(roomSchema),
     defaultValues: {
       number: '',
-      type: 'Standard Single',
+      type: '',
       price: 100,
       status: 'Available',
       guest: '',
