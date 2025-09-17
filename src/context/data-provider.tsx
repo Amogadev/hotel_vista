@@ -378,7 +378,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             ]);
 
             if (roomsRes.success) {
-                const formattedRooms = roomsRes.rooms.map((room: any) => {
+                const fetchedRooms = roomsRes.rooms.filter((room: any): room is Room => !!room.number);
+                const formattedRooms = fetchedRooms.map((room: any) => {
                     const isCheckoutPast = room.checkOut && isPast(parseISO(room.checkOut));
                     const newStatus = room.status === 'Occupied' && isCheckoutPast ? 'Available' : room.status;
 
@@ -495,5 +496,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     </DataContext.Provider>
   );
 };
+
+    
 
     

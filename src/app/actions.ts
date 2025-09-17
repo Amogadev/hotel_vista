@@ -14,7 +14,7 @@ export async function getRooms() {
             checkIn: data.checkIn?.toDate ? data.checkIn.toDate().toISOString() : data.checkIn,
             checkOut: data.checkOut?.toDate ? data.checkOut.toDate().toISOString() : data.checkOut,
         };
-    });
+    }).filter(room => room.number); // Filter out rooms without a number
     return { success: true, rooms };
 }
 
@@ -346,6 +346,8 @@ export async function deleteStockItem(itemName: string) {
         return { success: false, error: "Failed to delete stock item" };
     }
 }
+
+    
 
     
 
