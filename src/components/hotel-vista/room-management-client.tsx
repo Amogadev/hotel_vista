@@ -46,6 +46,7 @@ import { RoomDetailsModal } from './room-details-modal';
 import { QuickActionsDropdown } from './quick-actions-dropdown';
 import { RoomCalendarView } from './room-calendar-view';
 import { RoomRevenueView } from './room-revenue-view';
+import { DailyBookingModal } from './daily-booking-modal';
 
 import { format, differenceInCalendarDays, parseISO } from 'date-fns';
 import { deleteRoom, updateRoom } from '@/app/actions';
@@ -122,6 +123,7 @@ export default function RoomManagementDashboard() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [isDailyBookingModalOpen, setIsDailyBookingModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -340,6 +342,13 @@ export default function RoomManagementDashboard() {
     });
   };
 
+  const handleOccupyClick = (roomNumber: string) => {
+    router.push(`/occupy/${roomNumber}`);
+    if (isDailyBookingModalOpen) {
+        setIsDailyBookingModalOpen(false);
+    }
+  };
+
 
   return (
     <div className="flex h-full">
@@ -358,7 +367,9 @@ export default function RoomManagementDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Pencil className="h-4 w-4 text-muted-foreground" />
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsDailyBookingModalOpen(true)}>
+                <Pencil className="h-4 w-4 text-muted-foreground" />
+            </Button>
             <Button onClick={handleOpenAddModal}>
               <Plus className="mr-2 h-4 w-4" />
               Add Room
@@ -459,7 +470,18 @@ export default function RoomManagementDashboard() {
               </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+         {isDailyBookingModalOpen && (
+            <DailyBookingModal
+                date={new Date()}
+                rooms={rooms}
+                isOpen={isDailyBookingModalOpen}
+                onClose={() => setIsDailyBookingModalOpen(false)}
+                onOccupy={handleOccupyClick}
+            />
+        )}
       </div>
     </div>
   );
+    
+
     
