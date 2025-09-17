@@ -363,9 +363,9 @@ export default function RoomManagementDashboard() {
           </TabsTrigger>
         </TabsList>
         <div className="mt-4">
-            <Card>
-                <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
-                <div className="relative flex-1 w-full md:grow-0">
+        <Card>
+            <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
+                <div className="relative flex-1 w-full md:w-auto md:grow">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Search by Room #, Guest, or Status..."
@@ -386,8 +386,8 @@ export default function RoomManagementDashboard() {
                         </Button>
                     ))}
                 </div>
-                </CardContent>
-            </Card>
+            </CardContent>
+        </Card>
         </div>
 
         <TabsContent value="all-rooms" className="mt-6">
