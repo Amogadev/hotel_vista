@@ -2,7 +2,7 @@
 "use server";
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc, Timestamp, setDoc, getDoc } from 'firebase/firestore';
 
 export async function getRooms() {
     const querySnapshot = await getDocs(collection(db, "rooms"));
@@ -354,6 +354,31 @@ export async function deleteStockItem(itemName: string) {
     } catch (e) {
         console.error("Error deleting document: ", e);
         return { success: false, error: "Failed to delete stock item" };
+    }
+}
+
+export async function getDailyNote(date: string) {
+    try {
+        const docRef = doc(db, "dailyNotes", date);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return { success: true, note: docSnap.data().content };
+        }
+        return { success: true, note: "" };
+    } catch (e) {
+        console.error("Error getting document: ", e);
+        return { success: false, error: "Failed to get note" };
+    }
+}
+
+export async function setDailyNote(date: string, content: string) {
+    try {
+        const docRef = doc(db, "dailyNotes", date);
+        await setDoc(docRef, { content });
+        return { success: true };
+    } catch (e) {
+        console.error("Error setting document: ", e);
+        return { success: false, error: "Failed to set note" };
     }
 }
     
