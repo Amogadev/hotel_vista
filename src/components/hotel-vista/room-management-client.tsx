@@ -443,32 +443,35 @@ const roomAvailabilities = useMemo(() => {
 
         {activeView === 'all-rooms' && (
           <>
-            <Card>
+             <Card>
                 <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                        <Button
-                            variant={'outline'}
-                            className={cn(
-                            'w-full justify-start text-left font-normal md:w-[240px]',
-                            !selectedDate && 'text-muted-foreground'
-                            )}
-                        >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
-                        </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={setSelectedDate}
-                            initialFocus
-                        />
-                        </PopoverContent>
-                    </Popover>
+                    <div className="flex items-center gap-2">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Button
+                                variant={'outline'}
+                                className={cn(
+                                'w-full justify-start text-left font-normal md:w-[240px]',
+                                !selectedDate && 'text-muted-foreground'
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={setSelectedDate}
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        {selectedDate && <Button variant="outline" onClick={() => setSelectedDate(undefined)}>Clear selection</Button>}
+                    </div>
 
-                    {!selectedDate ? (
+                    {!selectedDate && (
                         <>
                         <div className="relative flex-1 w-full md:grow">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -492,8 +495,6 @@ const roomAvailabilities = useMemo(() => {
                             ))}
                         </div>
                         </>
-                    ) : (
-                        <Button variant="outline" onClick={() => setSelectedDate(undefined)}>Clear Selection</Button>
                     )}
                 </CardContent>
             </Card>
