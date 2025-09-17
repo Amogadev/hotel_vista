@@ -349,9 +349,18 @@ export default function RoomManagementDashboard() {
 
       <Tabs defaultValue="all-rooms">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="all-rooms"><Bed className="mr-2 h-4 w-4" />All Rooms</TabsTrigger>
-          <TabsTrigger value="calendar"><Calendar className="mr-2 h-4 w-4" />Calendar View</TabsTrigger>
-          <TabsTrigger value="revenue"><BarChart2 className="mr-2 h-4 w-4" />Revenue</TabsTrigger>
+          <TabsTrigger value="all-rooms">
+            <Bed className="mr-2 h-4 w-4" />
+            All Rooms
+          </TabsTrigger>
+          <TabsTrigger value="calendar">
+            <Calendar className="mr-2 h-4 w-4" />
+            Calendar View
+          </TabsTrigger>
+          <TabsTrigger value="revenue">
+            <BarChart2 className="mr-2 h-4 w-4" />
+            Revenue
+          </TabsTrigger>
         </TabsList>
         <div className="mt-4">
             <Card>
