@@ -61,7 +61,7 @@ import { RoomManagementSidebar } from './room-management-sidebar';
 import { useRouter } from 'next/navigation';
 
 
-const statusFilters = ['All', 'Available', 'Occupied', 'Cleaning', 'Maintenance'];
+const statusFilters = ['All', 'Available', 'Occupied', 'Booked', 'Cleaning', 'Maintenance'];
 
 const statusColorMap: { [key: string]: string } = {
   Occupied: 'bg-green-100 text-green-800 border-green-200',
@@ -245,7 +245,11 @@ const roomAvailabilities = useMemo(() => {
     }
 
     if (activeFilter !== 'All') {
-        roomsToDisplay = roomsToDisplay.filter(room => room.status === activeFilter);
+        if (activeFilter === 'Booked') {
+            roomsToDisplay = roomsToDisplay.filter(room => room.status === 'Occupied');
+        } else {
+            roomsToDisplay = roomsToDisplay.filter(room => room.status === activeFilter);
+        }
     }
     
     if (searchTerm) {
@@ -596,6 +600,8 @@ const roomAvailabilities = useMemo(() => {
 
 
 
+
+    
 
     
 
