@@ -31,25 +31,33 @@ export function RoomCalendarView({ rooms }: RoomCalendarViewProps) {
 
   const bookingsByDate: { [key: string]: Room[] } = {};
   occupiedRooms.forEach(room => {
-    const start = startOfDay(parseISO(room.checkIn!));
-    const end = startOfDay(parseISO(room.checkOut!));
-    const interval = eachDayOfInterval({ start, end });
-    interval.forEach(day => {
-      const dateKey = format(day, 'yyyy-MM-dd');
-      if (!bookingsByDate[dateKey]) {
-        bookingsByDate[dateKey] = [];
-      }
-      bookingsByDate[dateKey].push(room);
-    });
+    if (room.checkIn && room.checkOut) {
+        const start = startOfDay(parseISO(room.checkIn));
+        const end = startOfDay(parseISO(room.checkOut));
+        if (start && end) {
+            const interval = eachDayOfInterval({ start, end });
+            interval.forEach(day => {
+            const dateKey = format(day, 'yyyy-MM-dd');
+            if (!bookingsByDate[dateKey]) {
+                bookingsByDate[dateKey] = [];
+            }
+            bookingsByDate[dateKey].push(room);
+            });
+        }
+    }
   });
 
   const getDayStatus = (day: Date) => {
     const dateKey = format(day, 'yyyy-MM-dd');
     const bookings = bookingsByDate[dateKey] || [];
-    const maintenanceRooms = rooms.filter(r => r.status === 'Maintenance');
+    // This logic assumes maintenance rooms are unavailable for the whole day.
+    // A more complex system might have start/end dates for maintenance.
+    const maintenanceForDay = rooms.filter(r => r.status === 'Maintenance');
     
-    if (bookings.length === allRoomsCount) return 'fully-booked';
-    if (bookings.length > 0 || maintenanceRooms.length > 0) return 'partially-booked';
+    const todaysBookings = bookings.length + maintenanceForDay.length;
+
+    if (todaysBookings >= allRoomsCount) return 'fully-booked';
+    if (todaysBookings > 0) return 'partially-booked';
     return 'available';
   };
 
@@ -117,7 +125,9 @@ export function RoomCalendarView({ rooms }: RoomCalendarViewProps) {
                         <div key={room.number} className="border p-3 rounded-lg bg-muted/50">
                             <p className="font-semibold text-primary">Room {room.number}</p>
                             <p className="text-sm font-medium">{room.guest}</p>
-                            <Badge variant="secondary" className="mt-1">{format(parseISO(room.checkIn!), 'MMM d')} to {format(parseISO(room.checkOut!), 'MMM d')}</Badge>
+                            {room.checkIn && room.checkOut &&
+                                <Badge variant="secondary" className="mt-1">{format(parseISO(room.checkIn), 'MMM d')} to {format(parseISO(room.checkOut), 'MMM d')}</Badge>
+                            }
                         </div>
                         )) : <p className="text-muted-foreground p-3 text-center">No rooms are currently occupied.</p>}
                     </div>
