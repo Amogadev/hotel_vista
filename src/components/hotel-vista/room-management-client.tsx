@@ -78,7 +78,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { ro
   };
 
   return (
-    <Card className="relative flex flex-col transition-all duration-200 hover:shadow-lg w-32 h-32 rounded-lg">
+    <Card className="relative flex flex-col transition-all duration-200 hover:shadow-lg w-40 h-40 rounded-lg">
       <div className="absolute top-1 right-1 z-10">
         <QuickActionsDropdown room={room} onEdit={onEditRoom} onDelete={onDeleteRoom} onAction={onAction} />
       </div>
@@ -455,9 +455,10 @@ export default function RoomManagementDashboard() {
       </AlertDialog>
     </div>
   );
+    
+    
+    
 
-    
-    
     
 
     
