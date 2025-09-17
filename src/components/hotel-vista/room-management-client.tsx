@@ -68,17 +68,17 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
     Maintenance: 'bg-red-400 text-red-950 border-red-500',
   };
 
-function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance', room: Room) => void }) {
+function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => void }) {
   const colorClass = room.status === 'Available' ? '' : statusColorMap[room.status] || '';
   const isAvailable = room.status === 'Available';
 
   const handleOccupyClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card's onViewRoom from firing
-    onEditRoom(room);
+    onAction('occupy', room);
   };
 
   return (
-    <Card className="relative flex flex-col transition-all duration-200 hover:shadow-lg">
+    <Card className="relative flex flex-col transition-all duration-200 hover:shadow-lg w-32 h-32">
       <div className="absolute top-1 right-1 z-10">
         <QuickActionsDropdown room={room} onEdit={onEditRoom} onDelete={onDeleteRoom} onAction={onAction} />
       </div>
@@ -124,7 +124,12 @@ export default function RoomManagementDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
 
-  const handleQuickAction = (action: 'checkout' | 'maintenance', room: Room) => {
+  const handleQuickAction = (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => {
+    if (action === 'occupy') {
+      handleEditRoom(room);
+      return;
+    }
+    
     startTransition(async () => {
         let updatedRoomData: Partial<Room> & { originalNumber: string; number: string; type: string; price: number, status: string; };
 
@@ -391,11 +396,13 @@ export default function RoomManagementDashboard() {
         </div>
 
         <TabsContent value="all-rooms" className="mt-6">
-          <div className="grid gap-4 grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
-            {filteredRooms.map((room, index) => (
-              <RoomCard key={`${room.number}-${index}`} room={room} onViewRoom={handleViewRoom} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} onAction={handleQuickAction} />
-            ))}
-          </div>
+            <div className="flex justify-center">
+                <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+                    {filteredRooms.map((room, index) => (
+                    <RoomCard key={`${room.number}-${index}`} room={room} onViewRoom={handleViewRoom} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} onAction={handleQuickAction} />
+                    ))}
+                </div>
+            </div>
         </TabsContent>
         <TabsContent value="calendar" className="mt-6">
             <RoomCalendarView rooms={rooms} />
@@ -445,5 +452,3 @@ export default function RoomManagementDashboard() {
       </AlertDialog>
     </div>
   );
-
-    
