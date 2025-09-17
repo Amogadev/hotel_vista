@@ -85,12 +85,12 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { ro
       <CardContent 
         className={cn(
             "flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg",
-            isAvailable && "bg-gray-700 text-white dark:bg-gray-800"
+            isAvailable && "bg-gray-100 dark:bg-gray-800"
         )}
         onClick={() => onViewRoom(room)}
       >
-        <p className={cn("text-3xl font-bold", isAvailable ? "text-white" : "text-primary")}>{room.number}</p>
-        <Badge variant={'default'} className={cn("mt-2 capitalize", !isAvailable && (statusColorMap[room.status] || ''))}>
+        <p className={cn("text-3xl font-bold", isAvailable ? "" : "text-primary")}>{room.number}</p>
+        <Badge variant={'default'} className={cn("mt-2 capitalize", statusColorMap[room.status] || '')}>
             {room.status}
         </Badge>
         
@@ -458,6 +458,8 @@ export default function RoomManagementDashboard() {
 
     
     
+    
+
     
 
     
