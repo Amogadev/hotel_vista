@@ -37,7 +37,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from '@/components/ui/input';
 import { AddRoomModal, RoomFormValues } from './add-room-modal';
 import { EditRoomModal, EditRoomFormValues } from './edit-room-modal';
@@ -51,6 +50,7 @@ import { deleteRoom, updateRoom } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Room } from '@/context/data-provider';
 import { cn } from '@/lib/utils';
+import { RoomManagementSidebar } from './room-management-sidebar';
 
 
 const statusFilters = ['All', 'Available', 'Occupied', 'Cleaning', 'Maintenance'];
@@ -73,7 +73,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { ro
   const isAvailable = room.status === 'Available';
 
   const handleOccupyClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card's onViewRoom from firing
+    e.stopPropagation(); 
     onAction('occupy', room);
   };
 
@@ -89,7 +89,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { ro
         )}
         onClick={() => onViewRoom(room)}
       >
-        <p className={cn("text-3xl font-bold", isAvailable ? "" : "text-primary")}>{room.number}</p>
+        <p className={cn("text-3xl font-bold", isAvailable ? "text-gray-700" : "text-primary")}>{room.number}</p>
         <Badge variant={'default'} className={cn("mt-2 capitalize", statusColorMap[room.status] || '')}>
             {room.status}
         </Badge>
@@ -126,6 +126,8 @@ export default function RoomManagementDashboard() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
+  const [activeView, setActiveView] = useState('all-rooms');
+
 
   const handleQuickAction = (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => {
     if (action === 'occupy') {
@@ -146,7 +148,7 @@ export default function RoomManagementDashboard() {
                 checkOut: undefined, 
                 totalPrice: undefined 
             };
-        } else { // maintenance
+        } else { 
             updatedRoomData = { 
                 ...room, 
                 originalNumber: room.number, 
@@ -179,8 +181,8 @@ export default function RoomManagementDashboard() {
             }
         } catch (error) {
             toast({
-                variant: 'destructive',
-                title: 'Error',
+                variant: "destructive",
+                title: "Error",
                 description: (error as Error).message,
             });
         }
@@ -326,145 +328,117 @@ export default function RoomManagementDashboard() {
 
 
   return (
-    <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
-      <header className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Room Management</h1>
-          <p className="text-muted-foreground">
-            Monitor and manage all hotel rooms
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleOpenAddModal}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Room
-          </Button>
-        </div>
-      </header>
-      <div className="flex justify-center">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {stats.map((stat) => (
-            <Card key={stat.title} className="w-full md:w-56">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                <CardTitle className="text-xs font-medium">{stat.title}</CardTitle>
-                {stat.icon}
-                </CardHeader>
-                <CardContent className="pb-4">
-                <div className="text-xl font-bold">{stat.value}</div>
-                </CardContent>
-            </Card>
-            ))}
-        </div>
-      </div>
-
-      <Tabs defaultValue="all-rooms">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="all-rooms">
-            <Bed className="mr-2 h-4 w-4" />
-            All Rooms
-          </TabsTrigger>
-          <TabsTrigger value="calendar">
-            <Calendar className="mr-2 h-4 w-4" />
-            Calendar View
-          </TabsTrigger>
-          <TabsTrigger value="revenue">
-            <BarChart2 className="mr-2 h-4 w-4" />
-            Revenue
-          </TabsTrigger>
-        </TabsList>
-        <div className="mt-4">
-        <Card>
-            <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
-                <div className="relative flex-1 w-full md:grow">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search by Room #, Guest, or Status..."
-                        className="pl-10 w-full"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                    {statusFilters.map(filter => (
-                        <Button
-                            key={filter}
-                            variant={activeFilter === filter ? 'default' : 'outline'}
-                            onClick={() => setActiveFilter(filter)}
-                            className="text-xs h-8"
-                        >
-                            {filter}
-                        </Button>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
+    <div className="flex h-full">
+      <RoomManagementSidebar activeView={activeView} setActiveView={setActiveView} />
+      <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
+        <header className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Room Management</h1>
+            <p className="text-muted-foreground">
+              Monitor and manage all hotel rooms
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={handleOpenAddModal}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Room
+            </Button>
+          </div>
+        </header>
+        <div className="flex justify-center">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {stats.map((stat) => (
+                <Card key={stat.title} className="w-full md:w-56">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                    <CardTitle className="text-xs font-medium">{stat.title}</CardTitle>
+                    {stat.icon}
+                    </CardHeader>
+                    <CardContent className="pb-4">
+                    <div className="text-xl font-bold">{stat.value}</div>
+                    </CardContent>
+                </Card>
+                ))}
+            </div>
         </div>
 
-        <TabsContent value="all-rooms" className="mt-6">
-            <div className="flex justify-center">
+        {activeView === 'all-rooms' && (
+          <>
+            <div className="mt-4">
+              <Card>
+                  <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
+                      <div className="relative flex-1 w-full md:grow">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                              placeholder="Search by Room #, Guest, or Status..."
+                              className="pl-10 w-full"
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                          />
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                          {statusFilters.map(filter => (
+                              <Button
+                                  key={filter}
+                                  variant={activeFilter === filter ? 'default' : 'outline'}
+                                  onClick={() => setActiveFilter(filter)}
+                                  className="text-xs h-8"
+                              >
+                                  {filter}
+                              </Button>
+                          ))}
+                      </div>
+                  </CardContent>
+              </Card>
+            </div>
+            <div className="flex justify-center mt-6">
                 <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
                     {filteredRooms.map((room, index) => (
                     <RoomCard key={`${room.number}-${index}`} room={room} onViewRoom={handleViewRoom} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} onAction={handleQuickAction} />
                     ))}
                 </div>
             </div>
-        </TabsContent>
-        <TabsContent value="calendar" className="mt-6">
-            <RoomCalendarView rooms={rooms} />
-        </TabsContent>
-        <TabsContent value="revenue" className="mt-6">
-            <RoomRevenueView rooms={rooms} />
-        </TabsContent>
-      </Tabs>
+          </>
+        )}
+        {activeView === 'calendar' && <RoomCalendarView rooms={rooms} />}
+        {activeView === 'revenue' && <RoomRevenueView rooms={rooms} />}
 
-
-      <AddRoomModal
-        isOpen={isAddModalOpen}
-        onClose={handleCloseAddModal}
-        onRoomAdded={handleRoomAdded}
-      />
-      {viewingRoom && (
-        <RoomDetailsModal
-          room={viewingRoom}
-          isOpen={isViewModalOpen}
-          onClose={handleCloseViewModal}
+        <AddRoomModal
+          isOpen={isAddModalOpen}
+          onClose={handleCloseAddModal}
+          onRoomAdded={handleRoomAdded}
         />
-      )}
-      {editingRoom && (
-        <EditRoomModal
-          room={editingRoom}
-          isOpen={isEditModalOpen}
-          onClose={handleCloseEditModal}
-          onRoomUpdated={handleRoomUpdated}
-        />
-      )}
-      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure you want to delete this room?</AlertDialogTitle>
-                <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete Room {deletingRoom?.number}.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setDeletingRoom(null)}>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleConfirmDelete} disabled={isPending} className="bg-destructive hover:bg-destructive/90">
-                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Delete
-                </AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        {viewingRoom && (
+          <RoomDetailsModal
+            room={viewingRoom}
+            isOpen={isViewModalOpen}
+            onClose={handleCloseViewModal}
+          />
+        )}
+        {editingRoom && (
+          <EditRoomModal
+            room={editingRoom}
+            isOpen={isEditModalOpen}
+            onClose={handleCloseEditModal}
+            onRoomUpdated={handleRoomUpdated}
+          />
+        )}
+        <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure you want to delete this room?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete Room {deletingRoom?.number}.
+                  </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setDeletingRoom(null)}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleConfirmDelete} disabled={isPending} className="bg-destructive hover:bg-destructive/90">
+                      {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Delete
+                  </AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
-    
-    
-    
-
-    
-
-    
-
-    
-
-    
