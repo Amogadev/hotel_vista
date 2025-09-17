@@ -46,7 +46,6 @@ import { EditRoomModal, EditRoomFormValues } from './edit-room-modal';
 import { RoomDetailsModal } from './room-details-modal';
 import { QuickActionsDropdown } from './quick-actions-dropdown';
 import { RoomCalendarView } from './room-calendar-view';
-import { RoomRevenueView } from './room-revenue-view';
 import { DailyBookingModal } from './daily-booking-modal';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -566,7 +565,6 @@ const stats = useMemo(() => {
           </>
         )}
         {activeView === 'calendar' && <RoomCalendarView rooms={rooms} />}
-        {activeView === 'revenue' && <RoomRevenueView rooms={rooms} />}
 
         <AddRoomModal
           isOpen={isAddModalOpen}
@@ -658,5 +656,6 @@ const stats = useMemo(() => {
     
 
     
+
 
 

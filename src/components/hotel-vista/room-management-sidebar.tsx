@@ -17,11 +17,6 @@ const sidebarNavItems = [
     value: 'calendar',
     icon: Calendar,
   },
-  {
-    title: 'Revenue',
-    value: 'revenue',
-    icon: BarChart2,
-  },
 ];
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
