@@ -52,7 +52,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 
-import { format, differenceInCalendarDays, parseISO, isWithinInterval, startOfDay, endOfDay, isSameDay } from 'date-fns';
+import { format, differenceInCalendarDays, parseISO, isWithinInterval, startOfDay, endOfDay, isSameDay, isFuture } from 'date-fns';
 import { deleteRoom, updateRoom } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Room } from '@/context/data-provider';
@@ -68,6 +68,7 @@ const statusColorMap: { [key: string]: string } = {
   Available: 'bg-blue-100 text-gray-700 border-blue-200',
   Cleaning: 'bg-yellow-100 text-gray-700 border-yellow-200',
   Maintenance: 'bg-red-100 text-gray-700 border-red-200',
+  Booked: 'bg-red-100 text-gray-700 border-red-200',
   BOOKED: 'bg-red-100 text-gray-700 border-red-200',
   AVAILABLE: 'bg-blue-100 text-gray-700 border-blue-200',
 };
@@ -79,7 +80,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availa
     onAction('occupy', room);
   };
   
-  const displayStatus = availability ? availability.status : room.status;
+  const displayStatus = availability ? availability.status : (room.status === 'Occupied' && room.checkIn && isFuture(startOfDay(parseISO(room.checkIn))) ? 'Booked' : room.status);
   const colorClass = statusColorMap[displayStatus] || '';
   const guestName = availability ? availability.guestName : room.guest;
 
@@ -246,7 +247,9 @@ const roomAvailabilities = useMemo(() => {
 
     if (activeFilter !== 'All') {
         if (activeFilter === 'Booked') {
-            roomsToDisplay = roomsToDisplay.filter(room => room.status === 'Occupied');
+            roomsToDisplay = roomsToDisplay.filter(room => room.status === 'Occupied' && room.checkIn && isFuture(startOfDay(parseISO(room.checkIn))));
+        } else if (activeFilter === 'Occupied') {
+            roomsToDisplay = roomsToDisplay.filter(room => room.status === 'Occupied' && (!room.checkIn || !isFuture(startOfDay(parseISO(room.checkIn)))));
         } else {
             roomsToDisplay = roomsToDisplay.filter(room => room.status === activeFilter);
         }
@@ -265,32 +268,38 @@ const roomAvailabilities = useMemo(() => {
 
 
 const stats = useMemo(() => {
-    const date = selectedDate || new Date();
+    const today = new Date();
+    const date = selectedDate || today;
     const totalRooms = rooms.length;
     
     let occupiedCount = 0;
     let availableCount = 0;
     let bookedCount = 0;
 
-    rooms.forEach(room => {
-        const availability = roomAvailabilities?.get(room.number);
-        if (availability) {
-            if (availability.status === 'BOOKED') {
-                bookedCount++;
-            } else {
-                availableCount++;
+    if (roomAvailabilities) { // Date is selected
+        rooms.forEach(room => {
+            const availability = roomAvailabilities.get(room.number);
+            if (availability) {
+                if (availability.status === 'BOOKED') {
+                    bookedCount++;
+                } else {
+                    availableCount++;
+                }
             }
-        } else {
-            // Fallback to current status if no date is selected
-            if(room.status === 'Occupied') occupiedCount++;
-            if(room.status === 'Available') availableCount++;
-        }
-    });
-
-    if(roomAvailabilities){
-        occupiedCount = bookedCount;
+        });
+        occupiedCount = bookedCount; // On a specific date, "booked" is the same as "occupied" for that day
+    } else { // No date selected, show current status
+        availableCount = rooms.filter(r => r.status === 'Available').length;
+        rooms.forEach(room => {
+            if (room.status === 'Occupied') {
+                if (room.checkIn && isFuture(startOfDay(parseISO(room.checkIn)))) {
+                    bookedCount++;
+                } else {
+                    occupiedCount++;
+                }
+            }
+        });
     }
-
 
     return [
       {
@@ -616,6 +625,8 @@ const stats = useMemo(() => {
 
     
 
+    
+
 
 
 
@@ -647,4 +658,5 @@ const stats = useMemo(() => {
     
 
     
+
 
