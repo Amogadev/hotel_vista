@@ -70,9 +70,9 @@ const statusVariantMap: { [key: string]: 'default' | 'destructive' } = {
 };
 
 const statusColorMap: { [key: string]: string } = {
-    good: 'bg-green-400 text-green-950 border-green-500',
-    low: 'bg-yellow-400 text-yellow-950 border-yellow-500',
-    critical: 'bg-red-400 text-red-950 border-red-500'
+    good: 'bg-green-100 text-green-800 border-green-200',
+    low: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    critical: 'bg-red-100 text-red-800 border-red-200'
 };
 
 const stats = [
