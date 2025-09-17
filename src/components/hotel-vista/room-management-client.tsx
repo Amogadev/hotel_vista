@@ -7,13 +7,17 @@ import { DataContext } from '@/context/data-provider';
 import {
   Bed,
   Users,
-  CalendarDays,
   DollarSign,
   Plus,
   Eye,
   Settings,
   Trash2,
   Loader2,
+  Calendar,
+  BarChart2,
+  Search,
+  BedDouble,
+  CalendarDays,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -34,14 +38,22 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from '@/components/ui/input';
 import { AddRoomModal, RoomFormValues } from './add-room-modal';
 import { EditRoomModal, EditRoomFormValues } from './edit-room-modal';
 import { RoomDetailsModal } from './room-details-modal';
-import { format } from 'date-fns';
-import { deleteRoom } from '@/app/actions';
+import { QuickActionsDropdown } from './quick-actions-dropdown';
+import { RoomCalendarView } from './room-calendar-view';
+import { RoomRevenueView } from './room-revenue-view';
+
+import { format, differenceInCalendarDays, parseISO } from 'date-fns';
+import { deleteRoom, updateRoom } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Room } from '@/context/data-provider';
 
+
+const statusFilters = ['All', 'Available', 'Occupied', 'Cleaning', 'Maintenance'];
 
 const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
     Occupied: 'secondary',
@@ -57,9 +69,10 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
     Maintenance: 'bg-red-400 text-red-950 border-red-500',
   };
 
-function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void }) {
+function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance', room: Room) => void }) {
   const variant = statusVariantMap[room.status] || 'default';
   const colorClass = statusColorMap[room.status] || '';
+  const nights = room.checkIn && room.checkOut ? differenceInCalendarDays(parseISO(room.checkOut), parseISO(room.checkIn)) : 0;
 
   return (
     <Card>
@@ -75,7 +88,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom }: { room: Room, 
           <div>
             <p className="text-sm font-medium truncate">Guest: {room.guest}</p>
             <p className="text-sm text-muted-foreground">
-              {room.checkIn} to {room.checkOut}
+              {nights} night{nights > 1 ? 's' : ''} ({format(parseISO(room.checkIn!), 'MMM d')} - {format(parseISO(room.checkOut!), 'MMM d')})
             </p>
           </div>
         ) : (
@@ -89,12 +102,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom }: { room: Room, 
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onViewRoom(room)}>
               <Eye className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEditRoom(room)}>
-              <Settings className="h-4 w-4" />
-            </Button>
-             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => onDeleteRoom(room)}>
-                <Trash2 className="h-4 w-4" />
-            </Button>
+            <QuickActionsDropdown room={room} onEdit={onEditRoom} onDelete={onDeleteRoom} onAction={onAction} />
           </div>
         </div>
       </CardContent>
@@ -113,6 +121,75 @@ export default function RoomManagementDashboard() {
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeFilter, setActiveFilter] = useState('All');
+
+  const handleQuickAction = (action: 'checkout' | 'maintenance', room: Room) => {
+    startTransition(async () => {
+        let updatedRoomData: Partial<Room> & { originalNumber: string; number: string; type: string; price: number, status: string; };
+
+        if (action === 'checkout') {
+            updatedRoomData = { 
+                ...room, 
+                originalNumber: room.number, 
+                status: 'Available', 
+                guest: undefined, 
+                checkIn: undefined, 
+                checkOut: undefined, 
+                totalPrice: undefined 
+            };
+        } else { // maintenance
+            updatedRoomData = { 
+                ...room, 
+                originalNumber: room.number, 
+                status: 'Maintenance' 
+            };
+        }
+
+        try {
+            // @ts-ignore
+            const result = await updateRoom(updatedRoomData);
+            if (result.success) {
+                toast({
+                    title: `Room ${action === 'checkout' ? 'Checked Out' : 'Marked for Maintenance'}`,
+                    description: `Room ${room.number} status has been updated.`,
+                });
+                
+                const finalUpdatedRoom = {
+                    ...room,
+                    status: updatedRoomData.status,
+                    guest: updatedRoomData.guest,
+                    checkIn: updatedRoomData.checkIn,
+                    checkOut: updatedRoomData.checkOut,
+                    totalPrice: updatedRoomData.totalPrice,
+                }
+                setRooms(prevRooms =>
+                    prevRooms.map(r => (r.number === room.number ? finalUpdatedRoom : r))
+                );
+            } else {
+                throw new Error(result.error || 'Failed to update room status');
+            }
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: (error as Error).message,
+            });
+        }
+    });
+};
+
+  const filteredRooms = useMemo(() => {
+    return rooms.filter(room => {
+        const matchesFilter = activeFilter === 'All' || room.status === activeFilter;
+        const matchesSearch = searchTerm === '' ||
+            room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (room.guest && room.guest.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            room.status.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesFilter && matchesSearch;
+    });
+  }, [rooms, searchTerm, activeFilter]);
+
 
   const stats = useMemo(() => {
     const totalRooms = rooms.length;
@@ -126,7 +203,7 @@ export default function RoomManagementDashboard() {
       {
         title: 'Total Rooms',
         value: totalRooms.toString(),
-        icon: <Bed className="h-6 w-6 text-blue-500" />,
+        icon: <BedDouble className="h-6 w-6 text-blue-500" />,
       },
       {
         title: 'Occupied',
@@ -269,11 +346,57 @@ export default function RoomManagementDashboard() {
           </Card>
         ))}
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {rooms.map((room, index) => (
-          <RoomCard key={`${room.number}-${index}`} room={room} onViewRoom={handleViewRoom} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} />
-        ))}
-      </div>
+
+      <Tabs defaultValue="all-rooms">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="all-rooms"><Bed className="mr-2 h-4 w-4" />All Rooms</TabsTrigger>
+          <TabsTrigger value="calendar"><Calendar className="mr-2 h-4 w-4" />Calendar View</TabsTrigger>
+          <TabsTrigger value="revenue"><BarChart2 className="mr-2 h-4 w-4" />Revenue</TabsTrigger>
+        </TabsList>
+        <div className="mt-4">
+            <Card>
+                <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
+                <div className="relative flex-1 w-full md:grow-0">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search by Room #, Guest, or Status..."
+                        className="pl-10 w-full"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                    {statusFilters.map(filter => (
+                        <Button
+                            key={filter}
+                            variant={activeFilter === filter ? 'default' : 'outline'}
+                            onClick={() => setActiveFilter(filter)}
+                            className="text-xs h-8"
+                        >
+                            {filter}
+                        </Button>
+                    ))}
+                </div>
+                </CardContent>
+            </Card>
+        </div>
+
+        <TabsContent value="all-rooms" className="mt-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredRooms.map((room, index) => (
+              <RoomCard key={`${room.number}-${index}`} room={room} onViewRoom={handleViewRoom} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} onAction={handleQuickAction} />
+            ))}
+          </div>
+        </TabsContent>
+        <TabsContent value="calendar" className="mt-6">
+            <RoomCalendarView rooms={rooms} />
+        </TabsContent>
+        <TabsContent value="revenue" className="mt-6">
+            <RoomRevenueView rooms={rooms} />
+        </TabsContent>
+      </Tabs>
+
+
       <AddRoomModal
         isOpen={isAddModalOpen}
         onClose={handleCloseAddModal}
