@@ -50,6 +50,7 @@ import { format, differenceInCalendarDays, parseISO } from 'date-fns';
 import { deleteRoom, updateRoom } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Room } from '@/context/data-provider';
+import { cn } from '@/lib/utils';
 
 
 const statusFilters = ['All', 'Available', 'Occupied', 'Cleaning', 'Maintenance'];
@@ -69,7 +70,6 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
   };
 
 function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => void }) {
-  const colorClass = statusColorMap[room.status] || '';
   const isAvailable = room.status === 'Available';
 
   const handleOccupyClick = (e: React.MouseEvent) => {
@@ -83,11 +83,14 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { ro
         <QuickActionsDropdown room={room} onEdit={onEditRoom} onDelete={onDeleteRoom} onAction={onAction} />
       </div>
       <CardContent 
-        className="flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg"
+        className={cn(
+            "flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg",
+            isAvailable && "bg-gray-100 dark:bg-gray-800"
+        )}
         onClick={() => onViewRoom(room)}
       >
         <p className="text-3xl font-bold text-primary">{room.number}</p>
-        <Badge variant={'default'} className={`mt-2 capitalize ${colorClass}`}>
+        <Badge variant={'default'} className={cn("mt-2 capitalize", statusColorMap[room.status] || '')}>
             {room.status}
         </Badge>
         
@@ -458,3 +461,4 @@ export default function RoomManagementDashboard() {
     
 
     
+
