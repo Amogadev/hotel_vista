@@ -24,6 +24,9 @@ export async function addRoom(newRoom: {
   price: number;
   status: string;
   guest?: string;
+  peopleCount?: number;
+  idProof?: string;
+  email?: string;
   checkIn?: string;
   checkOut?: string;
   totalPrice?: number;
@@ -54,6 +57,9 @@ export async function updateRoom(updatedRoom: {
   price: number;
   status: string;
   guest?: string;
+  peopleCount?: number;
+  idProof?: string;
+  email?: string;
   checkIn?: string;
   checkOut?: string;
   totalPrice?: number;
@@ -402,6 +408,8 @@ export async function deleteGuest(guestId: string) {
         return { success: false, error: "Failed to delete guest" };
     }
 }
+    
+
     
 
     

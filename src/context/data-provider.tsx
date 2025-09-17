@@ -11,6 +11,9 @@ export type Room = {
     type: string;
     status: string;
     guest?: string;
+    peopleCount?: number;
+    idProof?: string;
+    email?: string;
     checkIn?: string;
     checkOut?: string;
     price: number;
@@ -387,6 +390,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                         delete cleanedRoom.checkIn;
                         delete cleanedRoom.checkOut;
                         delete cleanedRoom.totalPrice;
+                        delete cleanedRoom.peopleCount;
+                        delete cleanedRoom.idProof;
+                        delete cleanedRoom.email;
                     }
                     
                     return cleanedRoom;
@@ -495,3 +501,5 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     </DataContext.Provider>
   );
 };
+
+    

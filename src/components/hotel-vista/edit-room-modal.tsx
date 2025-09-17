@@ -45,6 +45,9 @@ const roomSchema = z.object({
   price: z.coerce.number().min(1, 'Price must be greater than 0'),
   status: z.string().min(1, 'Status is required'),
   guest: z.string().optional(),
+  peopleCount: z.coerce.number().optional(),
+  idProof: z.string().optional(),
+  email: z.string().optional(),
   checkIn: z.date().optional(),
   checkOut: z.date().optional(),
   totalPrice: z.coerce.number().optional(),
@@ -57,9 +60,10 @@ type EditRoomModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onRoomUpdated: (updatedRoom: EditRoomFormValues & { originalNumber: string }) => void;
+  isOccupyFlow?: boolean;
 };
 
-export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoomModalProps) {
+export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated, isOccupyFlow = false }: EditRoomModalProps) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   
@@ -81,23 +85,27 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
         number: room.number,
         type: room.type,
         price: room.price,
-        status: room.status,
+        status: isOccupyFlow ? 'Occupied' : room.status,
         guest: room.guest || '',
+        peopleCount: room.peopleCount || undefined,
+        idProof: room.idProof || undefined,
+        email: room.email || undefined,
         checkIn: room.checkIn ? new Date(room.checkIn) : undefined,
         checkOut: room.checkOut ? new Date(room.checkOut) : undefined,
         totalPrice: room.totalPrice || 0,
       });
     }
-  }, [room, form]);
+  }, [room, form, isOccupyFlow]);
 
   useEffect(() => {
+    if (isOccupyFlow) return;
     const hasGuestDetails = guest && checkIn && checkOut;
     if (hasGuestDetails && status !== 'Occupied') {
       setValue('status', 'Occupied');
     } else if (!hasGuestDetails && status === 'Occupied') {
       setValue('status', 'Available');
     }
-  }, [guest, checkIn, checkOut, status, setValue]);
+  }, [guest, checkIn, checkOut, status, setValue, isOccupyFlow]);
 
   useEffect(() => {
     if (checkIn && checkOut && price > 0) {
@@ -145,52 +153,54 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit Room {room.number}</DialogTitle>
+          <DialogTitle>{isOccupyFlow ? `Occupy Room ${room.number}`: `Edit Room ${room.number}`}</DialogTitle>
           <DialogDescription>
-            Update room details. Fill guest info to auto-set status to Occupied.
+            {isOccupyFlow ? 'Enter guest details to occupy this room.' : 'Update room details. Fill guest info to auto-set status to Occupied.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Room Number</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+            {!isOccupyFlow && (
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Room Number</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a room type" />
-                        </SelectTrigger>
+                        <Input {...field} />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Standard Single">Standard Single</SelectItem>
-                        <SelectItem value="Standard Double">Standard Double</SelectItem>
-                        <SelectItem value="Deluxe Single">Deluxe Single</SelectItem>
-                        <SelectItem value="Deluxe Double">Deluxe Double</SelectItem>
-                        <SelectItem value="Suite">Suite</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a room type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Standard Single">Standard Single</SelectItem>
+                          <SelectItem value="Standard Double">Standard Double</SelectItem>
+                          <SelectItem value="Deluxe Single">Deluxe Single</SelectItem>
+                          <SelectItem value="Deluxe Double">Deluxe Double</SelectItem>
+                          <SelectItem value="Suite">Suite</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
             
             <div className="space-y-2 rounded-md border p-4">
                 <h4 className="font-medium text-sm">Guest Information</h4>
@@ -264,7 +274,7 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
                                 >
                                 {field.value ? (
                                     format(field.value, 'PPP')
-                                ) : (
+                                 ) : (
                                     <span>Pick a date</span>
                                 )}
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
@@ -289,26 +299,28 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Price/Night (₹)</FormLabel>
-                        <FormControl>
-                            <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
+              {!isOccupyFlow && (
+                  <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Price/Night (₹)</FormLabel>
+                          <FormControl>
+                              <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                  />
+              )}
                  <FormField
                     control={form.control}
                     name="status"
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} disabled={!!(guest || checkIn || checkOut)}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!!(guest || checkIn || checkOut) || isOccupyFlow}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select a status" />
@@ -348,3 +360,5 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
     </Dialog>
   );
 }
+
+    

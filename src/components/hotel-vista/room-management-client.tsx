@@ -17,6 +17,7 @@ import {
   Search,
   BedDouble,
   CalendarDays,
+  User,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -51,23 +52,17 @@ import { useToast } from '@/hooks/use-toast';
 import { Room } from '@/context/data-provider';
 import { cn } from '@/lib/utils';
 import { RoomManagementSidebar } from './room-management-sidebar';
+import { useRouter } from 'next/navigation';
 
 
 const statusFilters = ['All', 'Available', 'Occupied', 'Cleaning', 'Maintenance'];
 
-const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
-    Occupied: 'destructive',
-    Available: 'default',
-    Cleaning: 'outline',
-    Maintenance: 'destructive',
-  };
-  
-  const statusColorMap: { [key: string]: string } = {
-    Occupied: 'bg-green-100 text-green-800 border-green-200',
-    Available: 'bg-blue-100 text-blue-800 border-blue-200',
-    Cleaning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    Maintenance: 'bg-red-100 text-red-800 border-red-200',
-  };
+const statusColorMap: { [key: string]: string } = {
+  Occupied: 'bg-green-100 text-green-800 border-green-200',
+  Available: 'bg-blue-100 text-blue-800 border-blue-200',
+  Cleaning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  Maintenance: 'bg-red-100 text-red-800 border-red-200',
+};
 
 function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => void }) {
   const isAvailable = room.status === 'Available';
@@ -100,8 +95,12 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { ro
             </Button>
         ) : (
           room.guest && (
-            <div className="mt-3 text-xs text-center">
-                <p className="font-semibold truncate">{room.guest}</p>
+            <div className="mt-3 text-xs text-center space-y-1">
+                <p className="font-semibold truncate flex items-center justify-center gap-1">
+                    <User className="h-3 w-3" />
+                    {room.guest}
+                </p>
+                {room.peopleCount && <p className="text-muted-foreground">{room.peopleCount} People</p>}
                 {room.checkIn && room.checkOut && (
                     <p className="text-muted-foreground">{format(parseISO(room.checkIn), 'MMM d')} - {format(parseISO(room.checkOut), 'MMM d')}</p>
                 )}
@@ -128,11 +127,12 @@ export default function RoomManagementDashboard() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeView, setActiveView] = useState('all-rooms');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const router = useRouter();
 
 
   const handleQuickAction = (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => {
     if (action === 'occupy') {
-      handleEditRoom(room);
+      router.push(`/occupy/${room.number}`);
       return;
     }
     
@@ -147,7 +147,10 @@ export default function RoomManagementDashboard() {
                 guest: undefined, 
                 checkIn: undefined, 
                 checkOut: undefined, 
-                totalPrice: undefined 
+                totalPrice: undefined,
+                peopleCount: undefined,
+                idProof: undefined,
+                email: undefined,
             };
         } else { 
             updatedRoomData = { 
@@ -173,6 +176,9 @@ export default function RoomManagementDashboard() {
                     checkIn: updatedRoomData.checkIn,
                     checkOut: updatedRoomData.checkOut,
                     totalPrice: updatedRoomData.totalPrice,
+                    peopleCount: updatedRoomData.peopleCount,
+                    idProof: updatedRoomData.idProof,
+                    email: updatedRoomData.email,
                 }
                 setRooms(prevRooms =>
                     prevRooms.map(r => (r.number === room.number ? finalUpdatedRoom : r))
@@ -250,6 +256,9 @@ export default function RoomManagementDashboard() {
       status: newRoomData.status,
       price: newRoomData.price,
       guest: newRoomData.guest,
+      peopleCount: newRoomData.peopleCount,
+      idProof: newRoomData.idProof,
+      email: newRoomData.email,
       checkIn: newRoomData.checkIn ? format(newRoomData.checkIn, 'yyyy-MM-dd') : undefined,
       checkOut: newRoomData.checkOut ? format(newRoomData.checkOut, 'yyyy-MM-dd') : undefined,
       totalPrice: newRoomData.totalPrice,
@@ -285,6 +294,9 @@ export default function RoomManagementDashboard() {
       status: updatedRoomData.status,
       price: updatedRoomData.price,
       guest: updatedRoomData.guest,
+      peopleCount: updatedRoomData.peopleCount,
+      idProof: updatedRoomData.idProof,
+      email: updatedRoomData.email,
       checkIn: updatedRoomData.checkIn ? format(new Date(updatedRoomData.checkIn), 'yyyy-MM-dd') : undefined,
       checkOut: updatedRoomData.checkOut ? format(new Date(updatedRoomData.checkOut), 'yyyy-MM-dd') : undefined,
       totalPrice: updatedRoomData.totalPrice,
