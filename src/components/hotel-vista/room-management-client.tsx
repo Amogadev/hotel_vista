@@ -97,7 +97,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availa
         )}
         onClick={() => onViewRoom(room)}
       >
-        <p className={cn("text-3xl font-bold")}>{room.number}</p>
+        <p className="text-3xl font-bold">{room.number}</p>
         <Badge variant={'default'} className={cn("mt-2 capitalize", colorClass, !colorClass.includes('text-') && 'text-foreground')}>
             {displayStatus}
         </Badge>
@@ -621,6 +621,8 @@ const stats = useMemo(() => {
 
 
 
+
+    
 
     
 
