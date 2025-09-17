@@ -441,7 +441,7 @@ const roomAvailabilities = useMemo(() => {
                       {stat.icon}
                       </CardHeader>
                       <CardContent className="pb-4">
-                      <div className={stat.title === 'Date' ? 'text-lg font-semibold' : 'text-xl font-bold'}>{stat.value}</div>
+                      <div className={stat.title === 'Date' ? 'text-base font-semibold' : 'text-xl font-bold'}>{stat.value}</div>
                       </CardContent>
                   </Card>
                   ))}
@@ -590,6 +590,7 @@ const roomAvailabilities = useMemo(() => {
     
 
     
+
 
 
 
