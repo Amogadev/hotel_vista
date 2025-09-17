@@ -78,12 +78,12 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { ro
   };
 
   return (
-    <Card className="relative flex flex-col transition-all duration-200 hover:shadow-lg w-32 h-32">
+    <Card className="relative flex flex-col transition-all duration-200 hover:shadow-lg w-32 h-32 rounded-lg">
       <div className="absolute top-1 right-1 z-10">
         <QuickActionsDropdown room={room} onEdit={onEditRoom} onDelete={onDeleteRoom} onAction={onAction} />
       </div>
       <CardContent 
-        className={`flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer ${colorClass}`}
+        className={`flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg ${colorClass}`}
         onClick={() => onViewRoom(room)}
       >
         <p className="text-3xl font-bold text-primary">{room.number}</p>
@@ -397,7 +397,7 @@ export default function RoomManagementDashboard() {
 
         <TabsContent value="all-rooms" className="mt-6">
             <div className="flex justify-center">
-                <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+                <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
                     {filteredRooms.map((room, index) => (
                     <RoomCard key={`${room.number}-${index}`} room={room} onViewRoom={handleViewRoom} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} onAction={handleQuickAction} />
                     ))}
@@ -452,3 +452,5 @@ export default function RoomManagementDashboard() {
       </AlertDialog>
     </div>
   );
+
+    
