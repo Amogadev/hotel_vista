@@ -18,6 +18,7 @@ import {
   BedDouble,
   CalendarDays,
   User,
+  Pencil,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -356,7 +357,8 @@ export default function RoomManagementDashboard() {
               Monitor and manage all hotel rooms
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <Pencil className="h-4 w-4 text-muted-foreground" />
             <Button onClick={handleOpenAddModal}>
               <Plus className="mr-2 h-4 w-4" />
               Add Room
@@ -460,5 +462,4 @@ export default function RoomManagementDashboard() {
       </div>
     </div>
   );
-
     
