@@ -30,7 +30,7 @@ export function RoomCalendarView({ rooms }: RoomCalendarViewProps) {
         <CardTitle>Booking Calendar</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col lg:flex-row gap-6 items-start">
-        <div className="flex-grow flex justify-center rounded-lg border">
+        <div className="flex-grow rounded-lg border p-4 flex justify-center">
             <Calendar
                 mode="range"
                 numberOfMonths={2}
