@@ -40,6 +40,12 @@ const allMenuItems = [
     roles: ['admin', 'reception'],
   },
   {
+    href: '/total-bill',
+    label: 'Total Bill',
+    icon: FileText,
+    roles: ['admin', 'reception'],
+  },
+  {
     href: '/restaurant',
     label: 'Restaurant',
     icon: UtensilsCrossed,
@@ -56,12 +62,6 @@ const allMenuItems = [
     label: 'Stock Management',
     icon: Box,
     roles: ['admin'],
-  },
-  {
-    href: '/total-bill',
-    label: 'Total Bill',
-    icon: FileText,
-    roles: ['admin', 'reception'],
   },
 ];
 
