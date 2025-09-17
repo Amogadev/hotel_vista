@@ -90,14 +90,14 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
                           <DailyUpdateItem icon={<LogOut className="w-5 h-5 text-red-500" />} title="Check-outs" rooms={checkOuts} message="No check-outs today." />
                           <DailyUpdateItem icon={<Wrench className="w-5 h-5 text-yellow-500" />} title="Maintenance" rooms={maintenanceRooms} message="No maintenance scheduled." />
                           <div>
-                              <h3 className="font-semibold flex items-center justify-between gap-2 mb-2">
-                                <div className="flex items-center gap-2">
+                              <div className="flex items-center justify-between mb-2">
+                                <h3 className="font-semibold flex items-center gap-2">
                                   <Bed className="w-5 h-5 text-blue-500" /> Special Notes
-                                </div>
+                                </h3>
                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsEditNoteModalOpen(true)}>
                                     <Pencil className="w-4 h-4" />
                                 </Button>
-                              </h3>
+                              </div>
                               <p className="ml-7 text-sm text-muted-foreground whitespace-pre-wrap">
                                 {note || "No special events or notes for today."}
                               </p>
@@ -122,7 +122,9 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
                                       </div>
                                       <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
                                           <div className="flex items-center gap-2"><User className="w-4 h-4"/>{room.guest}</div>
-                                          <div className="flex items-center gap-2"><Calendar className="w-4 h-4"/>{format(parseISO(room.checkIn!), 'MMM d')} - {format(parseISO(room.checkOut!), 'MMM d')}</div>
+                                          {room.checkIn && room.checkOut &&
+                                            <div className="flex items-center gap-2"><Calendar className="w-4 h-4"/>{format(parseISO(room.checkIn), 'MMM d')} - {format(parseISO(room.checkOut), 'MMM d')}</div>
+                                          }
                                       </div>
                                   </div>
                               )) : <p className="text-center text-muted-foreground py-4">No rooms booked for this date.</p>}
