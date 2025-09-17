@@ -89,7 +89,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { ro
         )}
         onClick={() => onViewRoom(room)}
       >
-        <p className={cn("text-3xl font-bold", isAvailable ? "text-gray-700" : "text-primary")}>{room.number}</p>
+        <p className={cn("text-3xl font-bold", isAvailable ? "text-gray-700 dark:text-gray-300" : "text-primary")}>{room.number}</p>
         <Badge variant={'default'} className={cn("mt-2 capitalize", statusColorMap[room.status] || '')}>
             {room.status}
         </Badge>
@@ -127,6 +127,7 @@ export default function RoomManagementDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeView, setActiveView] = useState('all-rooms');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
 
   const handleQuickAction = (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => {
@@ -329,7 +330,12 @@ export default function RoomManagementDashboard() {
 
   return (
     <div className="flex h-full">
-      <RoomManagementSidebar activeView={activeView} setActiveView={setActiveView} />
+      <RoomManagementSidebar 
+        activeView={activeView} 
+        setActiveView={setActiveView} 
+        isCollapsed={isSidebarCollapsed}
+        setIsCollapsed={setIsSidebarCollapsed}
+      />
       <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
         <header className="flex items-start justify-between">
           <div>
