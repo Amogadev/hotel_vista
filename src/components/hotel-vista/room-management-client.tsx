@@ -62,7 +62,7 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
   };
   
   const statusColorMap: { [key: string]: string } = {
-    Occupied: 'bg-red-500 text-white border-red-600',
+    Occupied: 'bg-red-400 text-red-950 border-red-500',
     Available: 'bg-blue-400 text-blue-950 border-blue-500',
     Cleaning: 'bg-yellow-400 text-yellow-950 border-yellow-500',
     Maintenance: 'bg-red-800 text-white border-red-900',
@@ -453,4 +453,5 @@ export default function RoomManagementDashboard() {
     </div>
   );
 
+    
     
