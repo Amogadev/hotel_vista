@@ -63,10 +63,10 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
   };
   
   const statusColorMap: { [key: string]: string } = {
-    Occupied: 'bg-green-400 text-green-950 border-green-500',
+    Occupied: 'bg-red-400 text-red-950 border-red-500',
     Available: 'bg-blue-400 text-blue-950 border-blue-500',
     Cleaning: 'bg-yellow-400 text-yellow-950 border-yellow-500',
-    Maintenance: 'bg-red-400 text-red-950 border-red-500',
+    Maintenance: 'bg-red-800 text-white border-red-900',
   };
 
 function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => void }) {
@@ -397,7 +397,7 @@ export default function RoomManagementDashboard() {
               </Card>
             </div>
             <div className="flex justify-center mt-6">
-                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                     {filteredRooms.map((room, index) => (
                     <RoomCard key={`${room.number}-${index}`} room={room} onViewRoom={handleViewRoom} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} onAction={handleQuickAction} />
                     ))}
