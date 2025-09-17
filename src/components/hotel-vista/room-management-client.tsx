@@ -341,18 +341,20 @@ export default function RoomManagementDashboard() {
           </Button>
         </div>
       </header>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-              <CardTitle className="text-xs font-medium">{stat.title}</CardTitle>
-              {stat.icon}
-            </CardHeader>
-            <CardContent className="pb-4">
-              <div className="text-xl font-bold">{stat.value}</div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="flex justify-center">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {stats.map((stat) => (
+            <Card key={stat.title} className="w-full md:w-56">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                <CardTitle className="text-xs font-medium">{stat.title}</CardTitle>
+                {stat.icon}
+                </CardHeader>
+                <CardContent className="pb-4">
+                <div className="text-xl font-bold">{stat.value}</div>
+                </CardContent>
+            </Card>
+            ))}
+        </div>
       </div>
 
       <Tabs defaultValue="all-rooms">
