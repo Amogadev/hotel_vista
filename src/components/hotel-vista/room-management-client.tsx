@@ -137,6 +137,7 @@ export default function RoomManagementDashboard() {
   const [activeView, setActiveView] = useState('all-rooms');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const router = useRouter();
 
 
@@ -446,7 +447,7 @@ const roomAvailabilities = useMemo(() => {
             <Card>
                 <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
                     <div className="flex items-center gap-2">
-                        <Popover>
+                         <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                             <PopoverTrigger asChild>
                             <Button
                                 variant={'outline'}
@@ -469,6 +470,7 @@ const roomAvailabilities = useMemo(() => {
                                     } else {
                                         setSelectedDate(day || undefined);
                                     }
+                                    setIsDatePickerOpen(false);
                                 }}
                                 initialFocus
                             />
@@ -579,4 +581,5 @@ const roomAvailabilities = useMemo(() => {
     
 
     
+
 
