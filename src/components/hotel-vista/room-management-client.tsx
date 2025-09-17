@@ -397,7 +397,7 @@ export default function RoomManagementDashboard() {
               </Card>
             </div>
             <div className="flex justify-center mt-6">
-                <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                     {filteredRooms.map((room, index) => (
                     <RoomCard key={`${room.number}-${index}`} room={room} onViewRoom={handleViewRoom} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} onAction={handleQuickAction} />
                     ))}
@@ -448,3 +448,4 @@ export default function RoomManagementDashboard() {
       </div>
     </div>
   );
+
