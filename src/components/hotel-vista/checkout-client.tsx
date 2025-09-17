@@ -38,7 +38,7 @@ export default function CheckoutDashboard() {
   const charges = useMemo(() => {
     if (!selectedRoom) return null;
 
-    const roomRate = parseFloat(selectedRoom.rate.replace(/[^0-9.-]+/g, ''));
+    const roomRate = selectedRoom.totalPrice || selectedRoom.price;
     const barCharges = recentSales
       .filter(sale => sale.room === selectedRoom.number)
       .reduce((acc, sale) => acc + sale.price, 0);

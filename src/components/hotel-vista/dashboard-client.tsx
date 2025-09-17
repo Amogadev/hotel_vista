@@ -71,7 +71,7 @@ export default function Dashboard() {
   const { rooms, activeOrders } = useContext(DataContext);
   const totalRevenue = rooms
   .filter(room => room.status === 'Occupied')
-  .reduce((acc, room) => acc + parseFloat(room.rate.replace(/[^0-9.-]+/g, "")), 0);
+  .reduce((acc, room) => acc + (room.totalPrice || room.price), 0);
   const occupiedRooms = rooms.filter(room => room.status === 'Occupied').length;
   const totalRooms = rooms.length;
   const activeGuests = rooms.filter(room => room.status === 'Occupied' && room.guest).length; // Simplified guest count
