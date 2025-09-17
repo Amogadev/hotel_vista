@@ -270,7 +270,7 @@ const roomAvailabilities = useMemo(() => {
       {
         title: 'Date',
         value: format(today, 'PPP'),
-        icon: <CalendarIcon className="h-6 w-6 text-orange-500" />,
+        icon: <CalendarIcon className="h-6 w-6 text-orange-300" />,
       },
       {
         title: 'Total Rooms',
@@ -590,6 +590,8 @@ const roomAvailabilities = useMemo(() => {
 
 
 
+
+    
 
     
 
