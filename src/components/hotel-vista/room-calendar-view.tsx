@@ -57,9 +57,9 @@ export function RoomCalendarView({ rooms }: RoomCalendarViewProps) {
     const status = getDayStatus(props.day);
     let colorClass = '';
     switch(status) {
-      case 'fully-booked': colorClass = 'bg-red-100 dark:bg-red-900'; break;
-      case 'partially-booked': colorClass = 'bg-yellow-100 dark:bg-yellow-900'; break;
-      case 'available': colorClass = 'bg-green-100 dark:bg-green-900'; break;
+      case 'fully-booked': colorClass = 'bg-red-500'; break;
+      case 'partially-booked': colorClass = 'bg-yellow-500'; break;
+      case 'available': colorClass = 'bg-green-500'; break;
     }
 
     return (
