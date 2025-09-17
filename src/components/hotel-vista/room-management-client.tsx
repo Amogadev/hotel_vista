@@ -476,7 +476,7 @@ const roomAvailabilities = useMemo(() => {
                             />
                             </PopoverContent>
                         </Popover>
-                        {selectedDate && <Button variant="outline" onClick={() => setSelectedDate(undefined)}>Clear selection</Button>}
+                        {selectedDate && <Button variant="outline" onClick={() => setSelectedDate(undefined)}>Reset</Button>}
                     </div>
 
                     {!selectedDate && (
@@ -581,5 +581,6 @@ const roomAvailabilities = useMemo(() => {
     
 
     
+
 
 
