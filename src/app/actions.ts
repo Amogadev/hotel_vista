@@ -161,7 +161,7 @@ export async function getOrders() {
     const querySnapshot = await getDocs(collection(db, "orders"));
     const orders = querySnapshot.docs.map(doc => {
         const data = doc.data();
-        return { ...data, id: doc.id, time: data.time.toDate() }
+        return { ...data, id: doc.id, time: data.time?.toDate ? data.time.toDate() : new Date() };
     });
     return { success: true, orders };
 }
@@ -346,5 +346,7 @@ export async function deleteStockItem(itemName: string) {
         return { success: false, error: "Failed to delete stock item" };
     }
 }
+
+    
 
     
