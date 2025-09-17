@@ -261,6 +261,7 @@ const roomAvailabilities = useMemo(() => {
 
 
   const stats = useMemo(() => {
+    const today = new Date();
     const totalRooms = rooms.length;
     const occupied = rooms.filter(room => room.status === 'Occupied').length;
     const available = rooms.filter(room => room.status === 'Available').length;
@@ -269,6 +270,11 @@ const roomAvailabilities = useMemo(() => {
         .reduce((acc, room) => acc + room.totalPrice!, 0);
 
     return [
+      {
+        title: 'Date',
+        value: format(today, 'PPP'),
+        icon: <CalendarIcon className="h-6 w-6 text-gray-500" />,
+      },
       {
         title: 'Total Rooms',
         value: totalRooms.toString(),
@@ -427,7 +433,7 @@ const roomAvailabilities = useMemo(() => {
         </header>
         {!selectedDate && activeView === 'all-rooms' && (
           <div className="flex justify-center">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                   {stats.map((stat) => (
                   <Card key={stat.title} className="w-full md:w-56">
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
@@ -582,6 +588,7 @@ const roomAvailabilities = useMemo(() => {
     
 
     
+
 
 
 
