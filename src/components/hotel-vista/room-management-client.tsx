@@ -69,7 +69,7 @@ const statusColorMap: { [key: string]: string } = {
   Cleaning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   Maintenance: 'bg-red-100 text-red-800 border-red-200',
   BOOKED: 'bg-red-100 text-red-800 border-red-200',
-  AVAILABLE: 'bg-green-100 text-green-800 border-green-200',
+  AVAILABLE: 'bg-blue-100 text-blue-800 border-blue-200',
 };
 
 function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availability }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => void, availability?: { status: 'BOOKED' | 'AVAILABLE', guestName?: string } }) {
@@ -93,12 +93,12 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availa
       <CardContent 
         className={cn(
             "flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg",
-            availability ? (displayStatus === 'BOOKED' ? 'bg-red-100 border-red-200' : 'bg-green-100 border-green-200') : colorClass
+            colorClass
         )}
         onClick={() => onViewRoom(room)}
       >
         <p className={cn("text-3xl font-bold")}>{room.number}</p>
-        <Badge variant={'default'} className={cn("mt-2 capitalize", availability ? (displayStatus === 'BOOKED' ? 'bg-red-500' : 'bg-green-500') : colorClass)}>
+        <Badge variant={'default'} className={cn("mt-2 capitalize", colorClass)}>
             {displayStatus}
         </Badge>
         
@@ -621,6 +621,8 @@ const stats = useMemo(() => {
 
 
 
+
+    
 
     
 
