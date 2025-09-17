@@ -64,7 +64,7 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl h-[80vh] flex flex-col">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Daily Overview: {formattedDate}</DialogTitle>
             <DialogDescription>
@@ -72,7 +72,7 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
             </DialogDescription>
           </DialogHeader>
           
-          <ScrollArea className="flex-grow -mx-6 px-6">
+          <ScrollArea className="max-h-[60vh] -mx-6 px-6">
             <div className="space-y-6 py-4">
 
               {/* Daily Updates Section */}
