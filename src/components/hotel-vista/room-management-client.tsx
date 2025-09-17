@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useTransition, useMemo, useContext } from 'react';
@@ -70,41 +69,16 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
   };
 
 function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance', room: Room) => void }) {
-  const variant = statusVariantMap[room.status] || 'default';
   const colorClass = statusColorMap[room.status] || '';
-  const nights = room.checkIn && room.checkOut ? differenceInCalendarDays(parseISO(room.checkOut), parseISO(room.checkIn)) : 0;
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="font-bold">Room {room.number}</CardTitle>
-          <Badge variant={variant} className={`capitalize ${colorClass}`}>{room.status}</Badge>
-        </div>
-        <CardDescription>{room.type}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {room.status === 'Occupied' && room.guest ? (
-          <div>
-            <p className="text-sm font-medium truncate">Guest: {room.guest}</p>
-            <p className="text-sm text-muted-foreground">
-              {nights} night{nights > 1 ? 's' : ''} ({format(parseISO(room.checkIn!), 'MMM d')} - {format(parseISO(room.checkOut!), 'MMM d')})
-            </p>
-          </div>
-        ) : (
-            <div className="h-[40px]"></div>
-        )}
-        <div className="flex items-center justify-between">
-          <p className="text-base font-semibold">
-            {room.totalPrice ? `₹${room.totalPrice.toLocaleString()}` : `₹${room.price}/night`}
-          </p>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onViewRoom(room)}>
-              <Eye className="h-4 w-4" />
-            </Button>
-            <QuickActionsDropdown room={room} onEdit={onEditRoom} onDelete={onDeleteRoom} onAction={onAction} />
-          </div>
-        </div>
+    <Card className="relative aspect-square flex flex-col items-center justify-center p-2 text-center transition-all duration-200 hover:shadow-lg">
+      <div className="absolute top-1 right-1">
+        <QuickActionsDropdown room={room} onEdit={onEditRoom} onDelete={onDeleteRoom} onAction={onAction} />
+      </div>
+      <CardContent className="p-0 flex flex-col items-center justify-center cursor-pointer" onClick={() => onViewRoom(room)}>
+        <p className="text-3xl font-bold text-primary">{room.number}</p>
+        <Badge className={`mt-2 capitalize ${colorClass}`}>{room.status}</Badge>
       </CardContent>
     </Card>
   );
@@ -365,7 +339,7 @@ export default function RoomManagementDashboard() {
         <div className="mt-4">
         <Card>
             <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
-                <div className="relative flex-1 w-full md:w-auto md:grow">
+                <div className="relative flex-1 w-full md:grow">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Search by Room #, Guest, or Status..."
@@ -391,7 +365,7 @@ export default function RoomManagementDashboard() {
         </div>
 
         <TabsContent value="all-rooms" className="mt-6">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
             {filteredRooms.map((room, index) => (
               <RoomCard key={`${room.number}-${index}`} room={room} onViewRoom={handleViewRoom} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} onAction={handleQuickAction} />
             ))}
@@ -445,4 +419,5 @@ export default function RoomManagementDashboard() {
       </AlertDialog>
     </div>
   );
-}
+
+    
