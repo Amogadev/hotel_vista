@@ -48,6 +48,8 @@ import { RoomCalendarView } from './room-calendar-view';
 import { RoomRevenueView } from './room-revenue-view';
 import { DailyBookingModal } from './daily-booking-modal';
 import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
 
 import { format, differenceInCalendarDays, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { deleteRoom, updateRoom } from '@/app/actions';
@@ -90,12 +92,12 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availa
       <CardContent 
         className={cn(
             "flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg",
-            colorClass
+            availability ? (displayStatus === 'BOOKED' ? 'bg-red-100 text-red-800 border-red-200' : 'bg-green-100 text-green-800 border-green-200') : colorClass
         )}
         onClick={() => onViewRoom(room)}
       >
         <p className={cn("text-3xl font-bold")}>{room.number}</p>
-        <Badge variant={'default'} className={cn("mt-2 capitalize", colorClass)}>
+        <Badge variant={'default'} className={cn("mt-2 capitalize", availability ? (displayStatus === 'BOOKED' ? 'bg-red-500' : 'bg-green-500') : colorClass)}>
             {displayStatus}
         </Badge>
         
@@ -421,7 +423,7 @@ const roomAvailabilities = useMemo(() => {
             </Button>
           </div>
         </header>
-        {!selectedDate && (
+        {!selectedDate && activeView === 'all-rooms' && (
           <div className="flex justify-center">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   {stats.map((stat) => (
@@ -441,25 +443,33 @@ const roomAvailabilities = useMemo(() => {
 
         {activeView === 'all-rooms' && (
           <>
-             <Card>
-                <CardHeader>
-                    <CardTitle>Check Room Availability</CardTitle>
-                    <CardDescription>Select a date to see room status for that day. Clear selection to see all rooms.</CardDescription>
-                </CardHeader>
-                <CardContent className="flex justify-center">
-                    <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={setSelectedDate}
-                        className="rounded-md border"
-                    />
-                </CardContent>
-            </Card>
+            <Card>
+                <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <Button
+                            variant={'outline'}
+                            className={cn(
+                            'w-full justify-start text-left font-normal md:w-[240px]',
+                            !selectedDate && 'text-muted-foreground'
+                            )}
+                        >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
+                        </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            initialFocus
+                        />
+                        </PopoverContent>
+                    </Popover>
 
-            {!selectedDate && (
-                <div className="mt-4">
-                <Card>
-                    <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
+                    {!selectedDate ? (
+                        <>
                         <div className="relative flex-1 w-full md:grow">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
@@ -481,10 +491,13 @@ const roomAvailabilities = useMemo(() => {
                                 </Button>
                             ))}
                         </div>
-                    </CardContent>
-                </Card>
-                </div>
-            )}
+                        </>
+                    ) : (
+                        <Button variant="outline" onClick={() => setSelectedDate(undefined)}>Clear Selection</Button>
+                    )}
+                </CardContent>
+            </Card>
+            
             <div className="flex justify-center mt-6">
                 <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                     {filteredRooms.map((room, index) => (
@@ -554,6 +567,8 @@ const roomAvailabilities = useMemo(() => {
       </div>
     </div>
   );
+    
+
     
 
     
