@@ -71,16 +71,20 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom }: { room: Room, 
         <CardDescription>{room.type}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {room.guest && (
+        {room.status === 'Occupied' && room.guest ? (
           <div>
-            <p className="text-sm font-medium">Guest: {room.guest}</p>
+            <p className="text-sm font-medium truncate">Guest: {room.guest}</p>
             <p className="text-sm text-muted-foreground">
-              Check-in: {room.checkIn} | Check-out: {room.checkOut}
+              {room.checkIn} to {room.checkOut}
             </p>
           </div>
+        ) : (
+            <div className="h-[40px]"></div>
         )}
         <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold">{room.rate}</p>
+          <p className="text-base font-semibold">
+            {room.totalPrice ? `₹${room.totalPrice.toLocaleString()}` : `₹${room.price}/night`}
+          </p>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onViewRoom(room)}>
               <Eye className="h-4 w-4" />
@@ -115,8 +119,8 @@ export default function RoomManagementDashboard() {
     const occupied = rooms.filter(room => room.status === 'Occupied').length;
     const available = rooms.filter(room => room.status === 'Available').length;
     const revenue = rooms
-        .filter(room => room.status === 'Occupied')
-        .reduce((acc, room) => acc + parseFloat(room.rate.replace(/[^0-9.-]+/g, "")), 0);
+        .filter(room => room.status === 'Occupied' && room.totalPrice)
+        .reduce((acc, room) => acc + room.totalPrice!, 0);
 
     return [
       {
@@ -135,7 +139,7 @@ export default function RoomManagementDashboard() {
         icon: <CalendarDays className="h-6 w-6 text-blue-500" />,
       },
       {
-        title: 'Revenue Today',
+        title: 'Est. Revenue',
         value: `₹${revenue.toLocaleString()}`,
         icon: <DollarSign className="h-6 w-6 text-yellow-500" />,
       },
@@ -156,12 +160,13 @@ export default function RoomManagementDashboard() {
       number: newRoomData.number,
       type: newRoomData.type,
       status: newRoomData.status,
-      rate: `₹${newRoomData.price}/night`,
+      price: newRoomData.price,
       guest: newRoomData.guest,
       checkIn: newRoomData.checkIn ? format(newRoomData.checkIn, 'yyyy-MM-dd') : undefined,
       checkOut: newRoomData.checkOut ? format(newRoomData.checkOut, 'yyyy-MM-dd') : undefined,
+      totalPrice: newRoomData.totalPrice,
     };
-    setRooms(prevRooms => [...prevRooms, newRoom]);
+    setRooms(prevRooms => [...prevRooms, newRoom].sort((a,b) => a.number.localeCompare(b.number)));
     handleCloseAddModal();
   };
 
@@ -190,13 +195,14 @@ export default function RoomManagementDashboard() {
       number: updatedRoomData.number,
       type: updatedRoomData.type,
       status: updatedRoomData.status,
-      rate: `₹${updatedRoomData.price}/night`,
+      price: updatedRoomData.price,
       guest: updatedRoomData.guest,
       checkIn: updatedRoomData.checkIn ? format(new Date(updatedRoomData.checkIn), 'yyyy-MM-dd') : undefined,
       checkOut: updatedRoomData.checkOut ? format(new Date(updatedRoomData.checkOut), 'yyyy-MM-dd') : undefined,
+      totalPrice: updatedRoomData.totalPrice,
     };
     setRooms(prevRooms =>
-      prevRooms.map(r => (r.number === updatedRoomData.originalNumber ? updatedRoom : r))
+      prevRooms.map(r => (r.number === updatedRoomData.originalNumber ? updatedRoom : r)).sort((a,b) => a.number.localeCompare(b.number))
     );
     handleCloseEditModal();
   };
@@ -263,7 +269,7 @@ export default function RoomManagementDashboard() {
           </Card>
         ))}
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {rooms.map((room, index) => (
           <RoomCard key={`${room.number}-${index}`} room={room} onViewRoom={handleViewRoom} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} />
         ))}

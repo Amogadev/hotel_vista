@@ -12,16 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bed, Users, CalendarDays, DollarSign } from 'lucide-react';
-
-type Room = {
-    number: string;
-    type: string;
-    status: string;
-    guest?: string;
-    checkIn?: string;
-    checkOut?: string;
-    rate: string;
-};
+import type { Room } from '@/context/data-provider';
 
 type RoomDetailsModalProps = {
   room: Room;
@@ -65,7 +56,7 @@ export function RoomDetailsModal({ room, isOpen, onClose }: RoomDetailsModalProp
                     <DollarSign className="h-5 w-5 text-muted-foreground" />
                     <div>
                         <p className="text-sm text-muted-foreground">Rate</p>
-                        <p className="font-medium">{room.rate}</p>
+                        <p className="font-medium">₹{room.price}/night</p>
                     </div>
                 </div>
             </div>
@@ -96,6 +87,15 @@ export function RoomDetailsModal({ room, isOpen, onClose }: RoomDetailsModalProp
                             </div>
                         </div>
                     </div>
+                    {room.totalPrice && (
+                         <div className="flex items-center gap-2 border-t pt-4">
+                            <DollarSign className="h-5 w-5 text-muted-foreground" />
+                            <div>
+                                <p className="text-sm text-muted-foreground">Total Price</p>
+                                <p className="font-medium">₹{room.totalPrice.toLocaleString()}</p>
+                            </div>
+                        </div>
+                    )}
                 </>
             )}
         </div>

@@ -18,6 +18,7 @@ export async function addRoom(newRoom: {
   guest?: string;
   checkIn?: string;
   checkOut?: string;
+  totalPrice?: number;
 }) {
   try {
     const docRef = await addDoc(collection(db, "rooms"), newRoom);
@@ -37,6 +38,7 @@ export async function updateRoom(updatedRoom: {
   guest?: string;
   checkIn?: string;
   checkOut?: string;
+  totalPrice?: number;
 }) {
     try {
         const q = query(collection(db, "rooms"), where("number", "==", updatedRoom.originalNumber));
@@ -313,8 +315,3 @@ export async function deleteStockItem(itemName: string) {
         return { success: false, error: "Failed to delete stock item" };
     }
 }
-    
-
-    
-
-    

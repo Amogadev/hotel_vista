@@ -4,7 +4,7 @@
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { AlertCircle, CheckCircle2, Clock, Loader2 } from 'lucide-react';
 import { getRooms, getMenuItems, getOrders, getBarProducts, getBarSales, getStockItems } from '@/app/actions';
-import { format } from 'date-fns';
+import { format, isPast } from 'date-fns';
 
 export type Room = {
     number: string;
@@ -13,7 +13,8 @@ export type Room = {
     guest?: string;
     checkIn?: string;
     checkOut?: string;
-    rate: string;
+    price: number;
+    totalPrice?: number;
 };
 
 export type MenuItem = {
@@ -91,19 +92,20 @@ const initialRooms: Room[] = [
       guest: 'John Smith',
       checkIn: '2024-01-10',
       checkOut: '2024-01-12',
-      rate: '₹120/night',
+      price: 120,
+      totalPrice: 240
     },
     {
       number: '102',
       type: 'Deluxe Double',
       status: 'Available',
-      rate: '₹180/night',
+      price: 180,
     },
     {
       number: '103',
       type: 'Suite',
       status: 'Cleaning',
-      rate: '₹300/night',
+      price: 300,
     },
     {
       number: '201',
@@ -112,19 +114,20 @@ const initialRooms: Room[] = [
       guest: 'Sarah Johnson',
       checkIn: '2024-01-09',
       checkOut: '2024-01-11',
-      rate: '₹150/night',
+      price: 150,
+      totalPrice: 300,
     },
     {
       number: '202',
       type: 'Deluxe Single',
       status: 'Maintenance',
-      rate: '₹140/night',
+      price: 140,
     },
     {
       number: '203',
       type: 'Suite',
       status: 'Available',
-      rate: '₹320/night',
+      price: 320,
     },
 ];
 
@@ -198,7 +201,7 @@ const initialInventoryItems = [
       type: 'Vodka',
       stock: 8,
       price: 12,
-      status: 'low' as 'good' | 'low' | 'critical',
+      status: 'critical' as 'good' | 'low' | 'critical',
     },
     {
       name: 'Craft Beer',
@@ -212,21 +215,21 @@ const initialInventoryItems = [
       type: 'Wine',
       stock: 16,
       price: 25,
-      status: 'good' as 'good' | 'low' | 'critical',
+      status: 'low' as 'good' | 'low' | 'critical',
     },
     {
       name: 'Gin Tonic',
       type: 'Gin',
       stock: 5,
       price: 10,
-      status: 'low' as 'good' | 'low' | 'critical',
+      status: 'critical' as 'good' | 'low' | 'critical',
     },
     {
       name: 'Champagne',
       type: 'Champagne',
       stock: 12,
       price: 40,
-      status: 'good' as 'good' | 'low' | 'critical',
+      status: 'low' as 'good' | 'low' | 'critical',
     },
 ];
   
@@ -375,13 +378,27 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             ]);
 
             if (roomsRes.success) {
-                const formattedRooms = roomsRes.rooms.map((room: any) => ({
-                    ...room,
-                    rate: `₹${room.price}/night`,
-                    checkIn: room.checkIn ? format(new Date(room.checkIn), 'yyyy-MM-dd') : undefined,
-                    checkOut: room.checkOut ? format(new Date(room.checkOut), 'yyyy-MM-dd') : undefined,
-                }));
-                setRooms(formattedRooms.length > 0 ? formattedRooms : initialRooms);
+                const formattedRooms = roomsRes.rooms.map((room: any) => {
+                    const isCheckoutPast = room.checkOut && isPast(new Date(room.checkOut));
+                    const newStatus = room.status === 'Occupied' && isCheckoutPast ? 'Available' : room.status;
+
+                    const cleanedRoom = {
+                        ...room,
+                        checkIn: room.checkIn ? format(new Date(room.checkIn), 'yyyy-MM-dd') : undefined,
+                        checkOut: room.checkOut ? format(new Date(room.checkOut), 'yyyy-MM-dd') : undefined,
+                        status: newStatus,
+                    };
+
+                    if (newStatus === 'Available') {
+                        delete cleanedRoom.guest;
+                        delete cleanedRoom.checkIn;
+                        delete cleanedRoom.checkOut;
+                        delete cleanedRoom.totalPrice;
+                    }
+                    
+                    return cleanedRoom;
+                });
+                setRooms(formattedRooms.length > 0 ? formattedRooms.sort((a:Room,b:Room) => a.number.localeCompare(b.number)) : initialRooms);
             }
 
             if (menuItemsRes.success) {
@@ -389,7 +406,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     ...item,
                     price: `₹${item.price}`
                 }));
-                setMenuItems(formattedMenuItems.length > 0 ? formattedMenuItems : initialMenuItems);
+                setMenuItems(formattedMenuItems.length > 0 ? formattedMenuItems.sort((a:MenuItem,b:MenuItem) => a.name.localeCompare(b.name)) : initialMenuItems);
             }
 
             if (ordersRes.success) {
@@ -412,7 +429,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     ...item,
                     status: getStatus(item.stock),
                 }));
-                setInventoryItems(formattedBarProducts.length > 0 ? formattedBarProducts : initialInventoryItems);
+                setInventoryItems(formattedBarProducts.length > 0 ? formattedBarProducts.sort((a:InventoryItem,b:InventoryItem) => a.name.localeCompare(b.name)) : initialInventoryItems);
             }
 
             if (barSalesRes.success) {
@@ -429,7 +446,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     ...item,
                     status: getStatus(item.current, item.min),
                 }));
-                setStockItems(formattedStockItems.length > 0 ? formattedStockItems : initialStockItems);
+                setStockItems(formattedStockItems.length > 0 ? formattedStockItems.sort((a:StockItem,b:StockItem) => a.name.localeCompare(b.name)) : initialStockItems);
             }
             
         } catch (error) {

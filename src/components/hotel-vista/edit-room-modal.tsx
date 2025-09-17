@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useTransition, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -36,7 +36,8 @@ import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, differenceInCalendarDays } from 'date-fns';
+import type { Room } from '@/context/data-provider';
 
 const roomSchema = z.object({
   number: z.string().min(1, 'Room number is required'),
@@ -46,19 +47,10 @@ const roomSchema = z.object({
   guest: z.string().optional(),
   checkIn: z.date().optional(),
   checkOut: z.date().optional(),
+  totalPrice: z.coerce.number().optional(),
 });
 
 export type EditRoomFormValues = z.infer<typeof roomSchema>;
-
-type Room = {
-    number: string;
-    type: string;
-    status: string;
-    guest?: string;
-    checkIn?: string;
-    checkOut?: string;
-    rate: string;
-};
 
 type EditRoomModalProps = {
   room: Room;
@@ -75,20 +67,50 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
     resolver: zodResolver(roomSchema),
   });
 
+  const { watch, setValue } = form;
+  const guest = watch('guest');
+  const checkIn = watch('checkIn');
+  const checkOut = watch('checkOut');
+  const price = watch('price');
+  const status = watch('status');
+  const totalPrice = watch('totalPrice');
+
   useEffect(() => {
     if (room) {
       form.reset({
         number: room.number,
         type: room.type,
-        price: parseFloat(room.rate.replace(/[^0-9.-]+/g,"")),
+        price: room.price,
         status: room.status,
         guest: room.guest || '',
         checkIn: room.checkIn ? new Date(room.checkIn) : undefined,
         checkOut: room.checkOut ? new Date(room.checkOut) : undefined,
+        totalPrice: room.totalPrice || 0,
       });
     }
   }, [room, form]);
 
+  useEffect(() => {
+    const hasGuestDetails = guest && checkIn && checkOut;
+    if (hasGuestDetails && status !== 'Occupied') {
+      setValue('status', 'Occupied');
+    } else if (!hasGuestDetails && status === 'Occupied') {
+      setValue('status', 'Available');
+    }
+  }, [guest, checkIn, checkOut, status, setValue]);
+
+  useEffect(() => {
+    if (checkIn && checkOut && price > 0) {
+      const nights = differenceInCalendarDays(checkOut, checkIn);
+      if (nights > 0) {
+        setValue('totalPrice', price * nights);
+      } else {
+        setValue('totalPrice', 0);
+      }
+    } else {
+        setValue('totalPrice', 0);
+    }
+  }, [checkIn, checkOut, price, setValue]);
 
   const onSubmit = (values: EditRoomFormValues) => {
     startTransition(async () => {
@@ -107,23 +129,21 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
           onRoomUpdated({ ...values, originalNumber: room.number });
           onClose();
         } else {
-          throw new Error('Failed to update room');
+          throw new Error(result.error || 'Failed to update room');
         }
       } catch (error) {
         toast({
           variant: 'destructive',
           title: 'Error',
-          description: 'Failed to update the room. Please try again.',
+          description: (error as Error).message || 'Failed to update the room. Please try again.',
         });
       }
     });
   };
 
-  const status = form.watch('status');
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Edit Room {room.number}</DialogTitle>
           <DialogDescription>
@@ -136,23 +156,24 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
               control={form.control}
               name="number"
               render={({ field }) => (
-                <FormItem className="col-span-1 md:col-span-2">
+                <FormItem className="col-span-1">
                   <FormLabel>Room Number</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a room number" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="101">101</SelectItem>
-                      <SelectItem value="102">102</SelectItem>
-                      <SelectItem value="103">103</SelectItem>
-                      <SelectItem value="201">201</SelectItem>
-                      <SelectItem value="202">202</SelectItem>
-                      <SelectItem value="203">203</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="price"
+              render={({ field }) => (
+                <FormItem  className="col-span-1">
+                  <FormLabel>Price per Night</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -161,9 +182,9 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
               control={form.control}
               name="type"
               render={({ field }) => (
-                <FormItem className="col-span-1">
+                <FormItem  className="col-span-1 md:col-span-2">
                   <FormLabel>Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a room type" />
@@ -181,15 +202,92 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
                 </FormItem>
               )}
             />
+             <FormField
+              control={form.control}
+              name="guest"
+              render={({ field }) => (
+                <FormItem  className="col-span-1 md:col-span-2">
+                  <FormLabel>Guest Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., John Smith" {...field} value={field.value ?? ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
-              name="price"
+              name="checkIn"
               render={({ field }) => (
-                <FormItem  className="col-span-1">
-                  <FormLabel>Price</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 120" {...field} />
-                  </FormControl>
+                <FormItem className="flex flex-col col-span-1">
+                  <FormLabel>Check-in Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={'outline'}
+                          className={cn(
+                            'w-full pl-3 text-left font-normal',
+                            !field.value && 'text-muted-foreground'
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, 'PPP')
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="checkOut"
+              render={({ field }) => (
+                <FormItem className="flex flex-col col-span-1">
+                  <FormLabel>Check-out Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={'outline'}
+                          className={cn(
+                            'w-full pl-3 text-left font-normal',
+                            !field.value && 'text-muted-foreground'
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, 'PPP')
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) => date < (checkIn || new Date('1900-01-01'))}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
@@ -200,7 +298,7 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
               render={({ field }) => (
                 <FormItem  className="col-span-1 md:col-span-2">
                   <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={!!(guest || checkIn || checkOut)}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a status" />
@@ -217,102 +315,14 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated }: EditRoom
                 </FormItem>
               )}
             />
-            {status === 'Occupied' && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="guest"
-                  render={({ field }) => (
-                    <FormItem  className="col-span-1 md:col-span-2">
-                      <FormLabel>Guest Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., John Smith" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="checkIn"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col col-span-1">
-                      <FormLabel>Check-in Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={'outline'}
-                              className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, 'PPP')
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date('1900-01-01')}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="checkOut"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col col-span-1">
-                      <FormLabel>Check-out Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={'outline'}
-                              className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, 'PPP')
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date('1900-01-01')}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
+            
+            {totalPrice > 0 && (
+                <div className="col-span-2 mt-2 text-lg font-semibold text-center bg-muted p-2 rounded-md">
+                    Total Price: <span className="text-primary">₹{totalPrice.toLocaleString()}</span>
+                </div>
             )}
-            <DialogFooter className="col-span-1 md:col-span-2">
+
+            <DialogFooter className="col-span-1 md:col-span-2 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>

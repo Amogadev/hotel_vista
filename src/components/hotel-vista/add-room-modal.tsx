@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -36,7 +36,7 @@ import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, differenceInCalendarDays } from 'date-fns';
 
 const roomSchema = z.object({
   number: z.string().min(1, 'Room number is required'),
@@ -46,6 +46,7 @@ const roomSchema = z.object({
   guest: z.string().optional(),
   checkIn: z.date().optional(),
   checkOut: z.date().optional(),
+  totalPrice: z.coerce.number().optional(),
 });
 
 export type RoomFormValues = z.infer<typeof roomSchema>;
@@ -67,8 +68,38 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
       price: 100,
       status: 'Available',
       guest: '',
+      totalPrice: 0,
     },
   });
+
+  const { watch, setValue, trigger } = form;
+  const guest = watch('guest');
+  const checkIn = watch('checkIn');
+  const checkOut = watch('checkOut');
+  const price = watch('price');
+  const status = watch('status');
+
+  useEffect(() => {
+    const hasGuestDetails = guest && checkIn && checkOut;
+    if (hasGuestDetails && status !== 'Occupied') {
+      setValue('status', 'Occupied');
+    } else if (!hasGuestDetails && status === 'Occupied') {
+      setValue('status', 'Available');
+    }
+  }, [guest, checkIn, checkOut, status, setValue]);
+
+  useEffect(() => {
+    if (checkIn && checkOut && price > 0) {
+      const nights = differenceInCalendarDays(checkOut, checkIn);
+      if (nights > 0) {
+        setValue('totalPrice', price * nights);
+      } else {
+        setValue('totalPrice', 0);
+      }
+    } else {
+      setValue('totalPrice', 0);
+    }
+  }, [checkIn, checkOut, price, setValue]);
 
   const onSubmit = (values: RoomFormValues) => {
     startTransition(async () => {
@@ -84,21 +115,22 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
             description: `Room ${values.number} has been successfully added.`,
           });
           onRoomAdded(values);
+          onClose();
           form.reset();
         } else {
-          throw new Error('Failed to add room');
+          throw new Error(result.error || 'Failed to add room');
         }
       } catch (error) {
         toast({
           variant: 'destructive',
           title: 'Error',
-          description: 'Failed to add the room. Please try again.',
+          description: (error as Error).message || 'Failed to add the room. Please try again.',
         });
       }
     });
   };
 
-  const status = form.watch('status');
+  const totalPrice = watch('totalPrice');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -106,7 +138,7 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
         <DialogHeader>
           <DialogTitle>Add New Room</DialogTitle>
           <DialogDescription>
-            Enter the details for the new room.
+            Enter the details for the new room. Fill in guest details to automatically set status to Occupied.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -115,10 +147,23 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
               control={form.control}
               name="number"
               render={({ field }) => (
-                <FormItem className="col-span-1 md:col-span-2">
+                <FormItem className="col-span-1 md:col-span-1">
                   <FormLabel>Room Number</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., 101" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="price"
+              render={({ field }) => (
+                <FormItem className="col-span-1">
+                  <FormLabel>Price per Night</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="e.g., 120" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -128,7 +173,7 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
               control={form.control}
               name="type"
               render={({ field }) => (
-                <FormItem className="col-span-1">
+                <FormItem className="col-span-1 md:col-span-2">
                   <FormLabel>Type</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
@@ -148,15 +193,92 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
                 </FormItem>
               )}
             />
+             <FormField
+              control={form.control}
+              name="guest"
+              render={({ field }) => (
+                <FormItem className="col-span-1 md:col-span-2">
+                  <FormLabel>Guest Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., John Smith" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
-              name="price"
+              name="checkIn"
               render={({ field }) => (
-                <FormItem className="col-span-1">
-                  <FormLabel>Price</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 120" {...field} />
-                  </FormControl>
+                <FormItem className="flex flex-col col-span-1">
+                  <FormLabel>Check-in Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={'outline'}
+                          className={cn(
+                            'w-full pl-3 text-left font-normal',
+                            !field.value && 'text-muted-foreground'
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, 'PPP')
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="checkOut"
+              render={({ field }) => (
+                <FormItem className="flex flex-col col-span-1">
+                  <FormLabel>Check-out Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={'outline'}
+                          className={cn(
+                            'w-full pl-3 text-left font-normal',
+                            !field.value && 'text-muted-foreground'
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, 'PPP')
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) => date < (checkIn || new Date('1900-01-01'))}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
@@ -167,7 +289,7 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
               render={({ field }) => (
                 <FormItem className="col-span-1 md:col-span-2">
                   <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={!!(guest || checkIn || checkOut)}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a status" />
@@ -184,102 +306,14 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
                 </FormItem>
               )}
             />
-            {status === 'Occupied' && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="guest"
-                  render={({ field }) => (
-                    <FormItem className="col-span-1 md:col-span-2">
-                      <FormLabel>Guest Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., John Smith" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="checkIn"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col col-span-1">
-                      <FormLabel>Check-in Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={'outline'}
-                              className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, 'PPP')
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date('1900-01-01')}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="checkOut"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col col-span-1">
-                      <FormLabel>Check-out Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={'outline'}
-                              className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, 'PPP')
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date('1900-01-01')}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
+            
+            {totalPrice > 0 && (
+                <div className="col-span-2 mt-2 text-lg font-semibold text-center bg-muted p-2 rounded-md">
+                    Total Price: <span className="text-primary">₹{totalPrice.toLocaleString()}</span>
+                </div>
             )}
-            <DialogFooter className="col-span-1 md:col-span-2">
+
+            <DialogFooter className="col-span-1 md:col-span-2 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
