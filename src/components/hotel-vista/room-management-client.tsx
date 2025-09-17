@@ -265,10 +265,7 @@ const roomAvailabilities = useMemo(() => {
     const totalRooms = rooms.length;
     const occupied = rooms.filter(room => room.status === 'Occupied').length;
     const available = rooms.filter(room => room.status === 'Available').length;
-    const revenue = rooms
-        .filter(room => room.status === 'Occupied' && room.totalPrice)
-        .reduce((acc, room) => acc + room.totalPrice!, 0);
-
+    
     return [
       {
         title: 'Date',
@@ -289,11 +286,6 @@ const roomAvailabilities = useMemo(() => {
         title: 'Available',
         value: available.toString(),
         icon: <CalendarDays className="h-6 w-6 text-blue-500" />,
-      },
-      {
-        title: 'Est. Revenue',
-        value: `₹${revenue.toLocaleString()}`,
-        icon: <DollarSign className="h-6 w-6 text-yellow-500" />,
       },
     ];
   }, [rooms]);
@@ -597,3 +589,6 @@ const roomAvailabilities = useMemo(() => {
 
 
 
+
+
+    
