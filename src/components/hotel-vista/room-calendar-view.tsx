@@ -98,15 +98,15 @@ export function RoomCalendarView({ rooms }: RoomCalendarViewProps) {
                 <h3 className="font-semibold text-lg mb-2 border-b pb-2">Calendar Legend</h3>
                  <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded-full bg-green-100 dark:bg-green-900" />
+                        <div className="h-4 w-4 rounded-full bg-green-500" />
                         <span>Available</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded-full bg-yellow-100 dark:bg-yellow-900" />
+                        <div className="h-4 w-4 rounded-full bg-yellow-500" />
                         <span>Partially Booked / Maintenance</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded-full bg-red-100 dark:bg-red-900" />
+                        <div className="h-4 w-4 rounded-full bg-red-500" />
                         <span>Fully Booked</span>
                     </div>
                 </div>
