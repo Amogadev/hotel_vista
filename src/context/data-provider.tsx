@@ -3,7 +3,7 @@
 
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { AlertCircle, CheckCircle2, Clock, Loader2 } from 'lucide-react';
-import { getRooms, getMenuItems, getOrders, getBarProducts, getBarSales, getStockItems, getGuests } from '@/app/actions';
+import { getRooms, getMenuItems, getOrders, getBarProducts, getBarSales, getStockItems } from '@/app/actions';
 import { format, isPast, parseISO } from 'date-fns';
 
 export type Room = {
@@ -362,14 +362,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [roomsRes, menuItemsRes, ordersRes, barProductsRes, barSalesRes, stockItemsRes, guestsRes] = await Promise.all([
+            const [roomsRes, menuItemsRes, ordersRes, barProductsRes, barSalesRes, stockItemsRes] = await Promise.all([
                 getRooms(),
                 getMenuItems(),
                 getOrders(),
                 getBarProducts(),
                 getBarSales(),
                 getStockItems(),
-                getGuests()
             ]);
 
             if (roomsRes.success) {
@@ -448,9 +447,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 setStockItems(formattedStockItems.length > 0 ? formattedStockItems.sort((a:StockItem,b:StockItem) => a.name.localeCompare(b.name)) : initialStockItems);
             }
 
-            if (guestsRes.success) {
-                setGuests(guestsRes.guests.length > 0 ? guestsRes.guests.sort((a:Guest,b:Guest) => a.name.localeCompare(b.name)) : initialGuests);
-            }
             
         } catch (error) {
             console.error("Failed to fetch initial data", error);
@@ -501,5 +497,3 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     </DataContext.Provider>
   );
 };
-
-    

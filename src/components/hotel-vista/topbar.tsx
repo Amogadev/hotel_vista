@@ -34,12 +34,6 @@ const allMenuItems = [
     roles: ['admin', 'reception'],
   },
   {
-    href: '/guest-management',
-    label: 'Guest Management',
-    icon: Users,
-    roles: ['admin', 'reception'],
-  },
-  {
     href: '/total-bill',
     label: 'Total Bill',
     icon: FileText,
