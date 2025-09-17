@@ -64,12 +64,12 @@ import { useRouter } from 'next/navigation';
 const statusFilters = ['All', 'Available', 'Occupied', 'Booked', 'Cleaning', 'Maintenance'];
 
 const statusColorMap: { [key: string]: string } = {
-  Occupied: 'bg-green-100 border-green-200',
-  Available: 'bg-blue-100 border-blue-200',
-  Cleaning: 'bg-yellow-100 border-yellow-200',
-  Maintenance: 'bg-red-100 border-red-200',
-  BOOKED: 'bg-red-100 border-red-200',
-  AVAILABLE: 'bg-blue-100 border-blue-200',
+  Occupied: 'bg-green-100 text-gray-700 border-green-200',
+  Available: 'bg-blue-100 text-gray-700 border-blue-200',
+  Cleaning: 'bg-yellow-100 text-gray-700 border-yellow-200',
+  Maintenance: 'bg-red-100 text-gray-700 border-red-200',
+  BOOKED: 'bg-red-100 text-gray-700 border-red-200',
+  AVAILABLE: 'bg-blue-100 text-gray-700 border-blue-200',
 };
 
 function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availability }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => void, availability?: { status: 'BOOKED' | 'AVAILABLE', guestName?: string } }) {
