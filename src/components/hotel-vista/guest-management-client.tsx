@@ -52,10 +52,6 @@ function GuestCard({ guest, onEdit, onDelete }: { guest: Guest, onEdit: (guest: 
     return (
         <Card>
             <CardContent className="p-4 flex gap-4 items-start">
-                <Avatar className="h-16 w-16">
-                    <AvatarImage src={`https://i.pravatar.cc/150?u=${guest.id}`} alt={guest.name} />
-                    <AvatarFallback>{guest.name.charAt(0)}</AvatarFallback>
-                </Avatar>
                 <div className="flex-1 space-y-1">
                     <div className="flex justify-between items-start">
                         <div>
@@ -267,3 +263,5 @@ export default function GuestManagementDashboard() {
     </div>
   );
 }
+
+    
