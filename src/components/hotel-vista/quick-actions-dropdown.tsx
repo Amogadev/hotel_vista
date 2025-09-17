@@ -9,14 +9,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreVertical, LogOut, CalendarPlus, Wrench, Trash2, Pencil } from 'lucide-react';
+import { MoreVertical, LogOut, CalendarPlus, Wrench, Trash2, Pencil, UserPlus } from 'lucide-react';
 import type { Room } from '@/context/data-provider';
 
 type QuickActionsDropdownProps = {
   room: Room;
   onEdit: (room: Room) => void;
   onDelete: (room: Room) => void;
-  onAction: (action: 'checkout' | 'maintenance', room: Room) => void;
+  onAction: (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => void;
 };
 
 export function QuickActionsDropdown({ room, onEdit, onDelete, onAction }: QuickActionsDropdownProps) {
@@ -28,6 +28,12 @@ export function QuickActionsDropdown({ room, onEdit, onDelete, onAction }: Quick
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        {room.status === 'Available' && (
+             <DropdownMenuItem onClick={() => onAction('occupy', room)}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                <span>Occupy</span>
+            </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={() => onEdit(room)}>
           <Pencil className="mr-2 h-4 w-4" />
           <span>Edit Details</span>

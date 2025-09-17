@@ -69,16 +69,42 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
   };
 
 function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance', room: Room) => void }) {
-  const colorClass = statusColorMap[room.status] || '';
+  const colorClass = room.status === 'Available' ? '' : statusColorMap[room.status] || '';
+  const isAvailable = room.status === 'Available';
+
+  const handleOccupyClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card's onViewRoom from firing
+    onEditRoom(room);
+  };
 
   return (
-    <Card className="relative aspect-square flex flex-col items-center justify-center p-2 text-center transition-all duration-200 hover:shadow-lg">
-      <div className="absolute top-1 right-1">
+    <Card className="relative flex flex-col transition-all duration-200 hover:shadow-lg">
+      <div className="absolute top-1 right-1 z-10">
         <QuickActionsDropdown room={room} onEdit={onEditRoom} onDelete={onDeleteRoom} onAction={onAction} />
       </div>
-      <CardContent className="p-0 flex flex-col items-center justify-center cursor-pointer" onClick={() => onViewRoom(room)}>
+      <CardContent 
+        className={`flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer ${colorClass}`}
+        onClick={() => onViewRoom(room)}
+      >
         <p className="text-3xl font-bold text-primary">{room.number}</p>
-        <Badge className={`mt-2 capitalize ${colorClass}`}>{room.status}</Badge>
+        <Badge variant={isAvailable ? 'outline' : 'default'} className={`mt-2 capitalize ${isAvailable ? 'border-gray-400' : colorClass}`}>
+            {room.status}
+        </Badge>
+        
+        {isAvailable ? (
+            <Button variant="outline" size="sm" className="mt-3 h-7 text-xs" onClick={handleOccupyClick}>
+                Occupy
+            </Button>
+        ) : (
+          room.guest && (
+            <div className="mt-3 text-xs text-center">
+                <p className="font-semibold truncate">{room.guest}</p>
+                {room.checkIn && room.checkOut && (
+                    <p className="text-muted-foreground">{format(parseISO(room.checkIn), 'MMM d')} - {format(parseISO(room.checkOut), 'MMM d')}</p>
+                )}
+            </div>
+          )
+        )}
       </CardContent>
     </Card>
   );
@@ -106,7 +132,7 @@ export default function RoomManagementDashboard() {
             updatedRoomData = { 
                 ...room, 
                 originalNumber: room.number, 
-                status: 'Available', 
+                status: 'Cleaning', 
                 guest: undefined, 
                 checkIn: undefined, 
                 checkOut: undefined, 
@@ -125,8 +151,8 @@ export default function RoomManagementDashboard() {
             const result = await updateRoom(updatedRoomData);
             if (result.success) {
                 toast({
-                    title: `Room ${action === 'checkout' ? 'Checked Out' : 'Marked for Maintenance'}`,
-                    description: `Room ${room.number} status has been updated.`,
+                    title: `Room Status Updated`,
+                    description: `Room ${room.number} is now ${action === 'checkout' ? 'Cleaning' : 'under Maintenance'}.`,
                 });
                 
                 const finalUpdatedRoom = {
