@@ -270,7 +270,7 @@ const roomAvailabilities = useMemo(() => {
       {
         title: 'Date',
         value: format(today, 'PPP'),
-        icon: <CalendarIcon className="h-6 w-6 text-muted-foreground" />,
+        icon: <CalendarIcon className="h-6 w-6 text-pink-400" />,
       },
       {
         title: 'Total Rooms',
@@ -423,9 +423,9 @@ const roomAvailabilities = useMemo(() => {
             </Button>
           </div>
         </header>
-        {!selectedDate && activeView === 'all-rooms' && (
+        {activeView === 'all-rooms' && (
           <div className="flex justify-center">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   {stats.map((stat) => (
                   <Card key={stat.title} className="w-full md:w-56">
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
@@ -433,7 +433,7 @@ const roomAvailabilities = useMemo(() => {
                       {stat.icon}
                       </CardHeader>
                       <CardContent className="pb-4">
-                      <div className={stat.title === 'Date' ? 'text-base font-semibold' : 'text-xl font-bold'}>{stat.value}</div>
+                      <div className={cn("font-bold", stat.title === 'Date' ? 'text-base' : 'text-xl')}>{stat.value}</div>
                       </CardContent>
                   </Card>
                   ))}
