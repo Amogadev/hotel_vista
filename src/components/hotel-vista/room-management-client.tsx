@@ -95,7 +95,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { ro
         </Badge>
         
         {isAvailable ? (
-            <Button variant="secondary" size="sm" className="mt-3 h-7 text-xs bg-blue-500 text-white hover:bg-blue-600" onClick={handleOccupyClick}>
+            <Button variant="secondary" size="sm" className="mt-3 h-7 text-xs bg-secondary/80" onClick={handleOccupyClick}>
                 Occupy
             </Button>
         ) : (
