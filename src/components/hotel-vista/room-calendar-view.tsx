@@ -50,11 +50,9 @@ export function RoomCalendarView({ rooms }: RoomCalendarViewProps) {
   const getDayStatus = (day: Date) => {
     const dateKey = format(day, 'yyyy-MM-dd');
     const bookings = bookingsByDate[dateKey] || [];
-    // This logic assumes maintenance rooms are unavailable for the whole day.
-    // A more complex system might have start/end dates for maintenance.
     const maintenanceForDay = rooms.filter(r => r.status === 'Maintenance');
     
-    const todaysBookings = bookings.length + maintenanceForDay.length;
+    const todaysBookings = bookings.length;
 
     if (todaysBookings >= allRoomsCount) return 'fully-booked';
     if (todaysBookings > 0) return 'partially-booked';
@@ -111,7 +109,7 @@ export function RoomCalendarView({ rooms }: RoomCalendarViewProps) {
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="h-4 w-4 rounded-full bg-yellow-500" />
-                        <span>Partially Booked / Maintenance</span>
+                        <span>Partially Booked</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="h-4 w-4 rounded-full bg-red-500" />
