@@ -62,7 +62,7 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
   };
   
   const statusColorMap: { [key: string]: string } = {
-    Occupied: 'bg-red-400 text-red-950 border-red-500',
+    Occupied: 'bg-green-400 text-green-950 border-green-500',
     Available: 'bg-blue-400 text-blue-950 border-blue-500',
     Cleaning: 'bg-yellow-400 text-yellow-950 border-yellow-500',
     Maintenance: 'bg-red-800 text-white border-red-900',
@@ -87,7 +87,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { ro
         onClick={() => onViewRoom(room)}
       >
         <p className="text-3xl font-bold text-primary">{room.number}</p>
-        <Badge variant={isAvailable ? 'default' : 'default'} className={`mt-2 capitalize ${colorClass}`}>
+        <Badge variant={'default'} className={`mt-2 capitalize ${colorClass}`}>
             {room.status}
         </Badge>
         
@@ -455,4 +455,6 @@ export default function RoomManagementDashboard() {
 
     
     
+    
+
     
