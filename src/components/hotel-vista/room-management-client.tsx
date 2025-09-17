@@ -69,7 +69,7 @@ const statusVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive'
   };
 
 function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => void }) {
-  const colorClass = room.status === 'Available' ? '' : statusColorMap[room.status] || '';
+  const colorClass = statusColorMap[room.status] || '';
   const isAvailable = room.status === 'Available';
 
   const handleOccupyClick = (e: React.MouseEvent) => {
@@ -83,16 +83,16 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { ro
         <QuickActionsDropdown room={room} onEdit={onEditRoom} onDelete={onDeleteRoom} onAction={onAction} />
       </div>
       <CardContent 
-        className={`flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg ${colorClass}`}
+        className="flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg"
         onClick={() => onViewRoom(room)}
       >
         <p className="text-3xl font-bold text-primary">{room.number}</p>
-        <Badge variant={isAvailable ? 'outline' : 'default'} className={`mt-2 capitalize ${isAvailable ? 'border-gray-400' : colorClass}`}>
+        <Badge variant={isAvailable ? 'default' : 'default'} className={`mt-2 capitalize ${colorClass}`}>
             {room.status}
         </Badge>
         
         {isAvailable ? (
-            <Button variant="outline" size="sm" className="mt-3 h-7 text-xs" onClick={handleOccupyClick}>
+            <Button variant="outline" size="sm" className={`mt-3 h-7 text-xs border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white`} onClick={handleOccupyClick}>
                 Occupy
             </Button>
         ) : (
@@ -453,5 +453,6 @@ export default function RoomManagementDashboard() {
     </div>
   );
 
+    
     
     
