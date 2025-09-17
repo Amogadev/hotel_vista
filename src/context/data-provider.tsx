@@ -4,7 +4,7 @@
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { AlertCircle, CheckCircle2, Clock, Loader2 } from 'lucide-react';
 import { getRooms, getMenuItems, getOrders, getBarProducts, getBarSales, getStockItems } from '@/app/actions';
-import { format, isPast } from 'date-fns';
+import { format, isPast, parseISO } from 'date-fns';
 
 export type Room = {
     number: string;
@@ -379,13 +379,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
             if (roomsRes.success) {
                 const formattedRooms = roomsRes.rooms.map((room: any) => {
-                    const isCheckoutPast = room.checkOut && isPast(new Date(room.checkOut));
+                    const isCheckoutPast = room.checkOut && isPast(parseISO(room.checkOut));
                     const newStatus = room.status === 'Occupied' && isCheckoutPast ? 'Available' : room.status;
 
                     const cleanedRoom = {
                         ...room,
-                        checkIn: room.checkIn ? format(new Date(room.checkIn), 'yyyy-MM-dd') : undefined,
-                        checkOut: room.checkOut ? format(new Date(room.checkOut), 'yyyy-MM-dd') : undefined,
+                        checkIn: room.checkIn ? format(parseISO(room.checkIn), 'yyyy-MM-dd') : undefined,
+                        checkOut: room.checkOut ? format(parseISO(room.checkOut), 'yyyy-MM-dd') : undefined,
                         status: newStatus,
                     };
 
@@ -433,7 +433,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             }
 
             if (barSalesRes.success) {
-                setRecentSales(barSalesRes.sales.length > 0 ? barSalesRes.sales : initialRecentSales);
+                setRecentSales(barSalesRes.sales.length > 0 ? barSalesRes.sales.sort((a: RecentSale, b: RecentSale) => b.time.getTime() - a.time.getTime()) : initialRecentSales);
             }
 
             if (stockItemsRes.success) {
@@ -495,3 +495,5 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     </DataContext.Provider>
   );
 };
+
+    

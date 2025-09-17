@@ -2,11 +2,19 @@
 "use server";
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc, Timestamp } from 'firebase/firestore';
 
 export async function getRooms() {
     const querySnapshot = await getDocs(collection(db, "rooms"));
-    const rooms = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    const rooms = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return { 
+            ...data, 
+            id: doc.id,
+            checkIn: data.checkIn?.toDate ? data.checkIn.toDate().toISOString() : data.checkIn,
+            checkOut: data.checkOut?.toDate ? data.checkOut.toDate().toISOString() : data.checkOut,
+        };
+    });
     return { success: true, rooms };
 }
 
@@ -21,8 +29,16 @@ export async function addRoom(newRoom: {
   totalPrice?: number;
 }) {
   try {
-    const docRef = await addDoc(collection(db, "rooms"), newRoom);
-    return { success: true, room: { ...newRoom, id: docRef.id } };
+    const roomData: any = { ...newRoom };
+    if (newRoom.checkIn) roomData.checkIn = Timestamp.fromDate(new Date(newRoom.checkIn));
+    if (newRoom.checkOut) roomData.checkOut = Timestamp.fromDate(new Date(newRoom.checkOut));
+
+    const docRef = await addDoc(collection(db, "rooms"), roomData);
+    const resultRoom = { 
+        ...newRoom, 
+        id: docRef.id,
+    };
+    return { success: true, room: resultRoom };
   } catch (e) {
     console.error("Error adding document: ", e);
     return { success: false, error: "Failed to add room" };
@@ -46,8 +62,17 @@ export async function updateRoom(updatedRoom: {
         if (!querySnapshot.empty) {
             const docId = querySnapshot.docs[0].id;
             const { originalNumber, ...roomData } = updatedRoom;
-            await updateDoc(doc(db, "rooms", docId), roomData);
-            return { success: true, room: updatedRoom };
+
+            const updateData: any = { ...roomData };
+            if (roomData.checkIn) updateData.checkIn = Timestamp.fromDate(new Date(roomData.checkIn));
+            if (roomData.checkOut) updateData.checkOut = Timestamp.fromDate(new Date(roomData.checkOut));
+
+            await updateDoc(doc(db, "rooms", docId), updateData);
+            
+            const resultRoom = { 
+                ...updatedRoom
+            };
+            return { success: true, room: resultRoom };
         }
         return { success: false, error: "Room not found" };
     } catch (e) {
@@ -134,7 +159,10 @@ export async function deleteMenuItem(itemName: string) {
 
 export async function getOrders() {
     const querySnapshot = await getDocs(collection(db, "orders"));
-    const orders = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, time: doc.data().time.toDate() }));
+    const orders = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return { ...data, id: doc.id, time: data.time.toDate() }
+    });
     return { success: true, orders };
 }
 
@@ -154,7 +182,10 @@ export async function addOrder(newOrder: {
 
 export async function getBarSales() {
     const querySnapshot = await getDocs(collection(db, "barSales"));
-    const sales = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, time: doc.data().time.toDate() }));
+    const sales = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return { ...data, id: doc.id, time: data.time.toDate() }
+    });
     return { success: true, sales };
 }
 
@@ -315,3 +346,5 @@ export async function deleteStockItem(itemName: string) {
         return { success: false, error: "Failed to delete stock item" };
     }
 }
+
+    
