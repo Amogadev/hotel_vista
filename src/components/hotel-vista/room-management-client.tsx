@@ -19,6 +19,7 @@ import {
   CalendarDays,
   User,
   Pencil,
+  X,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -447,8 +448,8 @@ const roomAvailabilities = useMemo(() => {
             <Card>
                 <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
                     <div className="flex items-center gap-2">
-                         <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                            <PopoverTrigger asChild>
+                        <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                        <PopoverTrigger asChild>
                             <Button
                                 variant={'outline'}
                                 className={cn(
@@ -459,24 +460,24 @@ const roomAvailabilities = useMemo(() => {
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
                             </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
                                 mode="single"
                                 selected={selectedDate}
                                 onSelect={(day) => {
-                                    if (selectedDate && day && isSameDay(selectedDate, day)) {
-                                        setSelectedDate(undefined);
-                                    } else {
-                                        setSelectedDate(day || undefined);
+                                    if (day) {
+                                        setSelectedDate(day);
                                     }
                                     setIsDatePickerOpen(false);
                                 }}
                                 initialFocus
                             />
-                            </PopoverContent>
+                        </PopoverContent>
                         </Popover>
-                        {selectedDate && <Button variant="outline" onClick={() => setSelectedDate(undefined)}>Reset</Button>}
+                        <Button variant="ghost" size="icon" onClick={() => setSelectedDate(undefined)} className={cn(!selectedDate && "invisible")}>
+                           <X className="h-4 w-4" />
+                        </Button>
                     </div>
 
                     {!selectedDate && (
@@ -581,6 +582,7 @@ const roomAvailabilities = useMemo(() => {
     
 
     
+
 
 
 
