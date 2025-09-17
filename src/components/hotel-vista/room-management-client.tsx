@@ -265,6 +265,7 @@ const roomAvailabilities = useMemo(() => {
     const totalRooms = rooms.length;
     const occupied = rooms.filter(room => room.status === 'Occupied').length;
     const available = rooms.filter(room => room.status === 'Available').length;
+    const bookedRooms = rooms.filter(r => r.status === 'Occupied').length;
     
     return [
       {
@@ -276,6 +277,11 @@ const roomAvailabilities = useMemo(() => {
         title: 'Total Rooms',
         value: totalRooms.toString(),
         icon: <BedDouble className="h-6 w-6 text-blue-500" />,
+      },
+      {
+        title: 'Booked Rooms',
+        value: bookedRooms.toString(),
+        icon: <Bed className="h-6 w-6 text-red-500" />,
       },
       {
         title: 'Occupied',
@@ -425,7 +431,7 @@ const roomAvailabilities = useMemo(() => {
         </header>
         {activeView === 'all-rooms' && (
           <div className="flex justify-center">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                   {stats.map((stat) => (
                   <Card key={stat.title} className="w-full md:w-56">
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
@@ -590,6 +596,8 @@ const roomAvailabilities = useMemo(() => {
 
 
 
+
+    
 
     
 
