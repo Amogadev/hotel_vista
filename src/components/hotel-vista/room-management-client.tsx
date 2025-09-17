@@ -12,7 +12,7 @@ import {
   Settings,
   Trash2,
   Loader2,
-  Calendar,
+  Calendar as CalendarIcon,
   BarChart2,
   Search,
   BedDouble,
@@ -47,8 +47,9 @@ import { QuickActionsDropdown } from './quick-actions-dropdown';
 import { RoomCalendarView } from './room-calendar-view';
 import { RoomRevenueView } from './room-revenue-view';
 import { DailyBookingModal } from './daily-booking-modal';
+import { Calendar } from '@/components/ui/calendar';
 
-import { format, differenceInCalendarDays, parseISO } from 'date-fns';
+import { format, differenceInCalendarDays, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { deleteRoom, updateRoom } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Room } from '@/context/data-provider';
@@ -64,50 +65,53 @@ const statusColorMap: { [key: string]: string } = {
   Available: 'bg-blue-100 text-blue-800 border-blue-200',
   Cleaning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   Maintenance: 'bg-red-100 text-red-800 border-red-200',
+  BOOKED: 'bg-red-100 text-red-800 border-red-200',
+  AVAILABLE: 'bg-green-100 text-green-800 border-green-200',
 };
 
-function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => void }) {
-  const isAvailable = room.status === 'Available';
-
+function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availability }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => void, availability?: { status: 'BOOKED' | 'AVAILABLE', guestName?: string } }) {
+  
   const handleOccupyClick = (e: React.MouseEvent) => {
     e.stopPropagation(); 
     onAction('occupy', room);
   };
+  
+  const displayStatus = availability ? availability.status : room.status;
+  const colorClass = statusColorMap[displayStatus] || '';
+  const guestName = availability ? availability.guestName : room.guest;
 
   return (
     <Card className="relative flex flex-col transition-all duration-200 hover:shadow-lg w-40 h-40 rounded-lg">
-      <div className="absolute top-1 right-1 z-10">
-        <QuickActionsDropdown room={room} onEdit={onEditRoom} onDelete={onDeleteRoom} onAction={onAction} />
-      </div>
+       {!availability && (
+        <div className="absolute top-1 right-1 z-10">
+          <QuickActionsDropdown room={room} onEdit={onEditRoom} onDelete={onDeleteRoom} onAction={onAction} />
+        </div>
+       )}
       <CardContent 
         className={cn(
             "flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg",
-            isAvailable && "bg-gray-100 dark:bg-gray-800"
+            colorClass
         )}
         onClick={() => onViewRoom(room)}
       >
-        <p className={cn("text-3xl font-bold", isAvailable ? "text-gray-700 dark:text-gray-300" : "text-primary")}>{room.number}</p>
-        <Badge variant={'default'} className={cn("mt-2 capitalize", statusColorMap[room.status] || '')}>
-            {room.status}
+        <p className={cn("text-3xl font-bold")}>{room.number}</p>
+        <Badge variant={'default'} className={cn("mt-2 capitalize", colorClass)}>
+            {displayStatus}
         </Badge>
         
-        {isAvailable ? (
-            <Button variant="outline" size="sm" className="mt-3 h-7 text-xs border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white" onClick={handleOccupyClick}>
-                Occupy
-            </Button>
-        ) : (
-          room.guest && (
+        {guestName ? (
             <div className="mt-3 text-xs text-center space-y-1">
                 <p className="font-semibold truncate flex items-center justify-center gap-1">
                     <User className="h-3 w-3" />
-                    {room.guest}
+                    {guestName}
                 </p>
-                {room.peopleCount && <p className="text-muted-foreground">{room.peopleCount} People</p>}
-                {room.checkIn && room.checkOut && (
-                    <p className="text-muted-foreground">{format(parseISO(room.checkIn), 'MMM d')} - {format(parseISO(room.checkOut), 'MMM d')}</p>
-                )}
             </div>
-          )
+        ) : (
+            displayStatus === 'Available' && !availability && (
+                <Button variant="outline" size="sm" className="mt-3 h-7 text-xs border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white" onClick={handleOccupyClick}>
+                    Occupy
+                </Button>
+            )
         )}
       </CardContent>
     </Card>
@@ -130,6 +134,7 @@ export default function RoomManagementDashboard() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeView, setActiveView] = useState('all-rooms');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const router = useRouter();
 
 
@@ -199,16 +204,56 @@ export default function RoomManagementDashboard() {
     });
 };
 
+const roomAvailabilities = useMemo(() => {
+    if (!selectedDate) return null;
+
+    const availabilities = new Map<string, { status: 'BOOKED' | 'AVAILABLE', guestName?: string }>();
+    
+    rooms.forEach(room => {
+        let isBooked = false;
+        let guestName: string | undefined = undefined;
+
+        if (room.checkIn && room.checkOut) {
+            const checkInDate = startOfDay(parseISO(room.checkIn));
+            const checkOutDate = endOfDay(parseISO(room.checkOut));
+            if (isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
+                isBooked = true;
+                guestName = room.guest;
+            }
+        }
+        
+        availabilities.set(room.number, {
+            status: isBooked ? 'BOOKED' : 'AVAILABLE',
+            guestName,
+        });
+    });
+
+    return availabilities;
+  }, [rooms, selectedDate]);
+
+
   const filteredRooms = useMemo(() => {
-    return rooms.filter(room => {
-        const matchesFilter = activeFilter === 'All' || room.status === activeFilter;
-        const matchesSearch = searchTerm === '' ||
+    let roomsToDisplay = [...rooms];
+
+    if (roomAvailabilities) {
+        // If a date is selected, we don't need other filters
+        return roomsToDisplay;
+    }
+
+    if (activeFilter !== 'All') {
+        roomsToDisplay = roomsToDisplay.filter(room => room.status === activeFilter);
+    }
+    
+    if (searchTerm) {
+        roomsToDisplay = roomsToDisplay.filter(room => 
             room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (room.guest && room.guest.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            room.status.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesFilter && matchesSearch;
-    });
-  }, [rooms, searchTerm, activeFilter]);
+            room.status.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }
+
+    return roomsToDisplay;
+}, [rooms, searchTerm, activeFilter, roomAvailabilities]);
 
 
   const stats = useMemo(() => {
@@ -376,55 +421,82 @@ export default function RoomManagementDashboard() {
             </Button>
           </div>
         </header>
-        <div className="flex justify-center">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {stats.map((stat) => (
-                <Card key={stat.title} className="w-full md:w-56">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                    <CardTitle className="text-xs font-medium">{stat.title}</CardTitle>
-                    {stat.icon}
-                    </CardHeader>
-                    <CardContent className="pb-4">
-                    <div className="text-xl font-bold">{stat.value}</div>
-                    </CardContent>
-                </Card>
-                ))}
-            </div>
-        </div>
+        {!selectedDate && (
+          <div className="flex justify-center">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  {stats.map((stat) => (
+                  <Card key={stat.title} className="w-full md:w-56">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                      <CardTitle className="text-xs font-medium">{stat.title}</CardTitle>
+                      {stat.icon}
+                      </CardHeader>
+                      <CardContent className="pb-4">
+                      <div className="text-xl font-bold">{stat.value}</div>
+                      </CardContent>
+                  </Card>
+                  ))}
+              </div>
+          </div>
+        )}
 
         {activeView === 'all-rooms' && (
           <>
-            <div className="mt-4">
-              <Card>
-                  <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
-                      <div className="relative flex-1 w-full md:grow">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                              placeholder="Search by Room #, Guest, or Status..."
-                              className="pl-10 w-full"
-                              value={searchTerm}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                          />
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                          {statusFilters.map(filter => (
-                              <Button
-                                  key={filter}
-                                  variant={activeFilter === filter ? 'default' : 'outline'}
-                                  onClick={() => setActiveFilter(filter)}
-                                  className="text-xs h-8"
-                              >
-                                  {filter}
-                              </Button>
-                          ))}
-                      </div>
-                  </CardContent>
-              </Card>
-            </div>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Check Room Availability</CardTitle>
+                    <CardDescription>Select a date to see room status for that day. Clear selection to see all rooms.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex justify-center">
+                    <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        className="rounded-md border"
+                    />
+                </CardContent>
+            </Card>
+
+            {!selectedDate && (
+                <div className="mt-4">
+                <Card>
+                    <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
+                        <div className="relative flex-1 w-full md:grow">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search by Room #, Guest, or Status..."
+                                className="pl-10 w-full"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                            {statusFilters.map(filter => (
+                                <Button
+                                    key={filter}
+                                    variant={activeFilter === filter ? 'default' : 'outline'}
+                                    onClick={() => setActiveFilter(filter)}
+                                    className="text-xs h-8"
+                                >
+                                    {filter}
+                                </Button>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+                </div>
+            )}
             <div className="flex justify-center mt-6">
                 <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                     {filteredRooms.map((room, index) => (
-                    <RoomCard key={`${room.number}-${index}`} room={room} onViewRoom={handleViewRoom} onEditRoom={handleEditRoom} onDeleteRoom={handleDeleteRoom} onAction={handleQuickAction} />
+                        <RoomCard 
+                            key={`${room.number}-${index}`} 
+                            room={room} 
+                            onViewRoom={handleViewRoom} 
+                            onEditRoom={handleEditRoom} 
+                            onDeleteRoom={handleDeleteRoom} 
+                            onAction={handleQuickAction}
+                            availability={roomAvailabilities?.get(room.number)}
+                        />
                     ))}
                 </div>
             </div>
