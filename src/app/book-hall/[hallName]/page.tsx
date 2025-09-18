@@ -61,6 +61,11 @@ export default function BookHallPage() {
     resolver: zodResolver(bookHallSchema),
     defaultValues: {
       checkIn: new Date(),
+      customerName: '',
+      contact: '',
+      idProof: '',
+      email: '',
+      purpose: '',
     }
   });
 
