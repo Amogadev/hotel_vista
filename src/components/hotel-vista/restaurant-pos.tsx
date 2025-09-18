@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useContext, useRef, useTransition } from 'react';
@@ -95,7 +96,7 @@ export default function RestaurantPOS() {
     content: () => kotPrintRef.current,
   });
 
-  const handleSaveAndPrintKot = () => {
+  const handleSaveAndPrint = () => {
     if(currentOrder.length === 0) {
         toast({
             variant: 'destructive',
@@ -152,7 +153,7 @@ export default function RestaurantPOS() {
 
 
   return (
-    <div className="flex h-screen w-full bg-secondary font-sans">
+    <div className="flex h-full w-full bg-secondary font-sans">
        <div className="hidden">
         <KotPrint ref={kotPrintRef} {...kotData} />
       </div>
@@ -160,18 +161,10 @@ export default function RestaurantPOS() {
       <main className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-foreground">Restaurant POS</h1>
-            <Button variant="ghost" asChild>
-                <Link href="/login" className='text-muted-foreground'>
-                    <LogOut className="mr-2 h-4 w-4" /> Sign Out
-                </Link>
-            </Button>
         </header>
         
         {/* Menu Section */}
         <div className="flex-1 overflow-y-auto pr-4">
-            <h2 className="text-xl font-semibold text-foreground">Menu</h2>
-            <p className="text-muted-foreground mb-4">Select items to add to order</p>
-
             <div className="flex gap-2 mb-6">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -294,9 +287,9 @@ export default function RestaurantPOS() {
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-                <Button variant="secondary" onClick={handleSaveAndPrintKot} disabled={isPending}>
+                <Button variant="secondary" onClick={handleSaveAndPrint} disabled={isPending}>
                     {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save &amp; Print
+                    Save & Print
                 </Button>
                 <Button variant="destructive" onClick={clearOrder}>Clear</Button>
             </div>
