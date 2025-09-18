@@ -2,7 +2,7 @@
 'use client';
 import 'react-dom';
 
-import React, { useState, useMemo, useContext, useTransition, useRef } from 'react';
+import React, { useState, useMemo, useContext, useTransition } from 'react';
 import {
   Search,
   Plus,
@@ -29,6 +29,7 @@ import { KotPrint, type KotPrintProps } from './kot-print';
 import { useToast } from '@/hooks/use-toast';
 import { addOrder } from '@/app/actions';
 import { BillModal } from './bill-modal';
+import Topbar from './topbar';
 
 type OrderItem = MenuItemType & { quantity: number };
 
@@ -42,19 +43,24 @@ export default function RestaurantPOS() {
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const kotPrintRef = useRef<HTMLDivElement>(null);
-
 
   const kotData: KotPrintProps = {
     billNo: `KOT${(activeOrders.length + 1).toString().padStart(4, '0')}`,
     table: selectedTable,
     waiter: selectedWaiter,
     date: new Date(),
-    items: currentOrder,
+    items: currentOrder.map(item => ({ name: item.name, quantity: item.quantity })),
   };
 
   const handlePrint = useReactToPrint({
-    content: () => kotPrintRef.current,
+    content: () => {
+      const component = <KotPrint {...kotData} />;
+      // The component needs to be rendered to be printable.
+      // react-to-print handles creating a temporary iframe and rendering the component there.
+      // We just need to return the component instance.
+      // A key is added to ensure it re-renders if data changes.
+      return React.cloneElement(component, { key: new Date().getTime() });
+    },
   });
 
   const filteredMenuItems = useMemo(() => {
@@ -143,8 +149,7 @@ export default function RestaurantPOS() {
                     description: `Order for ${selectedTable} has been saved.`,
                 });
                 
-                // Trigger print after state is updated
-                setTimeout(handlePrint, 0);
+                handlePrint();
 
             } else {
                 throw new Error(result.error || 'Failed to save order');
@@ -183,7 +188,8 @@ export default function RestaurantPOS() {
   };
 
   return (
-      <div className="flex-1 h-full overflow-hidden flex bg-background font-sans">
+    <div className="flex flex-col h-screen">
+      <main className="flex-1 overflow-hidden flex bg-background font-sans">
       {/* Main Content */}
       <div className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
@@ -320,7 +326,7 @@ export default function RestaurantPOS() {
             <div className="grid grid-cols-2 gap-2">
                 <Button variant="secondary" onClick={handleSaveAndPrint} disabled={isPending}>
                     {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save &amp; Print
+                    Save & Print
                 </Button>
                 <Button variant="destructive" onClick={clearOrder}>Clear</Button>
             </div>
@@ -336,13 +342,8 @@ export default function RestaurantPOS() {
           onClose={() => setIsBillModalOpen(false)}
         />
       )}
-      <div className="hidden">
-        <div ref={kotPrintRef}>
-          <KotPrint {...kotData} />
-        </div>
-      </div>
+      </main>
       </div>
   );
 }
 
-    
