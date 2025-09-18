@@ -15,10 +15,10 @@ export type KotPrintProps = {
     items: OrderItem[];
 };
 
-export const KotPrint = React.forwardRef<HTMLDivElement, KotPrintProps>(
-    ({ billNo, table, waiter, date, items }, ref) => {
+export function KotPrint(props: KotPrintProps) {
+    const { billNo, table, waiter, date, items } = props;
     return (
-      <div ref={ref} className="p-8 font-mono text-xs text-black bg-white">
+      <div className="p-8 font-mono text-xs text-black bg-white">
         <div className="text-center space-y-1">
           <h1 className="text-sm font-bold">MAYILAI NILA MANAMAGIL</h1>
           <h2 className="text-sm font-bold">MANDRAM</h2>
@@ -59,7 +59,6 @@ export const KotPrint = React.forwardRef<HTMLDivElement, KotPrintProps>(
         </div>
       </div>
     );
-  }
-);
+};
 
 KotPrint.displayName = 'KotPrint';

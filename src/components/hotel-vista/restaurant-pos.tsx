@@ -2,7 +2,7 @@
 'use client';
 import 'react-dom';
 
-import React, { useState, useMemo, useContext, useRef, useTransition } from 'react';
+import React, { useState, useMemo, useContext, useTransition } from 'react';
 import {
   Search,
   Plus,
@@ -40,8 +40,6 @@ export default function RestaurantPOS() {
   const [selectedWaiter, setSelectedWaiter] = useState('DEF-WAITER');
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-
-  const kotPrintRef = useRef<HTMLDivElement>(null);
 
   const filteredMenuItems = useMemo(() => {
     if (!searchTerm) {
@@ -93,8 +91,19 @@ export default function RestaurantPOS() {
     return { subtotal: sub, ac: ac, total: grandTotal };
   }, [currentOrder, acCharges]);
 
+  const kotData: KotPrintProps = {
+    billNo: `KOT${(activeOrders.length + 1).toString().padStart(4, '0')}`,
+    table: selectedTable,
+    waiter: selectedWaiter,
+    date: new Date(),
+    items: currentOrder,
+  };
+
   const handlePrint = useReactToPrint({
-    content: () => kotPrintRef.current,
+    content: () => {
+      const component = <KotPrint {...kotData} />;
+      return component as any;
+    },
   });
 
   const handleSaveAndPrint = () => {
@@ -144,20 +153,8 @@ export default function RestaurantPOS() {
     })
   }
 
-  const kotData: KotPrintProps = {
-    billNo: `KOT${(activeOrders.length + 1).toString().padStart(4, '0')}`,
-    table: selectedTable,
-    waiter: selectedWaiter,
-    date: new Date(),
-    items: currentOrder,
-  };
-
-
   return (
     <div className="flex h-full w-full bg-secondary font-sans">
-       <div className="hidden">
-        <KotPrint ref={kotPrintRef} {...kotData} />
-      </div>
       {/* Main Content */}
       <main className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
