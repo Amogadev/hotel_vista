@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import React, { useState, useMemo, useContext, useTransition } from 'react';
+import React, { useState, useMemo, useContext, useTransition, useRef } from 'react';
 import { renderToString } from 'react-dom/server';
 import {
   Search,
@@ -159,6 +160,7 @@ export default function RestaurantPOS() {
             const result = await addOrder(newOrderPayload);
 
             if(result.success && result.order) {
+                const newOrderNumber = (activeOrders.length + 1).toString().padStart(3, '0');
                 const newActiveOrder: ActiveOrder = {
                     id: result.order.id,
                     status: 'pending',
@@ -176,7 +178,7 @@ export default function RestaurantPOS() {
                 });
                 
                 const kotData: KotPrintProps = {
-                    billNo: `KOT${result.order.id.slice(-4)}`,
+                    billNo: `Order ${newOrderNumber}`,
                     table: selectedTable,
                     waiter: selectedWaiter,
                     date: new Date(),
