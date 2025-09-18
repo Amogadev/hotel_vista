@@ -188,12 +188,9 @@ export default function HallManagementDashboard() {
         const checkInDate = startOfDay(parseISO(hall.checkIn));
         const checkOutDate = endOfDay(parseISO(hall.checkOut));
         if (isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
-          status = 'OCCUPIED'; // A hall booked for the day is considered occupied for that day
+          status = 'OCCUPIED';
           customerName = hall.customerName;
         }
-      } else if (hall.status === 'Maintenance') {
-          // If we need to show maintenance on date view, handle here.
-          // For now, it will show as available unless booked.
       }
       
       availabilities.set(hall.id, { status, customerName });
@@ -259,19 +256,19 @@ export default function HallManagementDashboard() {
     let availableCount = 0;
     let occupiedCount = 0;
 
-    if (hallAvailabilities) { // Date is selected
+    if (hallAvailabilities) {
         halls.forEach(hall => {
             const availability = hallAvailabilities.get(hall.id);
             if (availability) {
                 if (availability.status === 'OCCUPIED') {
                     occupiedCount++;
-                } else {
+                } else if (availability.status === 'AVAILABLE') {
                     availableCount++;
                 }
             }
         });
-        bookedCount = occupiedCount; // On a specific date, booked means occupied for that day
-    } else { // No date selected, show current status
+        bookedCount = occupiedCount; 
+    } else {
       bookedCount = halls.filter(h => h.status === 'Booked' && (!h.checkIn || !isWithinInterval(new Date(), {start: startOfDay(parseISO(h.checkIn)), end: endOfDay(parseISO(h.checkOut!))}))).length;
       occupiedCount = halls.filter(h => h.status === 'Booked' && h.checkIn && isWithinInterval(new Date(), {start: startOfDay(parseISO(h.checkIn)), end: endOfDay(parseISO(h.checkOut!))})).length;
       availableCount = halls.filter(h => h.status === 'Available').length;
@@ -435,7 +432,7 @@ export default function HallManagementDashboard() {
       </div>
 
       <Card>
-        <CardContent className="p-4 flex flex-col md:flex-row items-center justify-center gap-4">
+        <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
             <div className="flex items-center gap-2">
                 <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
@@ -472,10 +469,10 @@ export default function HallManagementDashboard() {
             </div>
             {!selectedDate && (
                 <>
-                <div className="relative w-full md:w-64">
+                <div className="relative flex-1 w-full md:grow">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search..."
+                        placeholder="Search by Hall Name, Customer, or Status..."
                         className="pl-10 w-full"
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
@@ -555,3 +552,5 @@ export default function HallManagementDashboard() {
   );
 }
 
+
+    
