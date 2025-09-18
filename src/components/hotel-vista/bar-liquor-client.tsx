@@ -132,12 +132,14 @@ export default function BarPOS() {
   };
   
   const handleSaleRecorded = async () => {
+    const roomToCharge = selectedRoom === 'direct-sale' ? undefined : selectedRoom;
+
     const salePromises = currentSale.map(item => 
       recordBarSale({
         name: item.name,
         qty: item.quantity,
         price: item.price * item.quantity,
-        room: selectedRoom || undefined,
+        room: roomToCharge,
       })
     );
 
@@ -155,7 +157,7 @@ export default function BarPOS() {
             name: item.name,
             qty: item.quantity,
             price: item.price * item.quantity,
-            room: selectedRoom || undefined,
+            room: roomToCharge,
             time: new Date(),
         }));
         setRecentSales(prev => [...newSales, ...prev]);
@@ -249,7 +251,7 @@ export default function BarPOS() {
                             <SelectValue placeholder="Select a room" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">None (Direct Sale)</SelectItem>
+                            <SelectItem value="direct-sale">None (Direct Sale)</SelectItem>
                             {rooms.filter(r => r.status === 'Occupied').map(room => (
                                 <SelectItem key={room.number} value={room.number}>
                                     Room {room.number} ({room.guest})
@@ -313,7 +315,7 @@ export default function BarPOS() {
             onSaleRecorded={handleSaleRecorded}
             saleItems={currentSale}
             total={total}
-            room={selectedRoom}
+            room={selectedRoom === 'direct-sale' ? undefined : selectedRoom}
         />
       </main>
   );
