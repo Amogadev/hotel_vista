@@ -77,10 +77,10 @@ function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availa
     displayStatus = availability.status;
     customerName = availability.customerName;
   } else {
-    if (hall.status === 'Booked' && hall.checkIn && hall.checkOut) {
+    if (hall.status === 'Booked' && hall.checkIn && hall.checkOut && typeof hall.checkIn === 'string' && typeof hall.checkOut === 'string' && isValid(parseISO(hall.checkIn)) && isValid(parseISO(hall.checkOut))) {
         const checkInDate = parseISO(hall.checkIn);
         const checkOutDate = parseISO(hall.checkOut);
-        if (isValid(checkInDate) && isValid(checkOutDate) && isWithinInterval(new Date(), { start: startOfDay(checkInDate), end: endOfDay(checkOutDate) })) {
+        if (isWithinInterval(new Date(), { start: startOfDay(checkInDate), end: endOfDay(checkOutDate) })) {
             displayStatus = 'Occupied';
         } else {
             displayStatus = 'Booked';
@@ -176,10 +176,10 @@ export default function HallManagementDashboard() {
       let status: 'OCCUPIED' | 'AVAILABLE' = 'AVAILABLE';
       let customerName: string | undefined;
   
-      if (hall.status === 'Booked' && hall.checkIn && hall.checkOut) {
+      if (hall.status === 'Booked' && hall.checkIn && hall.checkOut && typeof hall.checkIn === 'string' && typeof hall.checkOut === 'string' && isValid(parseISO(hall.checkIn)) && isValid(parseISO(hall.checkOut))) {
         const checkInDate = parseISO(hall.checkIn);
         const checkOutDate = parseISO(hall.checkOut);
-        if (isValid(checkInDate) && isValid(checkOutDate) && isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
+        if (isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
           status = 'OCCUPIED';
           customerName = hall.customerName;
         }
@@ -192,42 +192,38 @@ export default function HallManagementDashboard() {
   }, [halls, selectedDate]);
 
   const filteredHalls = useMemo(() => {
-    let hallsToDisplay = [...halls];
+    let hallsToDisplay = halls;
 
     if (hallAvailabilities) {
-        if (activeFilter !== 'All') {
-            hallsToDisplay = hallsToDisplay.filter(hall => {
-                const availability = hallAvailabilities.get(hall.id);
-                if (!availability) return false;
+        hallsToDisplay = halls.filter(hall => {
+            const availability = hallAvailabilities.get(hall.id);
+            if (!availability) return false;
 
-                const currentStatus = availability.status;
-                if (activeFilter.toUpperCase() === 'OCCUPIED' && currentStatus === 'OCCUPIED') return true;
-                if (activeFilter.toUpperCase() === 'AVAILABLE' && currentStatus === 'AVAILABLE') return true;
-                
-                // When filtering by 'Booked' on a specific date, we are interested in 'Occupied' halls for that day.
-                if (activeFilter.toUpperCase() === 'BOOKED' && currentStatus === 'OCCUPIED') return true;
-                
-                return false;
-            });
-        }
-        return hallsToDisplay;
-    }
-    
-    if (activeFilter !== 'All') {
-        if (activeFilter === 'Occupied') {
-            hallsToDisplay = hallsToDisplay.filter(hall => 
-                hall.status === 'Booked' &&
-                hall.checkIn && hall.checkOut &&
-                isWithinInterval(new Date(), { start: startOfDay(parseISO(hall.checkIn)), end: endOfDay(parseISO(hall.checkOut)) })
-            );
-        } else if (activeFilter === 'Booked') {
-             hallsToDisplay = hallsToDisplay.filter(hall => 
-                hall.status === 'Booked' &&
-                (!hall.checkIn || !hall.checkOut || !isWithinInterval(new Date(), { start: startOfDay(parseISO(hall.checkIn)), end: endOfDay(parseISO(hall.checkOut)) }))
-            );
-        }
-        else {
-            hallsToDisplay = hallsToDisplay.filter(hall => hall.status === activeFilter);
+            if (activeFilter === 'All') return true;
+            if (activeFilter.toUpperCase() === 'OCCUPIED' && availability.status === 'OCCUPIED') return true;
+            if (activeFilter.toUpperCase() === 'AVAILABLE' && availability.status === 'AVAILABLE') return true;
+            if (activeFilter.toUpperCase() === 'BOOKED' && availability.status === 'OCCUPIED') return true; // Booked on a date means occupied
+            if (activeFilter.toUpperCase() === 'MAINTENANCE' && hall.status === 'Maintenance') return true;
+            
+            return false;
+        });
+
+    } else {
+        if (activeFilter !== 'All') {
+            if (activeFilter === 'Occupied') {
+                hallsToDisplay = hallsToDisplay.filter(hall => 
+                    hall.status === 'Booked' && hall.checkIn && hall.checkOut && typeof hall.checkIn === 'string' && typeof hall.checkOut === 'string' && isValid(parseISO(hall.checkIn)) && isValid(parseISO(hall.checkOut)) &&
+                    isWithinInterval(new Date(), { start: startOfDay(parseISO(hall.checkIn)), end: endOfDay(parseISO(hall.checkOut)) })
+                );
+            } else if (activeFilter === 'Booked') {
+                hallsToDisplay = hallsToDisplay.filter(hall => 
+                    hall.status === 'Booked' &&
+                    (!hall.checkIn || !hall.checkOut || typeof hall.checkIn !== 'string' || typeof hall.checkOut !== 'string' || !isValid(parseISO(hall.checkIn)) || !isValid(parseISO(hall.checkOut)) || !isWithinInterval(new Date(), { start: startOfDay(parseISO(hall.checkIn)), end: endOfDay(parseISO(hall.checkOut)) }))
+                );
+            }
+            else {
+                hallsToDisplay = hallsToDisplay.filter(hall => hall.status === activeFilter);
+            }
         }
     }
     
@@ -255,16 +251,18 @@ export default function HallManagementDashboard() {
             if (availability) {
                 if (availability.status === 'OCCUPIED') {
                     occupiedCount++;
-                } else if (availability.status === 'AVAILABLE') {
+                } else if (hall.status !== 'Maintenance') {
                     availableCount++;
                 }
+            } else if (hall.status === 'Available') {
+                 availableCount++;
             }
         });
         bookedCount = occupiedCount; 
     } else {
-      bookedCount = halls.filter(h => h.status === 'Booked' && (!h.checkIn || !isWithinInterval(new Date(), {start: startOfDay(parseISO(h.checkIn)), end: endOfDay(parseISO(h.checkOut!))}))).length;
-      occupiedCount = halls.filter(h => h.status === 'Booked' && h.checkIn && isWithinInterval(new Date(), {start: startOfDay(parseISO(h.checkIn)), end: endOfDay(parseISO(h.checkOut!))})).length;
-      availableCount = halls.filter(h => h.status === 'Available').length;
+        bookedCount = halls.filter(h => h.status === 'Booked' && (!h.checkIn || typeof h.checkIn !== 'string' || !isValid(parseISO(h.checkIn)) || (h.checkOut && typeof h.checkOut === 'string' && isValid(parseISO(h.checkOut)) && !isWithinInterval(new Date(), {start: startOfDay(parseISO(h.checkIn)), end: endOfDay(parseISO(h.checkOut))})))).length;
+        occupiedCount = halls.filter(h => h.status === 'Booked' && h.checkIn && typeof h.checkIn === 'string' && isValid(parseISO(h.checkIn)) && h.checkOut && typeof h.checkOut === 'string' && isValid(parseISO(h.checkOut)) && isWithinInterval(new Date(), {start: startOfDay(parseISO(h.checkIn)), end: endOfDay(parseISO(h.checkOut))})).length;
+        availableCount = halls.filter(h => h.status === 'Available').length;
     }
 
     return [
@@ -459,31 +457,28 @@ export default function HallManagementDashboard() {
                     </Button>
                 )}
             </div>
-            {!selectedDate && (
-                <>
-                <div className="relative flex-1 w-full md:grow-0 md:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search hall or customer..."
-                        className="pl-10 w-full"
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                    {statusFilters.map(filter => (
-                        <Button
-                            key={filter}
-                            variant={activeFilter === filter ? 'default' : 'outline'}
-                            onClick={() => setActiveFilter(filter)}
-                            className="text-xs h-8"
-                        >
-                            {filter}
-                        </Button>
-                    ))}
-                </div>
-                </>
-            )}
+            
+            <div className="relative flex-1 md:grow-0">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Search by hall..."
+                    className="pl-10 w-full md:w-64"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+                {statusFilters.map(filter => (
+                    <Button
+                        key={filter}
+                        variant={activeFilter === filter ? 'default' : 'outline'}
+                        onClick={() => setActiveFilter(filter)}
+                        className="text-xs h-8"
+                    >
+                        {filter}
+                    </Button>
+                ))}
+            </div>
         </CardContent>
       </Card>
       
