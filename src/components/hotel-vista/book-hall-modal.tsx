@@ -287,7 +287,7 @@ export function BookHallModal({ hall, isOpen, onClose, onHallBooked }: BookHallM
                                 </FormItem>
                             )}
                         />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <FormField
                                     control={form.control}
@@ -377,13 +377,13 @@ export function BookHallModal({ hall, isOpen, onClose, onHallBooked }: BookHallM
                         <div className="grid grid-cols-2 gap-6">
                             <FormField control={form.control} name="adults" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Adults</FormLabel>
+                                <FormLabel>Adults (₹{ADULT_PRICE}/person)</FormLabel>
                                 <FormControl><Input type="number" min="0" {...field} /></FormControl>
                             </FormItem>
                             )} />
                             <FormField control={form.control} name="children" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Children</FormLabel>
+                                <FormLabel>Children (₹{CHILD_PRICE}/person)</FormLabel>
                                 <FormControl><Input type="number" min="0" {...field} /></FormControl>
                             </FormItem>
                             )} />
