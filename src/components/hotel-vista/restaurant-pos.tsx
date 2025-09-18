@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo, useContext, useRef, useTransition } from 'react';
 import {
   Search,
   Plus,
   Trash2,
   LogOut,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,14 +22,24 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { DataContext, MenuItem as MenuItemType } from '@/context/data-provider';
 import Link from 'next/link';
+import { useReactToPrint } from 'react-to-print';
+import { KotPrint, type KotPrintProps } from './kot-print';
+import { useToast } from '@/hooks/use-toast';
+import { addOrder } from '@/app/actions';
 
 type OrderItem = MenuItemType & { quantity: number };
 
 export default function RestaurantPOS() {
-  const { menuItems: allMenuItems } = useContext(DataContext);
+  const { menuItems: allMenuItems, activeOrders, setActiveOrders } = useContext(DataContext);
   const [currentOrder, setCurrentOrder] = useState<OrderItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [acCharges, setAcCharges] = useState(false);
+  const [selectedTable, setSelectedTable] = useState('TABLE-1');
+  const [selectedWaiter, setSelectedWaiter] = useState('DEF-WAITER');
+  const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+
+  const kotPrintRef = useRef<HTMLDivElement>(null);
 
   const filteredMenuItems = useMemo(() => {
     if (!searchTerm) {
@@ -80,9 +91,71 @@ export default function RestaurantPOS() {
     return { subtotal: sub, ac: ac, total: grandTotal };
   }, [currentOrder, acCharges]);
 
+  const handlePrint = useReactToPrint({
+    content: () => kotPrintRef.current,
+  });
+
+  const handleSaveAndPrintKot = () => {
+    if(currentOrder.length === 0) {
+        toast({
+            variant: 'destructive',
+            title: "Empty Order",
+            description: "Cannot print an empty order.",
+        })
+        return;
+    }
+
+    startTransition(async () => {
+        try {
+            const newOrder = {
+                table: parseInt(selectedTable.split('-')[1]),
+                items: currentOrder.map(item => `${item.quantity}x ${item.name}`).join(', '),
+                price: subtotal, // Saving subtotal before tax/charges
+            }
+            const result = await addOrder(newOrder);
+
+            if(result.success && result.order) {
+                setActiveOrders(prev => [...prev, {
+                    ...result.order,
+                    id: result.order.id,
+                    status: 'pending',
+                    price: `₹${result.order.price}`,
+                    time: new Date(),
+                    icon: <></>
+                }])
+                toast({
+                    title: "Order Saved",
+                    description: `Order for ${selectedTable} has been saved.`,
+                });
+                handlePrint();
+            } else {
+                throw new Error(result.error || 'Failed to save order');
+            }
+
+        } catch (error) {
+             toast({
+                variant: 'destructive',
+                title: "Error",
+                description: (error as Error).message || "Failed to save and print KOT.",
+            })
+        }
+    })
+  }
+
+  const kotData: KotPrintProps = {
+    billNo: `KOT${(activeOrders.length + 1).toString().padStart(4, '0')}`,
+    table: selectedTable,
+    waiter: selectedWaiter,
+    date: new Date(),
+    items: currentOrder,
+  };
+
 
   return (
     <div className="flex h-screen w-full bg-secondary font-sans">
+       <div className="hidden">
+        <KotPrint ref={kotPrintRef} {...kotData} />
+      </div>
       {/* Main Content */}
       <main className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
@@ -148,7 +221,7 @@ export default function RestaurantPOS() {
             <div className="space-y-4">
                 <div>
                     <label className="text-sm font-medium text-muted-foreground">Table Name</label>
-                    <Select defaultValue="TABLE-2">
+                    <Select value={selectedTable} onValueChange={setSelectedTable}>
                         <SelectTrigger className="bg-secondary border-0 focus:ring-primary">
                             <SelectValue />
                         </SelectTrigger>
@@ -161,7 +234,7 @@ export default function RestaurantPOS() {
                 </div>
                 <div>
                     <label className="text-sm font-medium text-muted-foreground">Select Waiter</label>
-                    <Select defaultValue="DEF-WAITER">
+                    <Select value={selectedWaiter} onValueChange={setSelectedWaiter}>
                         <SelectTrigger className="bg-secondary border-0 focus:ring-primary">
                             <SelectValue />
                         </SelectTrigger>
@@ -221,7 +294,10 @@ export default function RestaurantPOS() {
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-                <Button variant="secondary">Save & Print KOT</Button>
+                <Button variant="secondary" onClick={handleSaveAndPrintKot} disabled={isPending}>
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save &amp; Print KOT
+                </Button>
                 <Button variant="destructive" onClick={clearOrder}>Clear</Button>
             </div>
             <Button className="w-full bg-primary hover:bg-primary/90" disabled={currentOrder.length === 0}>
