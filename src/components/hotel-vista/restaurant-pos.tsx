@@ -82,7 +82,7 @@ export default function RestaurantPOS() {
 
 
   return (
-    <div className="flex h-screen w-full bg-background font-sans">
+    <div className="flex h-screen w-full bg-secondary font-sans">
       {/* Main Content */}
       <main className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
@@ -104,7 +104,7 @@ export default function RestaurantPOS() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input 
                         placeholder="Search menu items..." 
-                        className="pl-10 bg-input border-0 focus-visible:ring-primary"
+                        className="pl-10 bg-background border-border focus-visible:ring-primary"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -119,14 +119,14 @@ export default function RestaurantPOS() {
                     <div key={category}>
                         <div className="flex items-center gap-2 mb-3">
                             <h3 className="text-lg font-semibold uppercase text-foreground">{category}</h3>
-                            <Badge variant="secondary" className='bg-muted text-muted-foreground'>{items.length} items</Badge>
+                            <Badge variant="secondary">{items.length} items</Badge>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                             {items.map((item) => (
-                                <div key={item.name} className="bg-muted/50 rounded-lg p-3 flex flex-col justify-between">
+                                <div key={item.name} className="bg-background rounded-lg p-3 flex flex-col justify-between">
                                     <div>
                                         <p className="font-semibold text-foreground">{item.name}</p>
-                                        <p className="text-green-400 font-medium">{item.price}</p>
+                                        <p className="text-primary font-medium">{item.price}</p>
                                     </div>
                                     <Button size="icon" className="mt-2 self-end h-8 w-8 bg-primary/80 hover:bg-primary" onClick={() => addToOrder(item)}>
                                         <Plus className="h-4 w-4" />
@@ -141,7 +141,7 @@ export default function RestaurantPOS() {
       </main>
 
       {/* Order Sidebar */}
-      <aside className="w-96 bg-secondary border-l border-border flex flex-col">
+      <aside className="w-96 bg-background border-l border-border flex flex-col">
         <div className="p-6">
             <h2 className="text-xl font-bold text-foreground mb-4">Current Order</h2>
 
@@ -149,7 +149,7 @@ export default function RestaurantPOS() {
                 <div>
                     <label className="text-sm font-medium text-muted-foreground">Table Name</label>
                     <Select defaultValue="TABLE-2">
-                        <SelectTrigger className="bg-input border-0 focus:ring-primary">
+                        <SelectTrigger className="bg-secondary border-0 focus:ring-primary">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -162,7 +162,7 @@ export default function RestaurantPOS() {
                 <div>
                     <label className="text-sm font-medium text-muted-foreground">Select Waiter</label>
                     <Select defaultValue="DEF-WAITER">
-                        <SelectTrigger className="bg-input border-0 focus:ring-primary">
+                        <SelectTrigger className="bg-secondary border-0 focus:ring-primary">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -191,7 +191,7 @@ export default function RestaurantPOS() {
                     </div>
                     <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground">₹{itemTotal.toFixed(2)}</p>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-400" onClick={() => removeFromOrder(item.name)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => removeFromOrder(item.name)}>
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
@@ -221,8 +221,8 @@ export default function RestaurantPOS() {
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-                <Button variant="secondary" className='bg-muted text-muted-foreground'>Save & Print KOT</Button>
-                <Button variant="destructive" className='bg-red-800/80 hover:bg-red-800 text-white' onClick={clearOrder}>Clear</Button>
+                <Button variant="secondary">Save & Print KOT</Button>
+                <Button variant="destructive" onClick={clearOrder}>Clear</Button>
             </div>
             <Button className="w-full bg-primary hover:bg-primary/90" disabled={currentOrder.length === 0}>
                 Generate Bill (₹{total.toFixed(2)})
