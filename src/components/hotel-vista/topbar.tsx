@@ -12,6 +12,7 @@ import {
   LogOut,
   FileText,
   Users,
+  Building,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useUserRole } from '@/hooks/use-user-role';
@@ -32,6 +33,12 @@ const allMenuItems = [
     label: 'Room Management',
     icon: BedDouble,
     roles: ['admin', 'reception'],
+  },
+  {
+    href: '/hotel-management',
+    label: 'Hotel Management',
+    icon: Building,
+    roles: ['admin'],
   },
   {
     href: '/total-bill',
