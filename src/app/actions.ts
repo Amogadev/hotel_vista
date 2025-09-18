@@ -408,6 +408,8 @@ export async function addHall(newHall: {
   checkIn?: string;
   checkOut?: string;
   totalPrice?: number;
+  idProof?: string;
+  email?: string;
 }) {
   try {
     const hallData: any = { ...newHall };
@@ -441,6 +443,8 @@ export async function updateHall(updatedHall: {
   checkIn?: string;
   checkOut?: string;
   totalPrice?: number;
+  idProof?: string;
+  email?: string;
 }) {
     try {
         const q = query(collection(db, "halls"), where("name", "==", updatedHall.originalName));
@@ -479,5 +483,7 @@ export async function deleteHall(hallName: string) {
         return { success: false, error: "Failed to delete hall" };
     }
 }
+
+    
 
     

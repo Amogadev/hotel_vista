@@ -56,6 +56,8 @@ const hallSchema = z.object({
   checkIn: z.date().optional(),
   checkOut: z.date().optional(),
   totalPrice: z.coerce.number().optional(),
+  idProof: z.string().optional(),
+  email: z.string().email('Invalid email address').optional().or(z.literal('')),
 });
 
 type EditHallFormValues = z.infer<typeof hallSchema>;
@@ -263,6 +265,43 @@ export function EditHallModal({ hall, isOpen, onClose, onHallUpdated }: EditHall
                         </FormItem>
                     )}
                 />
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                    control={form.control}
+                    name="idProof"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>ID Proof</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select ID type" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            <SelectItem value="Aadhar">Aadhar</SelectItem>
+                            <SelectItem value="Passport">Passport</SelectItem>
+                            <SelectItem value="Driving License">Driving License</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                            <Input type="email" placeholder="guest@example.com" {...field} value={field.value ?? ''}/>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                </div>
                  <div className="grid grid-cols-2 gap-4">
                     <FormField
                         control={form.control}

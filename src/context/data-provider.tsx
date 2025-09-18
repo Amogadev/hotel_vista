@@ -32,6 +32,8 @@ export type Hall = {
     checkIn?: string;
     checkOut?: string;
     totalPrice?: number;
+    idProof?: string;
+    email?: string;
 };
 
 export type MenuItem = {
@@ -472,6 +474,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                         delete cleanedHall.checkIn;
                         delete cleanedHall.checkOut;
                         delete cleanedHall.totalPrice;
+                        delete cleanedHall.idProof;
+                        delete cleanedHall.email;
                     }
 
                     return cleanedHall;
@@ -580,3 +584,5 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     </DataContext.Provider>
   );
 };
+
+    
