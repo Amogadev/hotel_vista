@@ -2,7 +2,7 @@
 'use client';
 import 'react-dom';
 
-import React, { useState, useMemo, useContext, useTransition } from 'react';
+import React, { useState, useMemo, useContext, useTransition, useRef } from 'react';
 import {
   Search,
   Plus,
@@ -22,12 +22,13 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { DataContext, MenuItem as MenuItemType } from '@/context/data-provider';
+import { DataContext, MenuItem as MenuItemType, ActiveOrder } from '@/context/data-provider';
 import Link from 'next/link';
 import { useReactToPrint } from 'react-to-print';
 import { KotPrint, type KotPrintProps } from './kot-print';
 import { useToast } from '@/hooks/use-toast';
 import { addOrder } from '@/app/actions';
+import { BillModal } from './bill-modal';
 
 type OrderItem = MenuItemType & { quantity: number };
 
@@ -38,8 +39,11 @@ export default function RestaurantPOS() {
   const [acCharges, setAcCharges] = useState(false);
   const [selectedTable, setSelectedTable] = useState('TABLE-1');
   const [selectedWaiter, setSelectedWaiter] = useState('WAITER 1');
+  const [isBillModalOpen, setIsBillModalOpen] = useState(false);
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+
+  const printComponentRef = useRef<HTMLDivElement>(null);
 
   const filteredMenuItems = useMemo(() => {
     if (!searchTerm) {
@@ -100,10 +104,7 @@ export default function RestaurantPOS() {
   };
 
   const handlePrint = useReactToPrint({
-    content: () => {
-      const componentToPrint = <KotPrint {...kotData} />;
-      return componentToPrint as any;
-    },
+    content: () => printComponentRef.current,
   });
 
   const handleSaveAndPrint = () => {
@@ -118,22 +119,25 @@ export default function RestaurantPOS() {
 
     startTransition(async () => {
         try {
-            const newOrder = {
+            const newOrderPayload = {
                 table: parseInt(selectedTable.split('-')[1]),
                 items: currentOrder.map(item => `${item.quantity}x ${item.name}`).join(', '),
                 price: subtotal, // Saving subtotal before tax/charges
             }
-            const result = await addOrder(newOrder);
+            const result = await addOrder(newOrderPayload);
 
             if(result.success && result.order) {
-                setActiveOrders(prev => [...prev, {
-                    ...result.order,
+                const newActiveOrder: ActiveOrder = {
                     id: result.order.id,
                     status: 'pending',
-                    price: `₹${result.order.price}`,
+                    table: newOrderPayload.table,
+                    items: newOrderPayload.items,
+                    price: `₹${newOrderPayload.price.toFixed(2)}`,
                     time: new Date(),
-                    icon: <></>
-                }])
+                    icon: <></>,
+                };
+                setActiveOrders(prev => [...prev, newActiveOrder]);
+
                 toast({
                     title: "Order Saved",
                     description: `Order for ${selectedTable} has been saved.`,
@@ -145,7 +149,7 @@ export default function RestaurantPOS() {
 
         } catch (error) {
              toast({
-                variant: 'destructive',
+                variant: "destructive",
                 title: "Error",
                 description: (error as Error).message || "Failed to save and print.",
             })
@@ -153,8 +157,35 @@ export default function RestaurantPOS() {
     })
   }
 
+  const handleGenerateBill = () => {
+    if (currentOrder.length > 0) {
+      setIsBillModalOpen(true);
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Empty Order',
+        description: 'Cannot generate a bill for an empty order.',
+      });
+    }
+  };
+
+  const currentActiveOrderForBill: ActiveOrder = {
+    id: `ORD${(activeOrders.length + 1).toString().padStart(3, '0')}`,
+    status: 'pending',
+    table: parseInt(selectedTable.split('-')[1]),
+    items: currentOrder.map(i => `${i.quantity}x ${i.name}`).join(', '),
+    time: new Date(),
+    price: `₹${total.toFixed(2)}`,
+    icon: <></>,
+  };
+
   return (
-    <div className="flex h-full w-full bg-secondary font-sans">
+    <div className="flex h-full bg-background font-sans">
+       <div style={{ display: 'none' }}>
+        <div ref={printComponentRef}>
+          <KotPrint {...kotData} />
+        </div>
+      </div>
       {/* Main Content */}
       <main className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
@@ -168,7 +199,7 @@ export default function RestaurantPOS() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input 
                         placeholder="Search menu items..." 
-                        className="pl-10 bg-background border-border focus-visible:ring-primary"
+                        className="pl-10 bg-secondary border-border focus-visible:ring-primary"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -187,7 +218,7 @@ export default function RestaurantPOS() {
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                             {items.map((item) => (
-                                <div key={item.name} className="bg-background rounded-lg p-3 flex flex-col justify-between">
+                                <div key={item.name} className="bg-secondary rounded-lg p-3 flex flex-col justify-between">
                                     <div>
                                         <p className="font-semibold text-foreground">{item.name}</p>
                                         <p className="text-primary font-medium">{item.price}</p>
@@ -205,7 +236,7 @@ export default function RestaurantPOS() {
       </main>
 
       {/* Order Sidebar */}
-      <aside className="w-96 bg-background border-l border-border flex flex-col">
+      <aside className="w-96 bg-card border-l border-border flex flex-col">
         <div className="p-6">
             <h2 className="text-xl font-bold text-foreground mb-4">Current Order</h2>
 
@@ -256,7 +287,7 @@ export default function RestaurantPOS() {
                     </div>
                     <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground">₹{itemTotal.toFixed(2)}</p>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => removeFromOrder(item.name)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive-foreground" onClick={() => removeFromOrder(item.name)}>
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
@@ -288,15 +319,22 @@ export default function RestaurantPOS() {
             <div className="grid grid-cols-2 gap-2">
                 <Button variant="secondary" onClick={handleSaveAndPrint} disabled={isPending}>
                     {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save &amp; Print
+                    Save & Print
                 </Button>
                 <Button variant="destructive" onClick={clearOrder}>Clear</Button>
             </div>
-            <Button className="w-full bg-primary hover:bg-primary/90" disabled={currentOrder.length === 0}>
+            <Button className="w-full bg-primary hover:bg-primary/90" onClick={handleGenerateBill} disabled={currentOrder.length === 0}>
                 Generate Bill (₹{total.toFixed(2)})
             </Button>
         </div>
       </aside>
+       {isBillModalOpen && (
+        <BillModal
+          order={currentActiveOrderForBill}
+          isOpen={isBillModalOpen}
+          onClose={() => setIsBillModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
