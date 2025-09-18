@@ -294,7 +294,7 @@ export default function BarPOS() {
             )}
         </div>
         
-        <div className="p-6 mt-auto border-t border-border space-y-4">
+        <div className="p-6 border-t border-border space-y-4">
             <div className="space-y-2 text-sm">
                 <div className="flex justify-between font-bold text-lg">
                     <span className="text-foreground">Total</span>
