@@ -35,7 +35,6 @@ export default function BarPOS() {
   const [currentSale, setCurrentSale] = useState<SaleItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRoom, setSelectedRoom] = useState('');
-  const [isRecordSaleModalOpen, setIsRecordSaleModalOpen] = useState(false);
   
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
@@ -149,18 +148,6 @@ export default function BarPOS() {
     const sub = currentSale.reduce((acc, item) => acc + item.price * item.quantity, 0);
     return { subtotal: sub, total: sub }; // No extra charges for now
   }, [currentSale]);
-
-  const handleFinalizeSale = () => {
-    if (currentSale.length === 0) {
-      toast({
-        variant: 'destructive',
-        title: 'Empty Sale',
-        description: 'Please add items to the sale.',
-      });
-      return;
-    }
-    setIsRecordSaleModalOpen(true);
-  };
   
   const handlePrintReceipt = () => {
     if (currentSale.length === 0) {
@@ -181,64 +168,6 @@ export default function BarPOS() {
     };
     
     handlePrint(receiptData);
-  };
-
-  const handleSaleRecorded = async () => {
-    const roomToCharge = selectedRoom ? selectedRoom : undefined;
-
-    const salePromises = currentSale.map(item => 
-      recordBarSale({
-        name: item.name,
-        qty: item.quantity,
-        price: item.price * item.quantity,
-        room: roomToCharge,
-      })
-    );
-
-    const stockUpdatePromises = currentSale.map(item => {
-        const originalItem = inventoryItems.find(i => i.name === item.name);
-        const newStock = (originalItem?.stock || 0) - item.quantity;
-        return updateBarProductStock(item.name, newStock);
-    });
-
-    try {
-        await Promise.all([...salePromises, ...stockUpdatePromises]);
-        
-        // Optimistically update context
-        const newSales: any[] = currentSale.map(item => ({
-            name: item.name,
-            qty: item.quantity,
-            price: item.price * item.quantity,
-            room: roomToCharge,
-            time: new Date(),
-        }));
-        setRecentSales(prev => [...newSales, ...prev]);
-
-        setInventoryItems(prevItems => {
-            const newItems = [...prevItems];
-            currentSale.forEach(saleItem => {
-                const itemIndex = newItems.findIndex(i => i.name === saleItem.name);
-                if (itemIndex > -1) {
-                    newItems[itemIndex].stock -= saleItem.quantity;
-                }
-            });
-            return newItems;
-        });
-
-        toast({
-            title: 'Sale Recorded',
-            description: 'The sale has been successfully recorded and stock updated.',
-        });
-
-        clearSale();
-
-    } catch (error) {
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'There was an error recording the sale.',
-        });
-    }
   };
 
 
@@ -352,26 +281,13 @@ export default function BarPOS() {
             </div>
             <div className="grid grid-cols-2 gap-2">
                  <Button variant="destructive" onClick={clearSale}>Clear</Button>
-                <Button className="w-full bg-primary hover:bg-primary/90" onClick={handleFinalizeSale} disabled={currentSale.length === 0 || isPending}>
-                    Finalize Sale
+                <Button className="w-full bg-primary hover:bg-primary/90" onClick={handlePrintReceipt} disabled={currentSale.length === 0}>
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print Receipt
                 </Button>
             </div>
-             <Button variant="outline" className="w-full" onClick={handlePrintReceipt} disabled={currentSale.length === 0}>
-                <Printer className="mr-2 h-4 w-4" />
-                Print Receipt
-            </Button>
         </div>
       </aside>
-       <RecordSaleModal
-            isOpen={isRecordSaleModalOpen}
-            onClose={() => setIsRecordSaleModalOpen(false)}
-            onSaleRecorded={handleSaleRecorded}
-            saleItems={currentSale}
-            total={total}
-            room={selectedRoom ? selectedRoom : undefined}
-        />
       </main>
   );
 }
-
-    
