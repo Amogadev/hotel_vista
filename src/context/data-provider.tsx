@@ -483,6 +483,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                         delete cleanedHall.totalPrice;
                         delete cleanedHall.idProof;
                         delete cleanedHall.email;
+                        delete cleanedHall.adults;
+                        delete cleanedHall.children;
+                        delete cleanedHall.foodPreference;
+                        delete cleanedHall.specialRequests;
+                        delete cleanedHall.addOns;
+                        delete cleanedHall.foodCost;
                     }
 
                     return cleanedHall;

@@ -467,7 +467,10 @@ export async function updateHall(updatedHall: {
 
             await updateDoc(doc(db, "halls", docId), updateData);
             
-            return { success: true, hall: updatedHall };
+            const resultHall: any = { ...updatedHall };
+            delete resultHall.originalName;
+
+            return { success: true, hall: resultHall };
         }
         return { success: false, error: "Hall not found" };
     } catch (e) {
@@ -495,3 +498,4 @@ export async function deleteHall(hallName: string) {
     
 
     
+
