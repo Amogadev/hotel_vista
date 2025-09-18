@@ -107,13 +107,13 @@ export async function deleteRoom(roomNumber: string) {
     }
 }
 
-export async function getMenuItems() {
+export async function getRestaurantMenuItems() {
     const querySnapshot = await getDocs(collection(db, "menuItems"));
     const items = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
     return { success: true, items };
 }
 
-export async function addMenuItem(newMenuItem: {
+export async function addRestaurantMenuItem(newMenuItem: {
   name: string;
   category: string;
   price: number;
@@ -128,7 +128,7 @@ export async function addMenuItem(newMenuItem: {
     }
 }
 
-export async function updateMenuItem(updatedMenuItem: {
+export async function updateRestaurantMenuItem(updatedMenuItem: {
   originalName: string;
   name: string;
   category: string;
@@ -151,7 +151,7 @@ export async function updateMenuItem(updatedMenuItem: {
     }
 }
 
-export async function deleteMenuItem(itemName: string) {
+export async function deleteRestaurantMenuItem(itemName: string) {
     try {
         const q = query(collection(db, "menuItems"), where("name", "==", itemName));
         const querySnapshot = await getDocs(q);
@@ -497,3 +497,4 @@ export async function deleteHall(hallName: string) {
     
 
     
+

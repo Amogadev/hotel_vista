@@ -30,7 +30,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { addMenuItem } from '@/app/actions';
+import { addRestaurantMenuItem } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -65,7 +65,7 @@ export function AddMenuItemModal({ isOpen, onClose, onMenuItemAdded }: AddMenuIt
   const onSubmit = (values: MenuItemFormValues) => {
     startTransition(async () => {
       try {
-        const result = await addMenuItem(values);
+        const result = await addRestaurantMenuItem(values);
         if (result.success) {
           toast({
             title: 'Menu Item Added',

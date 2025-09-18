@@ -31,7 +31,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { updateMenuItem } from '@/app/actions';
+import { updateRestaurantMenuItem } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -80,7 +80,7 @@ export function EditMenuItemModal({ menuItem, isOpen, onClose, onMenuItemUpdated
   const onSubmit = (values: EditMenuItemFormValues) => {
     startTransition(async () => {
       try {
-        const result = await updateMenuItem({
+        const result = await updateRestaurantMenuItem({
             originalName: menuItem.name,
             ...values,
         });

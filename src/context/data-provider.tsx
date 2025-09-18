@@ -3,7 +3,7 @@
 
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { AlertCircle, CheckCircle2, Clock, Loader2 } from 'lucide-react';
-import { getRooms, getMenuItems, getOrders, getBarProducts, getBarSales, getStockItems, getHalls } from '@/app/actions';
+import { getRooms, getRestaurantMenuItems, getOrders, getBarProducts, getBarSales, getStockItems, getHalls } from '@/app/actions';
 import { format, isPast, parseISO } from 'date-fns';
 
 export type Room = {
@@ -160,31 +160,48 @@ const initialHalls: Hall[] = [
     },
 ];
 
-const initialMenuItems = [
-    {
-      name: 'Grilled Salmon',
-      category: 'Main Course',
-      price: '₹28',
-      status: 'Available',
-    },
-    {
-      name: 'Caesar Salad',
-      category: 'Appetizer',
-      price: '₹12',
-      status: 'Available',
-    },
-    {
-      name: 'Ribeye Steak',
-      category: 'Main Course',
-      price: '₹45',
-      status: 'Out of Stock',
-    },
-    {
-      name: 'Chocolate Mousse',
-      category: 'Dessert',
-      price: '₹9',
-      status: 'Available',
-    },
+const initialMenuItems: MenuItem[] = [
+    // Starters
+    { name: 'Chicken 65', category: 'Starters', price: '₹250', status: 'Available' },
+    { name: 'Paneer Tikka', category: 'Starters', price: '₹220', status: 'Available' },
+    { name: 'Gobi Manchurian', category: 'Starters', price: '₹180', status: 'Available' },
+    { name: 'Fish Finger', category: 'Starters', price: '₹280', status: 'Available' },
+    { name: 'Spring Rolls', category: 'Starters', price: '₹160', status: 'Available' },
+  
+    // Main Course – Indian
+    { name: 'Butter Chicken with Naan', category: 'Main Course – Indian', price: '₹450', status: 'Available' },
+    { name: 'Paneer Butter Masala', category: 'Main Course – Indian', price: '₹380', status: 'Available' },
+    { name: 'Mutton Rogan Josh', category: 'Main Course – Indian', price: '₹550', status: 'Available' },
+    { name: 'Vegetable Biryani', category: 'Main Course – Indian', price: '₹320', status: 'Available' },
+    { name: 'Egg Curry with Rice', category: 'Main Course – Indian', price: '₹280', status: 'Available' },
+  
+    // South Indian Specials
+    { name: 'Chettinad Chicken Curry', category: 'South Indian Specials', price: '₹420', status: 'Available' },
+    { name: 'Fish Kuzhambu', category: 'South Indian Specials', price: '₹390', status: 'Available' },
+    { name: 'Prawn Masala', category: 'South Indian Specials', price: '₹480', status: 'Available' },
+    { name: 'Veg Kurma with Appam', category: 'South Indian Specials', price: '₹280', status: 'Available' },
+    { name: 'Sambar, Rasam, Poriyal set', category: 'South Indian Specials', price: '₹250', status: 'Available' },
+  
+    // Continental / Hi-Fi
+    { name: 'Grilled Chicken with Pepper Sauce', category: 'Continental / Hi-Fi', price: '₹520', status: 'Available' },
+    { name: 'Pasta Alfredo / Arrabbiata', category: 'Continental / Hi-Fi', price: '₹450', status: 'Available' },
+    { name: 'Stuffed Mushroom with Cheese', category: 'Continental / Hi-Fi', price: '₹380', status: 'Available' },
+    { name: 'BBQ Chicken Pizza', category: 'Continental / Hi-Fi', price: '₹550', status: 'Available' },
+    { name: 'Caesar Salad', category: 'Continental / Hi-Fi', price: '₹320', status: 'Available' },
+  
+    // Desserts
+    { name: 'Gulab Jamun', category: 'Desserts', price: '₹120', status: 'Available' },
+    { name: 'Chocolate Brownie with Ice Cream', category: 'Desserts', price: '₹180', status: 'Available' },
+    { name: 'Rasmalai', category: 'Desserts', price: '₹150', status: 'Available' },
+    { name: 'Cheesecake', category: 'Desserts', price: '₹200', status: 'Available' },
+    { name: 'Payasam', category: 'Desserts', price: '₹100', status: 'Available' },
+  
+    // Beverages
+    { name: 'Fresh Juices', category: 'Beverages', price: '₹150', status: 'Available' },
+    { name: 'Mocktails (Virgin Mojito, Blue Lagoon)', category: 'Beverages', price: '₹180', status: 'Available' },
+    { name: 'Filter Coffee', category: 'Beverages', price: '₹80', status: 'Available' },
+    { name: 'Milkshakes', category: 'Beverages', price: '₹160', status: 'Available' },
+    { name: 'Soft Drinks', category: 'Beverages', price: '₹60', status: 'Available' },
 ];
 
 const initialActiveOrders = [
@@ -427,7 +444,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             const [roomsRes, hallsRes, menuItemsRes, ordersRes, barProductsRes, barSalesRes, stockItemsRes] = await Promise.all([
                 getRooms(),
                 getHalls(),
-                getMenuItems(),
+                getRestaurantMenuItems(),
                 getOrders(),
                 getBarProducts(),
                 getBarSales(),
