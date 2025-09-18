@@ -37,8 +37,9 @@ export default function RestaurantPOS() {
   const [currentOrder, setCurrentOrder] = useState<OrderItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [acCharges, setAcCharges] = useState(false);
-  const [selectedTable, setSelectedTable] = useState('TABLE-1');
-  const [selectedWaiter, setSelectedWaiter] = useState('WAITER 1');
+  const [selectedTable, setSelectedTable] = useState('');
+  const [selectedWaiter, setSelectedWaiter] = useState('');
+  const [selectedUser, setSelectedUser] = useState('');
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
@@ -154,6 +155,14 @@ export default function RestaurantPOS() {
         })
         return;
     }
+    if (!selectedTable || !selectedWaiter || !selectedUser) {
+        toast({
+            variant: 'destructive',
+            title: "Missing Information",
+            description: "Please select a table, waiter, and user.",
+        })
+        return;
+    }
 
     startTransition(async () => {
         try {
@@ -223,7 +232,7 @@ export default function RestaurantPOS() {
   const currentActiveOrderForBill: ActiveOrder = {
     id: `ORD${(activeOrders.length + 1).toString().padStart(3, '0')}`,
     status: 'pending',
-    table: parseInt(selectedTable.split('-')[1]),
+    table: parseInt(selectedTable.split('-')[1]) || 0,
     items: currentOrder.map(i => `${i.quantity}x ${i.name}`).join(', '),
     time: new Date(),
     price: `₹${total.toFixed(2)}`,
@@ -231,7 +240,7 @@ export default function RestaurantPOS() {
   };
 
   return (
-    <div className="h-screen overflow-hidden flex bg-background font-sans">
+    <main className="h-screen overflow-hidden flex bg-background font-sans">
       {/* Main Content */}
       <div className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
@@ -294,7 +303,7 @@ export default function RestaurantPOS() {
                     <label className="text-sm font-medium text-muted-foreground">Table Name</label>
                     <Select value={selectedTable} onValueChange={setSelectedTable}>
                         <SelectTrigger className="bg-secondary border-0 focus:ring-primary">
-                            <SelectValue />
+                            <SelectValue placeholder="Select a table" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="TABLE-1">TABLE-1</SelectItem>
@@ -307,12 +316,25 @@ export default function RestaurantPOS() {
                     <label className="text-sm font-medium text-muted-foreground">Select Waiter</label>
                     <Select value={selectedWaiter} onValueChange={setSelectedWaiter}>
                         <SelectTrigger className="bg-secondary border-0 focus:ring-primary">
-                            <SelectValue />
+                            <SelectValue placeholder="Select a waiter" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="WAITER 1">WAITER 1</SelectItem>
                             <SelectItem value="WAITER 2">WAITER 2</SelectItem>
                             <SelectItem value="WAITER 3">WAITER 3</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                 <div>
+                    <label className="text-sm font-medium text-muted-foreground">Select User</label>
+                    <Select value={selectedUser} onValueChange={setSelectedUser}>
+                        <SelectTrigger className="bg-secondary border-0 focus:ring-primary">
+                            <SelectValue placeholder="Select a user" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Admin">Admin</SelectItem>
+                            <SelectItem value="Hotel">Hotel</SelectItem>
+                            <SelectItem value="Staff">Staff</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -384,6 +406,6 @@ export default function RestaurantPOS() {
           onClose={() => setIsBillModalOpen(false)}
         />
       )}
-      </div>
+      </main>
   );
 }
