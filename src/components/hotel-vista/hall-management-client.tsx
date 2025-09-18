@@ -196,10 +196,21 @@ export default function HallManagementDashboard() {
   }, [halls, selectedDate]);
 
   const filteredHalls = useMemo(() => {
-    let hallsToDisplay = halls;
+    let hallsToDisplay = [...halls];
 
     if (hallAvailabilities) {
-        return halls;
+        if (activeFilter !== 'All') {
+            hallsToDisplay = hallsToDisplay.filter(hall => {
+                const availability = hallAvailabilities.get(hall.id);
+                if (!availability) return false;
+
+                const currentStatus = availability.status;
+                if (activeFilter.toUpperCase() === currentStatus) return true;
+
+                return false;
+            });
+        }
+        return hallsToDisplay;
     }
     
     if (activeFilter !== 'All') {
@@ -534,3 +545,5 @@ export default function HallManagementDashboard() {
     </div>
   );
 }
+
+    
