@@ -371,35 +371,40 @@ export function BookHallModal({ hall, isOpen, onClose, onHallBooked }: BookHallM
                         </div>
                         </div>
 
-                        {/* Food Details */}
+                        {/* Guest Count */}
                         <div className="space-y-4 rounded-md border p-4">
-                        <h3 className="text-lg font-semibold">Food Details</h3>
-                        <div className="grid grid-cols-2 gap-6">
-                            <FormField control={form.control} name="adults" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Adults (₹{ADULT_PRICE}/person)</FormLabel>
-                                <FormControl><Input type="number" min="0" {...field} /></FormControl>
-                            </FormItem>
-                            )} />
-                            <FormField control={form.control} name="children" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Children (₹{CHILD_PRICE}/person)</FormLabel>
-                                <FormControl><Input type="number" min="0" {...field} /></FormControl>
-                            </FormItem>
-                            )} />
+                            <h3 className="text-lg font-semibold">Guest Count</h3>
+                            <div className="grid grid-cols-2 gap-6">
+                                <FormField control={form.control} name="adults" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Adults (₹{ADULT_PRICE}/person)</FormLabel>
+                                    <FormControl><Input type="number" min="0" {...field} /></FormControl>
+                                </FormItem>
+                                )} />
+                                <FormField control={form.control} name="children" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Children (₹{CHILD_PRICE}/person)</FormLabel>
+                                    <FormControl><Input type="number" min="0" {...field} /></FormControl>
+                                </FormItem>
+                                )} />
+                            </div>
                         </div>
-                        <FormField control={form.control} name="foodPreference" render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Food Preference</FormLabel>
-                            <FormControl>
-                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
-                                <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="veg" /></FormControl><FormLabel className="font-normal">Veg</FormLabel></FormItem>
-                                <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="non-veg" /></FormControl><FormLabel className="font-normal">Non-Veg</FormLabel></FormItem>
-                                <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="both" /></FormControl><FormLabel className="font-normal">Both</FormLabel></FormItem>
-                                </RadioGroup>
-                            </FormControl>
-                            </FormItem>
-                        )} />
+
+                        {/* Food Preference */}
+                        <div className="space-y-4 rounded-md border p-4">
+                            <h3 className="text-lg font-semibold">Food & Catering</h3>
+                            <FormField control={form.control} name="foodPreference" render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Food Preference</FormLabel>
+                                <FormControl>
+                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
+                                    <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="veg" /></FormControl><FormLabel className="font-normal">Veg</FormLabel></FormItem>
+                                    <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="non-veg" /></FormControl><FormLabel className="font-normal">Non-Veg</FormLabel></FormItem>
+                                    <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="both" /></FormControl><FormLabel className="font-normal">Both</FormLabel></FormItem>
+                                    </RadioGroup>
+                                </FormControl>
+                                </FormItem>
+                            )} />
                         </div>
                     </div>
 
@@ -468,3 +473,5 @@ export function BookHallModal({ hall, isOpen, onClose, onHallBooked }: BookHallM
     </Dialog>
   );
 }
+
+    
