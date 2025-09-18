@@ -39,7 +39,6 @@ export default function RestaurantPOS() {
   const [acCharges, setAcCharges] = useState(false);
   const [selectedTable, setSelectedTable] = useState('');
   const [selectedWaiter, setSelectedWaiter] = useState('');
-  const [selectedUser, setSelectedUser] = useState('');
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
@@ -155,11 +154,11 @@ export default function RestaurantPOS() {
         })
         return;
     }
-    if (!selectedTable || !selectedWaiter || !selectedUser) {
+    if (!selectedTable || !selectedWaiter) {
         toast({
             variant: 'destructive',
             title: "Missing Information",
-            description: "Please select a table, waiter, and user.",
+            description: "Please select a table and waiter.",
         })
         return;
     }
@@ -322,19 +321,6 @@ export default function RestaurantPOS() {
                             <SelectItem value="WAITER 1">WAITER 1</SelectItem>
                             <SelectItem value="WAITER 2">WAITER 2</SelectItem>
                             <SelectItem value="WAITER 3">WAITER 3</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                 <div>
-                    <label className="text-sm font-medium text-muted-foreground">Select User</label>
-                    <Select value={selectedUser} onValueChange={setSelectedUser}>
-                        <SelectTrigger className="bg-secondary border-0 focus:ring-primary">
-                            <SelectValue placeholder="Select a user" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Admin">Admin</SelectItem>
-                            <SelectItem value="Hotel">Hotel</SelectItem>
-                            <SelectItem value="Staff">Staff</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
