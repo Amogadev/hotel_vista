@@ -54,11 +54,14 @@ export default function RestaurantPOS() {
 
   const handlePrint = useReactToPrint({
     content: () => {
-        const componentToPrint = <KotPrint {...kotData} />;
-        const container = document.createElement('div');
-        const root = require('react-dom/client').createRoot(container);
-        root.render(componentToPrint);
-        return container;
+      const printableComponent = <KotPrint {...kotData} />;
+      // The react-to-print library requires a component instance to be rendered.
+      // We can create a temporary container, render the component into it,
+      // and return the container.
+      const container = document.createElement('div');
+      const root = require('react-dom/client').createRoot(container);
+      root.render(printableComponent);
+      return container;
     },
   });
 
@@ -185,7 +188,7 @@ export default function RestaurantPOS() {
   };
 
   return (
-      <main className="flex-1 pt-14 overflow-hidden flex bg-background font-sans">
+      <div className="flex-1 h-full overflow-hidden flex bg-background font-sans">
       {/* Main Content */}
       <div className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
@@ -335,6 +338,6 @@ export default function RestaurantPOS() {
           onClose={() => setIsBillModalOpen(false)}
         />
       )}
-      </main>
+      </div>
   );
 }
