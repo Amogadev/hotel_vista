@@ -34,7 +34,7 @@ export default function BarPOS() {
   const { inventoryItems, setInventoryItems, rooms, recentSales, setRecentSales } = useContext(DataContext);
   const [currentSale, setCurrentSale] = useState<SaleItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRoom, setSelectedRoom] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState('direct-sale');
   const [isRecordSaleModalOpen, setIsRecordSaleModalOpen] = useState(false);
   
   const { toast } = useToast();
@@ -300,7 +300,6 @@ export default function BarPOS() {
                                 <div key={item.name} className="bg-card rounded-lg p-3 flex flex-col justify-between border">
                                     <div>
                                         <p className="font-semibold text-foreground">{item.name}</p>
-                                        <p className="text-sm text-muted-foreground">Stock: {item.stock}</p>
                                         <p className="text-primary font-medium">₹{item.price}</p>
                                     </div>
                                     <Button size="icon" className="mt-2 self-end h-8 w-8 bg-primary/80 hover:bg-primary" onClick={() => addToSale(item)}>
@@ -399,3 +398,5 @@ export default function BarPOS() {
       </main>
   );
 }
+
+    
