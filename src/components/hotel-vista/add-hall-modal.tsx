@@ -51,7 +51,7 @@ export type HallFormValues = z.infer<typeof hallSchema>;
 type AddHallModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onHallAdded: (newHall: HallFormValues) => void;
+  onHallAdded: (newHall: HallFormValues & {id: string}) => void;
 };
 
 export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps) {
@@ -72,12 +72,12 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
     startTransition(async () => {
       try {
         const result = await addHall(values);
-        if (result.success) {
+        if (result.success && result.hall) {
           toast({
             title: 'Hall Added',
             description: `Hall ${values.name} has been successfully added.`,
           });
-          onHallAdded(values);
+          onHallAdded({ ...values, id: result.hall.id});
           onClose();
           form.reset();
         } else {
@@ -236,3 +236,5 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
     </Dialog>
   );
 }
+
+    

@@ -1,12 +1,11 @@
 
 'use client';
 
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo, useContext, useTransition } from 'react';
 import { DataContext, Hall } from '@/context/data-provider';
 import {
   Building,
   Users,
-  DollarSign,
   Plus,
   Search,
   CheckCircle,
@@ -17,6 +16,8 @@ import {
   Bed,
   CalendarDays,
   BedDouble,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,21 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format, isWithinInterval, startOfDay, endOfDay, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { QuickActionsDropdown } from './hall-quick-actions-dropdown';
+import { HallDetailsModal } from './hall-details-modal';
+import { EditHallModal } from './edit-hall-modal';
+import { useToast } from '@/hooks/use-toast';
+import { deleteHall, updateHall } from '@/app/actions';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const statusColorMap: { [key: string]: string } = {
   Booked: 'bg-red-100 text-red-800 border-red-200',
@@ -42,48 +58,49 @@ const statusColorMap: { [key: string]: string } = {
   AVAILABLE: 'bg-green-100 text-green-800 border-green-200',
 };
 
-const statusIconMap: { [key: string]: React.ReactNode } = {
-    Booked: <XCircle className="h-4 w-4" />,
-    Available: <CheckCircle className="h-4 w-4" />,
-    Maintenance: <Clock className="h-4 w-4" />,
-};
-
-function HallCard({ hall, availability }: { hall: Hall, availability?: { status: 'BOOKED' | 'AVAILABLE', customerName?: string } }) {
+function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availability }: { hall: Hall, onViewHall: (hall: Hall) => void, onEditHall: (hall: Hall) => void, onDeleteHall: (hall: Hall) => void, onAction: (action: 'book' | 'maintenance', hall: Hall) => void, availability?: { status: 'BOOKED' | 'AVAILABLE', customerName?: string } }) {
+  
+  const handleBookClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); 
+    onAction('book', hall);
+  };
+  
   const displayStatus = availability ? availability.status : hall.status;
-  const colorClass = statusColorMap[displayStatus] || 'bg-gray-100 text-gray-800';
-  const icon = statusIconMap[displayStatus] || <Building className="h-4 w-4"/>;
+  const colorClass = statusColorMap[displayStatus] || '';
   const customerName = availability ? availability.customerName : hall.customerName;
 
   return (
-    <Card className="flex flex-col">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <CardTitle>{hall.name}</CardTitle>
-          <Badge className={cn('flex items-center gap-1 capitalize', colorClass)}>
-            {icon}
+    <Card className="relative flex flex-col transition-all duration-200 hover:shadow-lg w-40 h-40 rounded-lg">
+       {!availability && (
+        <div className="absolute top-1 right-1 z-10">
+          <QuickActionsDropdown hall={hall} onEdit={onEditHall} onDelete={onDeleteHall} onAction={onAction} />
+        </div>
+       )}
+      <CardContent 
+        className={cn(
+            "flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg",
+            colorClass
+        )}
+        onClick={() => onViewHall(hall)}
+      >
+        <p className="text-xl font-bold">{hall.name}</p>
+        <Badge variant={'default'} className={cn("mt-2 capitalize", colorClass, !colorClass.includes('text-') && 'text-foreground')}>
             {displayStatus.toLowerCase()}
-          </Badge>
-        </div>
-        <CardDescription>Capacity: {hall.capacity} people</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-grow space-y-4">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">Facilities</p>
-          <div className="flex flex-wrap gap-2 mt-1">
-            {hall.facilities.map(facility => (
-              <Badge key={facility} variant="secondary">{facility}</Badge>
-            ))}
-          </div>
-        </div>
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">Price</p>
-          <p className="font-semibold text-lg">₹{hall.price.toLocaleString()}/hr</p>
-        </div>
-        {customerName && (
-             <div className="border-t pt-2">
-                <p className="text-sm font-medium text-muted-foreground">Booked By</p>
-                <p className="font-semibold">{customerName}</p>
+        </Badge>
+        
+        {customerName ? (
+            <div className="mt-3 text-xs text-center space-y-1">
+                <p className="font-semibold truncate flex items-center justify-center gap-1">
+                    <Users className="h-3 w-3" />
+                    {customerName}
+                </p>
             </div>
+        ) : (
+            displayStatus === 'Available' && !availability && (
+                <Button variant="outline" size="sm" className="mt-3 h-7 text-xs border-green-500 text-green-500 hover:bg-green-500 hover:text-white" onClick={handleBookClick}>
+                    Book
+                </Button>
+            )
         )}
       </CardContent>
     </Card>
@@ -93,9 +110,17 @@ function HallCard({ hall, availability }: { hall: Hall, availability?: { status:
 export default function HallManagementDashboard() {
   const { halls, setHalls } = useContext(DataContext);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [viewingHall, setViewingHall] = useState<Hall | null>(null);
+  const [editingHall, setEditingHall] = useState<Hall | null>(null);
+  const [deletingHall, setDeletingHall] = useState<Hall | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
 
   const handleOpenAddModal = () => setIsAddModalOpen(true);
   const handleCloseAddModal = () => setIsAddModalOpen(false);
@@ -107,6 +132,18 @@ export default function HallManagementDashboard() {
     };
     setHalls(prevHalls => [...prevHalls, newHall].sort((a, b) => a.name.localeCompare(b.name)));
     handleCloseAddModal();
+  };
+
+  const handleHallUpdated = (updatedHallData: any) => {
+    const updatedHall: Hall = {
+        ...updatedHallData,
+        checkIn: updatedHallData.checkIn ? format(new Date(updatedHallData.checkIn), 'yyyy-MM-dd') : undefined,
+        checkOut: updatedHallData.checkOut ? format(new Date(updatedHallData.checkOut), 'yyyy-MM-dd') : undefined,
+    };
+    setHalls(prevHalls =>
+      prevHalls.map(h => (h.id === updatedHall.id ? updatedHall : h)).sort((a,b) => a.name.localeCompare(b.name))
+    );
+    handleCloseEditModal();
   };
   
   const hallAvailabilities = useMemo(() => {
@@ -135,7 +172,6 @@ export default function HallManagementDashboard() {
 
     return availabilities;
   }, [halls, selectedDate]);
-
 
   const filteredHalls = useMemo(() => {
     if (hallAvailabilities) {
@@ -197,6 +233,103 @@ export default function HallManagementDashboard() {
       },
     ];
   }, [halls, selectedDate, hallAvailabilities]);
+
+  const handleViewHall = (hall: Hall) => {
+    setViewingHall(hall);
+    setIsViewModalOpen(true);
+  };
+  const handleCloseViewModal = () => setIsViewModalOpen(false);
+
+  const handleEditHall = (hall: Hall) => {
+    setEditingHall(hall);
+    setIsEditModalOpen(true);
+  };
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingHall(null);
+  };
+
+  const handleDeleteHall = (hall: Hall) => {
+    setDeletingHall(hall);
+    setIsDeleteAlertOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingHall) return;
+    startTransition(async () => {
+        try {
+            const result = await deleteHall(deletingHall.name);
+            if (result.success) {
+                toast({
+                    title: "Hall Deleted",
+                    description: `Hall ${deletingHall.name} has been successfully deleted.`,
+                });
+                setHalls(prevHalls => prevHalls.filter(h => h.name !== deletingHall.name));
+            } else {
+                throw new Error("Failed to delete hall");
+            }
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to delete the hall. Please try again.",
+            });
+        } finally {
+            setIsDeleteAlertOpen(false);
+            setDeletingHall(null);
+        }
+    });
+  };
+
+  const handleAction = (action: 'book' | 'maintenance' | 'cancel', hall: Hall) => {
+    if (action === 'book') {
+        handleEditHall(hall);
+        return;
+    }
+
+    startTransition(async () => {
+        let updatedHallData;
+        if(action === 'cancel') {
+            updatedHallData = {
+                ...hall,
+                status: 'Available',
+                customerName: undefined,
+                contact: undefined,
+                purpose: undefined,
+                checkIn: undefined,
+                checkOut: undefined,
+                totalPrice: undefined,
+            }
+        } else {
+            updatedHallData = {
+                ...hall,
+                status: action === 'maintenance' ? 'Maintenance' : 'Available',
+            };
+        }
+
+        try {
+            // @ts-ignore
+            const result = await updateHall({ originalName: hall.name, ...updatedHallData });
+            if (result.success) {
+                toast({
+                    title: `Hall Status Updated`,
+                    description: `Hall ${hall.name} is now ${updatedHallData.status}.`,
+                });
+                setHalls(prevHalls =>
+                    prevHalls.map(h => (h.id === hall.id ? updatedHallData : h))
+                );
+            } else {
+                throw new Error(result.error || 'Failed to update hall status');
+            }
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: (error as Error).message,
+            });
+        }
+    });
+};
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
@@ -279,10 +412,20 @@ export default function HallManagementDashboard() {
         </CardContent>
       </Card>
       
-      <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {filteredHalls.map(hall => (
-          <HallCard key={hall.id} hall={hall} availability={hallAvailabilities?.get(hall.id)} />
-        ))}
+      <div className="flex justify-center mt-6">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {filteredHalls.map(hall => (
+                <HallCard 
+                    key={hall.id} 
+                    hall={hall} 
+                    onViewHall={handleViewHall} 
+                    onEditHall={handleEditHall}
+                    onDeleteHall={handleDeleteHall}
+                    onAction={handleAction}
+                    availability={hallAvailabilities?.get(hall.id)}
+                />
+            ))}
+        </div>
       </div>
 
       <AddHallModal
@@ -290,6 +433,40 @@ export default function HallManagementDashboard() {
         onClose={handleCloseAddModal}
         onHallAdded={handleHallAdded}
       />
+      {viewingHall && (
+          <HallDetailsModal
+            hall={viewingHall}
+            isOpen={isViewModalOpen}
+            onClose={handleCloseViewModal}
+          />
+      )}
+      {editingHall && (
+          <EditHallModal
+            hall={editingHall}
+            isOpen={isEditModalOpen}
+            onClose={handleCloseEditModal}
+            onHallUpdated={handleHallUpdated}
+          />
+      )}
+      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to delete this hall?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete Hall {deletingHall?.name}.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setDeletingHall(null)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDelete} disabled={isPending} className="bg-destructive hover:bg-destructive/90">
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Delete
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
+    
