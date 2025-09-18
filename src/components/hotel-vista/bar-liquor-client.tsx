@@ -326,6 +326,7 @@ export default function BarPOS() {
                             <SelectValue placeholder="Select a room" />
                         </SelectTrigger>
                         <SelectContent>
+                            <SelectItem value="direct-sale">None (Direct Sale)</SelectItem>
                             {rooms.filter(r => r.status === 'Occupied').map(room => (
                                 <SelectItem key={room.number} value={room.number}>
                                     Room {room.number} ({room.guest})
@@ -363,7 +364,7 @@ export default function BarPOS() {
               </div>
             )) : (
                 <div className="h-full flex items-center justify-center text-muted-foreground">
-                    <p>No items</p>
+                    <p></p>
                 </div>
             )}
         </div>
