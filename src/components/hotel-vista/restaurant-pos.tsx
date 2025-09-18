@@ -1,8 +1,8 @@
 
 'use client';
-import 'react-dom';
 
 import React, { useState, useMemo, useContext, useTransition } from 'react';
+import { renderToString } from 'react-dom/server';
 import {
   Search,
   Plus,
@@ -24,12 +24,10 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { DataContext, MenuItem as MenuItemType, ActiveOrder } from '@/context/data-provider';
 import Link from 'next/link';
-import { useReactToPrint } from 'react-to-print';
 import { KotPrint, type KotPrintProps } from './kot-print';
 import { useToast } from '@/hooks/use-toast';
 import { addOrder } from '@/app/actions';
 import { BillModal } from './bill-modal';
-import Topbar from './topbar';
 
 type OrderItem = MenuItemType & { quantity: number };
 
@@ -44,24 +42,52 @@ export default function RestaurantPOS() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
-  const kotData: KotPrintProps = {
-    billNo: `KOT${(activeOrders.length + 1).toString().padStart(4, '0')}`,
-    table: selectedTable,
-    waiter: selectedWaiter,
-    date: new Date(),
-    items: currentOrder.map(item => ({ name: item.name, quantity: item.quantity })),
+  const handlePrint = (kotData: KotPrintProps) => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      const printContent = renderToString(<KotPrint {...kotData} />);
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Kitchen Order Ticket</title>
+            <style>
+              body { font-family: monospace; }
+              .p-8 { padding: 2rem; }
+              .text-xs { font-size: 0.75rem; }
+              .text-black { color: #000; }
+              .bg-white { background-color: #fff; }
+              .text-center { text-align: center; }
+              .space-y-1 > * + * { margin-top: 0.25rem; }
+              .text-sm { font-size: 0.875rem; }
+              .font-bold { font-weight: 700; }
+              .flex { display: flex; }
+              .justify-between { justify-content: space-between; }
+              .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
+              .border-t { border-top-width: 1px; }
+              .border-b { border-bottom-width: 1px; }
+              .border-dashed { border-style: dashed; }
+              .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+              .text-right { text-align: right; }
+              .w-full { width: 100%; }
+              thead { display: table-header-group; }
+              tr { page-break-inside: avoid; }
+              .text-left { text-align: left; }
+              .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+              .mt-4 { margin-top: 1rem; }
+            </style>
+          </head>
+          <body>
+            ${printContent}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    }
   };
 
-  const handlePrint = useReactToPrint({
-    content: () => {
-      const component = <KotPrint {...kotData} />;
-      // The component needs to be rendered to be printable.
-      // react-to-print handles creating a temporary iframe and rendering the component there.
-      // We just need to return the component instance.
-      // A key is added to ensure it re-renders if data changes.
-      return React.cloneElement(component, { key: new Date().getTime() });
-    },
-  });
 
   const filteredMenuItems = useMemo(() => {
     if (!searchTerm) {
@@ -149,7 +175,14 @@ export default function RestaurantPOS() {
                     description: `Order for ${selectedTable} has been saved.`,
                 });
                 
-                handlePrint();
+                const kotData: KotPrintProps = {
+                    billNo: `KOT${result.order.id.slice(-4)}`,
+                    table: selectedTable,
+                    waiter: selectedWaiter,
+                    date: new Date(),
+                    items: currentOrder.map(item => ({ name: item.name, quantity: item.quantity })),
+                };
+                handlePrint(kotData);
 
             } else {
                 throw new Error(result.error || 'Failed to save order');
@@ -188,8 +221,7 @@ export default function RestaurantPOS() {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <main className="flex-1 overflow-hidden flex bg-background font-sans">
+    <div className="h-screen overflow-hidden flex bg-background font-sans">
       {/* Main Content */}
       <div className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
@@ -342,8 +374,6 @@ export default function RestaurantPOS() {
           onClose={() => setIsBillModalOpen(false)}
         />
       )}
-      </main>
       </div>
   );
 }
-
