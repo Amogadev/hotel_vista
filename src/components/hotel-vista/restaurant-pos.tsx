@@ -52,29 +52,34 @@ export default function RestaurantPOS() {
           <head>
             <title>Kitchen Order Ticket</title>
             <style>
-              body { font-family: monospace; }
-              .p-8 { padding: 2rem; }
-              .text-xs { font-size: 0.75rem; }
-              .text-black { color: #000; }
-              .bg-white { background-color: #fff; }
-              .text-center { text-align: center; }
-              .space-y-1 > * + * { margin-top: 0.25rem; }
-              .text-sm { font-size: 0.875rem; }
-              .font-bold { font-weight: 700; }
-              .flex { display: flex; }
-              .justify-between { justify-content: space-between; }
-              .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
-              .border-t { border-top-width: 1px; }
-              .border-b { border-bottom-width: 1px; }
-              .border-dashed { border-style: dashed; }
-              .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-              .text-right { text-align: right; }
-              .w-full { width: 100%; }
-              thead { display: table-header-group; }
-              tr { page-break-inside: avoid; }
-              .text-left { text-align: left; }
-              .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-              .mt-4 { margin-top: 1rem; }
+              @media print {
+                body { 
+                  font-family: monospace; 
+                  margin: 0;
+                }
+                .p-8 { padding: 0.5rem; }
+                .text-xs { font-size: 10px; }
+                .text-black { color: #000; }
+                .bg-white { background-color: #fff; }
+                .text-center { text-align: center; }
+                .space-y-1 > * + * { margin-top: 0.25rem; }
+                .text-sm { font-size: 12px; }
+                .font-bold { font-weight: 700; }
+                .flex { display: flex; }
+                .justify-between { justify-content: space-between; }
+                .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
+                .border-t { border-top-width: 1px; }
+                .border-b { border-bottom-width: 1px; }
+                .border-dashed { border-style: dashed; }
+                .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+                .text-right { text-align: right; }
+                .w-full { width: 100%; }
+                table { width: 100%; border-collapse: collapse; }
+                thead { display: table-header-group; }
+                tr { page-break-inside: avoid; }
+                .text-left { text-align: left; }
+                .mt-4 { margin-top: 1rem; }
+              }
             </style>
           </head>
           <body>
@@ -155,7 +160,7 @@ export default function RestaurantPOS() {
             const newOrderPayload = {
                 table: parseInt(selectedTable.split('-')[1]),
                 items: currentOrder.map(item => `${item.quantity}x ${item.name}`).join(', '),
-                price: subtotal, // Saving subtotal before tax/charges
+                price: total,
             }
             const result = await addOrder(newOrderPayload);
 
@@ -172,11 +177,6 @@ export default function RestaurantPOS() {
                 };
                 setActiveOrders(prev => [...prev, newActiveOrder]);
 
-                toast({
-                    title: "Order Saved",
-                    description: `Order for ${selectedTable} has been saved.`,
-                });
-                
                 const kotData: KotPrintProps = {
                     billNo: `Order ${newOrderNumber}`,
                     table: selectedTable,
@@ -184,7 +184,15 @@ export default function RestaurantPOS() {
                     date: new Date(),
                     items: currentOrder.map(item => ({ name: item.name, quantity: item.quantity })),
                 };
+                
                 handlePrint(kotData);
+                
+                toast({
+                    title: "Order Placed",
+                    description: `Your order for ${selectedTable} has been sent to the kitchen.`,
+                });
+
+                clearOrder();
 
             } else {
                 throw new Error(result.error || 'Failed to save order');

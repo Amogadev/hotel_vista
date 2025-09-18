@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 type ActiveOrder = {
   id: string;
@@ -30,20 +31,22 @@ type BillModalProps = {
 };
 
 export function BillModal({ order, isOpen, onClose }: BillModalProps) {
+  const { toast } = useToast();
+  
   const items = order.items.split(', ').map(item => {
     const quantity = (item.match(/(\d+)x/) || [null, 1])[1];
     const name = item.replace(/(\d+)x /, '');
+    const itemPrice = parseFloat(order.price.replace('₹', '')) / (order.items.split(', ').reduce((acc, i) => acc + (parseInt(i.split('x')[0]) || 1), 0));
     return {
       name,
       quantity,
-      // In a real app, you would look up the price
-      price: parseFloat(order.price.replace('₹', '')) / (order.items.split(', ').length)
+      price: itemPrice
     };
   });
   
   const subtotal = items.reduce((acc, item) => acc + (item.price * Number(item.quantity)), 0);
   const tax = subtotal * 0.1; // Example 10% tax
-  const total = subtotal + tax;
+  const total = parseFloat(order.price.replace('₹', ''));
 
 
   return (
@@ -71,8 +74,8 @@ export function BillModal({ order, isOpen, onClose }: BillModalProps) {
               <span>₹{subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Tax (10%)</span>
-              <span>₹{tax.toFixed(2)}</span>
+              <span>Tax/Charges</span>
+              <span>₹{(total - subtotal).toFixed(2)}</span>
             </div>
           </div>
           <Separator />
@@ -86,7 +89,10 @@ export function BillModal({ order, isOpen, onClose }: BillModalProps) {
             Close
           </Button>
           <Button type="button" onClick={() => {
-            alert('Printing bill...');
+            toast({
+              title: 'Checkout Successful',
+              description: `Bill for TABLE-${order.table} has been generated and paid.`,
+            });
             onClose();
           }}>
             Print Bill
