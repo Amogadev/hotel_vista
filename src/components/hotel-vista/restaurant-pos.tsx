@@ -43,7 +43,15 @@ export default function RestaurantPOS() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
-  const printComponentRef = useRef<HTMLDivElement>(null);
+  const handlePrint = useReactToPrint({
+    content: () => {
+        const component = <KotPrint {...kotData} />;
+        const container = document.createElement('div');
+        const root = require('react-dom/client').createRoot(container);
+        root.render(component);
+        return container;
+    },
+  });
 
   const filteredMenuItems = useMemo(() => {
     if (!searchTerm) {
@@ -102,10 +110,6 @@ export default function RestaurantPOS() {
     date: new Date(),
     items: currentOrder,
   };
-
-  const handlePrint = useReactToPrint({
-    content: () => printComponentRef.current,
-  });
 
   const handleSaveAndPrint = () => {
     if(currentOrder.length === 0) {
@@ -181,11 +185,6 @@ export default function RestaurantPOS() {
 
   return (
     <div className="flex h-full bg-background font-sans">
-       <div style={{ display: 'none' }}>
-        <div ref={printComponentRef}>
-          <KotPrint {...kotData} />
-        </div>
-      </div>
       {/* Main Content */}
       <main className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
@@ -319,7 +318,7 @@ export default function RestaurantPOS() {
             <div className="grid grid-cols-2 gap-2">
                 <Button variant="secondary" onClick={handleSaveAndPrint} disabled={isPending}>
                     {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save & Print
+                    Save &amp; Print
                 </Button>
                 <Button variant="destructive" onClick={clearOrder}>Clear</Button>
             </div>
