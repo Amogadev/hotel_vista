@@ -51,6 +51,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useRouter } from 'next/navigation';
 
+const statusFilters = ['All', 'Available', 'Booked', 'Maintenance'];
+
 const statusColorMap: { [key: string]: string } = {
   Booked: 'bg-red-100 text-red-800 border-red-200',
   Available: 'bg-green-100 text-green-800 border-green-200',
@@ -117,6 +119,7 @@ export default function HallManagementDashboard() {
   const [editingHall, setEditingHall] = useState<Hall | null>(null);
   const [deletingHall, setDeletingHall] = useState<Hall | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeFilter, setActiveFilter] = useState('All');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
@@ -179,10 +182,21 @@ export default function HallManagementDashboard() {
     if (hallAvailabilities) {
         return halls;
     }
-    return halls.filter(hall =>
-      hall.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [halls, searchTerm, hallAvailabilities]);
+    let hallsToDisplay = halls;
+
+    if (activeFilter !== 'All') {
+        hallsToDisplay = hallsToDisplay.filter(hall => hall.status === activeFilter);
+    }
+    
+    if (searchTerm) {
+        hallsToDisplay = hallsToDisplay.filter(hall => 
+            hall.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (hall.customerName && hall.customerName.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+    }
+
+    return hallsToDisplay;
+}, [halls, searchTerm, activeFilter, hallAvailabilities]);
 
   const stats = useMemo(() => {
     const date = selectedDate || new Date();
@@ -401,15 +415,29 @@ export default function HallManagementDashboard() {
                 )}
             </div>
             {!selectedDate && (
+                <>
                 <div className="relative flex-1 w-full md:grow">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                    placeholder="Search by hall name..."
-                    className="pl-10 w-full"
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
+                        placeholder="Search by hall name or customer..."
+                        className="pl-10 w-full"
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
                     />
                 </div>
+                <div className="flex flex-wrap items-center gap-2">
+                    {statusFilters.map(filter => (
+                        <Button
+                            key={filter}
+                            variant={activeFilter === filter ? 'default' : 'outline'}
+                            onClick={() => setActiveFilter(filter)}
+                            className="text-xs h-8"
+                        >
+                            {filter}
+                        </Button>
+                    ))}
+                </div>
+                </>
             )}
         </CardContent>
       </Card>
