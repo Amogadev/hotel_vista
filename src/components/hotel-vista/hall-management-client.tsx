@@ -435,7 +435,7 @@ export default function HallManagementDashboard() {
       </div>
 
       <Card>
-        <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
+        <CardContent className="p-4 flex flex-col md:flex-row items-center justify-center gap-4">
             <div className="flex items-center gap-2">
                 <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
@@ -554,3 +554,4 @@ export default function HallManagementDashboard() {
     </div>
   );
 }
+
