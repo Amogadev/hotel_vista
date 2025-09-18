@@ -35,8 +35,8 @@ const allMenuItems = [
     roles: ['admin', 'reception'],
   },
   {
-    href: '/hotel-management',
-    label: 'Hotel Management',
+    href: '/hall-management',
+    label: 'Hall Management',
     icon: Building,
     roles: ['admin'],
   },
