@@ -61,14 +61,18 @@ const statusColorMap: { [key: string]: string } = {
     Occupied: 'bg-green-100 text-gray-700 border-green-200',
 };
 
-function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availability }: { hall: Hall, onViewHall: (hall: Hall) => void, onEditHall: (hall: Hall) => void, onDeleteHall: (hall: Hall) => void, onAction: (action: 'book' | 'maintenance' | 'cancel', hall: Hall) => void, availability?: { status: 'Occupied' | 'Available' | 'Maintenance' | 'Booked', customerName?: string } }) {
+function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availability }: { hall: Hall, onViewHall: (hall: Hall) => void, onEditHall: (hall: Hall) => void, onDeleteHall: (hall: Hall) => void, onAction: (action: 'book' | 'maintenance' | 'cancel', hall: Hall) => void, availability?: { status: 'Occupied' | 'Available' | 'Booked', customerName?: string } }) {
   
   const handleBookClick = (e: React.MouseEvent) => {
     e.stopPropagation(); 
     onAction('book', hall);
   };
   
-  const displayStatus = availability ? availability.status : hall.status;
+  let displayStatus: 'Occupied' | 'Available' | 'Booked' | 'Maintenance' = availability ? availability.status : hall.status;
+  if (hall.status === 'Booked' && hall.checkIn && hall.checkOut && isWithinInterval(new Date(), { start: parseISO(hall.checkIn), end: parseISO(hall.checkOut) })) {
+      displayStatus = 'Occupied';
+  }
+
   const customerName = availability ? availability.customerName : hall.customerName;
 
   const colorClass = statusColorMap[displayStatus] || '';
@@ -150,27 +154,36 @@ export default function HallManagementDashboard() {
   const hallAvailabilities = useMemo(() => {
     if (!selectedDate) return null;
   
-    const availabilities = new Map<string, { status: 'Occupied' | 'Available' | 'Maintenance' | 'Booked', customerName?: string }>();
+    const availabilities = new Map<string, { status: 'Occupied' | 'Available' | 'Booked', customerName?: string }>();
     
     halls.forEach(hall => {
-        let status: 'Occupied' | 'Available' | 'Maintenance' | 'Booked' = 'Available';
-        let customerName: string | undefined;
+      let status: 'Occupied' | 'Available' | 'Booked' = 'Available';
+      let customerName: string | undefined;
 
-        if (hall.status === 'Maintenance') {
-            status = 'Maintenance';
-        } else if (hall.checkIn && hall.checkOut && typeof hall.checkIn === 'string' && typeof hall.checkOut === 'string' && isValid(parseISO(hall.checkIn)) && isValid(parseISO(hall.checkOut))) {
-            const checkInDate = startOfDay(parseISO(hall.checkIn));
-            const checkOutDate = endOfDay(parseISO(hall.checkOut));
-            if (isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
-                if (isToday(selectedDate)) {
-                  status = 'Occupied';
-                } else {
-                  status = 'Booked';
-                }
-                customerName = hall.customerName;
-            }
+      if (hall.checkIn && hall.checkOut) {
+        const checkInDate = startOfDay(parseISO(hall.checkIn));
+        const checkOutDate = endOfDay(parseISO(hall.checkOut));
+
+        if (isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
+          if (isToday(selectedDate)) {
+            status = 'Occupied';
+          } else {
+            status = 'Booked';
+          }
+          customerName = hall.customerName;
         }
-        
+      } else if (hall.status === 'Booked') {
+        // Handle cases where a hall is booked but no date is selected for filtering yet
+        if (hall.checkIn && hall.checkOut && isWithinInterval(new Date(), { start: parseISO(hall.checkIn), end: parseISO(hall.checkOut) })) {
+           if (isToday(new Date())) {
+            status = 'Occupied';
+          } else {
+            status = 'Booked';
+          }
+          customerName = hall.customerName;
+        }
+      }
+      
       availabilities.set(hall.id, { status, customerName });
     });
   
@@ -178,43 +191,41 @@ export default function HallManagementDashboard() {
   }, [halls, selectedDate]);
 
   const filteredHalls = useMemo(() => {
-    let hallsToDisplay = halls;
+    if (activeFilter === 'All' && !searchTerm && !selectedDate) {
+        return halls;
+    }
 
-    let hallStatusFilter = (hall: Hall) => {
-        if (activeFilter === 'All') return true;
+    return halls.filter(hall => {
+        let matchesFilter = true;
+        let matchesSearch = true;
+        let matchesDate = true;
+
+        const availability = selectedDate && hallAvailabilities ? hallAvailabilities.get(hall.id) : undefined;
+        let currentStatus = availability ? availability.status : hall.status;
+
+        if (hall.status === 'Booked' && hall.checkIn && hall.checkOut && isWithinInterval(new Date(), { start: startOfDay(parseISO(hall.checkIn)), end: endOfDay(parseISO(hall.checkOut)) })) {
+            if (!availability) { // Only if not already filtered by date
+                currentStatus = 'Occupied';
+            }
+        }
+
+        if (activeFilter !== 'All') {
+            matchesFilter = currentStatus === activeFilter;
+        }
+        
+        if (searchTerm) {
+            matchesSearch = hall.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            (hall.customerName && hall.customerName.toLowerCase().includes(searchTerm.toLowerCase()));
+        }
 
         if (selectedDate && hallAvailabilities) {
-            const availability = hallAvailabilities.get(hall.id);
-            return availability?.status === activeFilter;
-        }
-
-        const statusToCheck = hall.status;
-        
-        if (activeFilter === 'Booked') {
-            return statusToCheck === 'Booked' && hall.checkIn && typeof hall.checkIn === 'string' && isValid(parseISO(hall.checkIn)) && isFuture(startOfDay(parseISO(hall.checkIn)));
-        }
-        if (activeFilter === 'Occupied') {
-            if(statusToCheck === 'Booked' && hall.checkIn && hall.checkOut && typeof hall.checkIn === 'string' && typeof hall.checkOut === 'string' && isValid(parseISO(hall.checkIn)) && isValid(parseISO(hall.checkOut))) {
-                if (isWithinInterval(new Date(), { start: startOfDay(parseISO(hall.checkIn)), end: endOfDay(parseISO(hall.checkOut)) })) {
-                    return true;
-                }
-            }
-            return statusToCheck === 'Occupied';
+            const dateAvailability = hallAvailabilities.get(hall.id);
+            matchesDate = dateAvailability?.status === 'Booked' || dateAvailability?.status === 'Occupied' || (activeFilter === 'Available' && dateAvailability?.status === 'Available');
         }
         
-        return statusToCheck === activeFilter;
-    }
+        return matchesFilter && matchesSearch;
+    });
 
-    hallsToDisplay = hallsToDisplay.filter(hallStatusFilter);
-    
-    if (searchTerm) {
-        hallsToDisplay = hallsToDisplay.filter(hall => 
-            hall.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (hall.customerName && hall.customerName.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
-    }
-
-    return hallsToDisplay;
   }, [halls, searchTerm, activeFilter, selectedDate, hallAvailabilities]);
 
   const stats = useMemo(() => {
@@ -224,31 +235,39 @@ export default function HallManagementDashboard() {
     let bookedCount = 0;
     let availableCount = 0;
     let occupiedCount = 0;
+    let maintenanceCount = halls.filter(h => h.status === 'Maintenance').length;
 
-    if (hallAvailabilities && selectedDate) {
-        halls.forEach(hall => {
-            const availability = hallAvailabilities.get(hall.id);
-            if (availability) {
-                if (availability.status === 'Occupied') {
-                    occupiedCount++;
-                } else if (availability.status === 'Booked') {
-                    bookedCount++;
-                } else if (hall.status !== 'Maintenance') {
-                    availableCount++;
+    halls.forEach(hall => {
+        const availability = selectedDate && hallAvailabilities ? hallAvailabilities.get(hall.id) : null;
+        let status = hall.status;
+        
+        if(availability) {
+            status = availability.status;
+        } else if (hall.status === 'Booked' && hall.checkIn && hall.checkOut && typeof hall.checkIn === 'string' && typeof hall.checkOut === 'string' && isValid(parseISO(hall.checkIn)) && isValid(parseISO(hall.checkOut))) {
+            if (isWithinInterval(date, { start: startOfDay(parseISO(hall.checkIn)), end: endOfDay(parseISO(hall.checkOut)) })) {
+                if(isToday(date)){
+                    status = 'Occupied';
+                } else {
+                    status = 'Booked';
                 }
-            } else if (hall.status === 'Available') {
-                 availableCount++;
+            } else if (isFuture(startOfDay(parseISO(hall.checkIn)))){
+                status = 'Booked'
+            } else {
+                status = 'Available'
             }
-        });
-    } else { // No date selected, show current status
-        bookedCount = halls.filter(h => h.status === 'Booked' && h.checkIn && typeof h.checkIn === 'string' && isValid(parseISO(h.checkIn)) && isFuture(startOfDay(parseISO(h.checkIn)))).length;
-        occupiedCount = halls.filter(h => {
-            if (h.status === 'Occupied') return true;
-            if (h.status !== 'Booked' || !h.checkIn || !h.checkOut || typeof h.checkIn !== 'string' || typeof h.checkOut !== 'string' || !isValid(parseISO(h.checkIn)) || !isValid(parseISO(h.checkOut))) return false;
-            return isWithinInterval(new Date(), { start: startOfDay(parseISO(h.checkIn)), end: endOfDay(parseISO(h.checkOut)) });
-        }).length;
-        availableCount = halls.filter(h => h.status === 'Available').length;
-    }
+        }
+        
+        if (status === 'Occupied') {
+            occupiedCount++;
+        } else if (status === 'Booked') {
+            bookedCount++;
+        } else if (status === 'Available') {
+            availableCount++;
+        }
+    });
+    
+    availableCount = totalHalls - (occupiedCount + bookedCount + maintenanceCount);
+
 
     return [
       {
@@ -429,6 +448,7 @@ export default function HallManagementDashboard() {
                   onSelect={(day) => {
                     if (day) {
                       setSelectedDate(day);
+                      setActiveFilter('All');
                     }
                     setIsDatePickerOpen(false);
                   }}
@@ -442,31 +462,29 @@ export default function HallManagementDashboard() {
               </Button>
             )}
           </div>
-          <div className="relative w-full md:w-auto md:flex-grow-0">
+          <div className="relative flex-1 w-full md:grow">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search halls..."
-              className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+              placeholder="Search by Hall Name or Customer..."
+              className="w-full rounded-lg bg-background pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
-          {!selectedDate && (
-            <div className="flex flex-wrap items-center gap-2">
-              {statusFilters.map((filter) => (
-                <Button
-                  key={filter}
-                  variant={activeFilter === filter ? 'default' : 'outline'}
-                  onClick={() => setActiveFilter(filter)}
-                  className="text-xs h-8"
-                >
-                  {filter}
-                </Button>
-              ))}
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {statusFilters.map((filter) => (
+              <Button
+                key={filter}
+                variant={activeFilter === filter ? 'default' : 'outline'}
+                onClick={() => setActiveFilter(filter)}
+                className="text-xs h-8"
+              >
+                {filter}
+              </Button>
+            ))}
+          </div>
         </CardContent>
       </Card>
       
@@ -480,7 +498,7 @@ export default function HallManagementDashboard() {
                     onEditHall={handleEditHall} 
                     onDeleteHall={handleDeleteHall} 
                     onAction={handleAction}
-                    availability={hallAvailabilities?.get(hall.id)}
+                    availability={selectedDate && hallAvailabilities ? hallAvailabilities.get(hall.id) : undefined}
                 />
             ))}
         </div>
@@ -530,3 +548,4 @@ export default function HallManagementDashboard() {
     
 
     
+
