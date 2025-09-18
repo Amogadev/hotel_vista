@@ -204,6 +204,7 @@ export default function HallManagementDashboard() {
     
     let bookedCount = 0;
     let availableCount = 0;
+    let occupiedCount = 0;
 
     if (hallAvailabilities) { // Date is selected
         halls.forEach(hall => {
@@ -216,14 +217,11 @@ export default function HallManagementDashboard() {
                 }
             }
         });
+        occupiedCount = bookedCount;
     } else { // No date selected, show current status
-        halls.forEach(hall => {
-            if (hall.status === 'Booked') {
-                bookedCount++;
-            } else if (hall.status === 'Available') {
-                availableCount++;
-            }
-        });
+      bookedCount = halls.filter(h => h.status === 'Booked').length;
+      occupiedCount = halls.filter(h => h.status === 'Booked').length; // Assuming Booked means occupied for halls
+      availableCount = halls.filter(h => h.status === 'Available').length;
     }
 
     return [
@@ -240,12 +238,17 @@ export default function HallManagementDashboard() {
       {
         title: 'Booked',
         value: bookedCount.toString(),
-        icon: <Bed className="h-6 w-6 text-red-500" />,
+        icon: <BedDouble className="h-6 w-6 text-red-500" />,
+      },
+      {
+        title: 'Occupied',
+        value: occupiedCount.toString(),
+        icon: <Users className="h-6 w-6 text-green-500" />,
       },
       {
         title: 'Available',
         value: availableCount.toString(),
-        icon: <CheckCircle className="h-6 w-6 text-green-500" />,
+        icon: <CheckCircle className="h-6 w-6 text-blue-500" />,
       },
     ];
   }, [halls, selectedDate, hallAvailabilities]);
@@ -363,7 +366,7 @@ export default function HallManagementDashboard() {
       </header>
 
       <div className="flex justify-center">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             {stats.map((stat) => (
             <Card key={stat.title} className="w-full md:w-56">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
