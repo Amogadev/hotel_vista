@@ -422,7 +422,7 @@ export default function HallManagementDashboard() {
                 <div className="relative flex-1 w-full md:grow">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search by hall name or customer..."
+                        placeholder="Search..."
                         className="pl-10 w-full"
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
