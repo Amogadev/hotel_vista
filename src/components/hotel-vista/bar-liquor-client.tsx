@@ -34,7 +34,7 @@ export default function BarPOS() {
   const { inventoryItems, setInventoryItems, rooms, recentSales, setRecentSales } = useContext(DataContext);
   const [currentSale, setCurrentSale] = useState<SaleItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRoom, setSelectedRoom] = useState('direct-sale');
+  const [selectedRoom, setSelectedRoom] = useState('');
   const [isRecordSaleModalOpen, setIsRecordSaleModalOpen] = useState(false);
   
   const { toast } = useToast();
@@ -112,31 +112,14 @@ export default function BarPOS() {
   }, [filteredItems]);
 
   const addToSale = (item: InventoryItemType) => {
-    if (item.stock <= 0) {
-        toast({
-            variant: 'destructive',
-            title: 'Out of Stock',
-            description: `${item.name} is currently out of stock.`,
-        });
-        return;
-    }
     setCurrentSale((prevSale) => {
       const existingItem = prevSale.find((saleItem) => saleItem.name === item.name);
       if (existingItem) {
-        if (existingItem.quantity < item.stock) {
-            return prevSale.map((saleItem) =>
-            saleItem.name === item.name
-                ? { ...saleItem, quantity: saleItem.quantity + 1 }
-                : saleItem
-            );
-        } else {
-            toast({
-                variant: 'destructive',
-                title: 'Stock Limit Reached',
-                description: `You cannot add more ${item.name} than available in stock.`,
-            });
-            return prevSale;
-        }
+        return prevSale.map((saleItem) =>
+          saleItem.name === item.name
+            ? { ...saleItem, quantity: saleItem.quantity + 1 }
+            : saleItem
+        );
       }
       return [...prevSale, { ...item, quantity: 1 }];
     });
@@ -148,23 +131,17 @@ export default function BarPOS() {
   
   const clearSale = () => {
     setCurrentSale([]);
-    setSelectedRoom('direct-sale');
+    setSelectedRoom('');
   };
 
   const updateQuantity = (itemName: string, quantity: number) => {
     const itemInStock = inventoryItems.find(i => i.name === itemName);
     if (!itemInStock) return;
 
-    if (quantity > 0 && quantity <= itemInStock.stock) {
+    if (quantity > 0) {
       setCurrentSale(prevSale => prevSale.map(item => 
         item.name === itemName ? { ...item, quantity } : item
       ));
-    } else if (quantity > itemInStock.stock) {
-        toast({
-            variant: 'destructive',
-            title: 'Stock Limit Exceeded',
-            description: `Only ${itemInStock.stock} units of ${itemName} available.`
-        });
     }
   };
 
@@ -200,14 +177,14 @@ export default function BarPOS() {
         date: new Date(),
         items: currentSale.map(item => ({ name: item.name, quantity: item.quantity, price: item.price })),
         total,
-        room: selectedRoom && selectedRoom !== 'direct-sale' ? selectedRoom : undefined,
+        room: selectedRoom ? selectedRoom : undefined,
     };
     
     handlePrint(receiptData);
   };
 
   const handleSaleRecorded = async () => {
-    const roomToCharge = selectedRoom && selectedRoom !== 'direct-sale' ? selectedRoom : undefined;
+    const roomToCharge = selectedRoom ? selectedRoom : undefined;
 
     const salePromises = currentSale.map(item => 
       recordBarSale({
@@ -325,7 +302,6 @@ export default function BarPOS() {
                             <SelectValue placeholder="Select a room" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="direct-sale">None (Direct Sale)</SelectItem>
                             {rooms.filter(r => r.status === 'Occupied').map(room => (
                                 <SelectItem key={room.number} value={room.number}>
                                     Room {room.number} ({room.guest})
@@ -353,7 +329,6 @@ export default function BarPOS() {
                         onChange={(e) => updateQuantity(item.name, parseInt(e.target.value))}
                         className="h-8 w-16"
                         min="1"
-                        max={item.stock}
                       />
                       <p className="font-semibold text-foreground w-16 text-right">₹{(item.price * item.quantity).toFixed(2)}</p>
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => removeFromSale(item.name)}>
@@ -363,7 +338,7 @@ export default function BarPOS() {
               </div>
             )) : (
                 <div className="h-full flex items-center justify-center text-muted-foreground">
-                    <p>No item</p>
+                    
                 </div>
             )}
         </div>
@@ -393,8 +368,10 @@ export default function BarPOS() {
             onSaleRecorded={handleSaleRecorded}
             saleItems={currentSale}
             total={total}
-            room={selectedRoom && selectedRoom !== 'direct-sale' ? selectedRoom : undefined}
+            room={selectedRoom ? selectedRoom : undefined}
         />
       </main>
   );
 }
+
+    
