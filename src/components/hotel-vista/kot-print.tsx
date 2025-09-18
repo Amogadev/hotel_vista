@@ -22,9 +22,8 @@ export function KotPrint(props: KotPrintProps) {
     return (
       <div className="p-8 font-mono text-xs text-black bg-white">
         <div className="text-center space-y-1">
-          <h1 className="text-sm font-bold">MAYILAI NILA MANAMAGIL</h1>
-          <h2 className="text-sm font-bold">MANDRAM</h2>
-          <p className="text-xs">Kitchen Order Ticket</p>
+          <h1 className="text-sm font-bold">HOTEL VISTA</h1>
+          <h2 className="text-xs">ORDER</h2>
         </div>
 
         <div className="flex justify-between my-4 border-t border-b border-dashed py-1">
