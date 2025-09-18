@@ -51,7 +51,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useRouter } from 'next/navigation';
 
-const statusFilters = ['All', 'Available', 'Booked', 'Maintenance'];
+const statusFilters = ['All', 'Available', 'Occupied', 'Booked', 'Maintenance'];
 
 const statusColorMap: { [key: string]: string } = {
   Booked: 'bg-red-100 text-red-800 border-red-200',
