@@ -2,313 +2,319 @@
 'use client';
 
 import React, { useState, useMemo, useContext, useTransition } from 'react';
-import { DataContext, InventoryItem } from '@/context/data-provider';
 import {
-  Plus,
   Search,
+  Plus,
   Trash2,
-  Loader2,
-  DollarSign,
-  Box,
-  TrendingDown,
-  AlertTriangle,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription
-} from '@/components/ui/card';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Input } from '@/components/ui/input';
-import { AddBarProductModal, BarProductFormValues } from './add-bar-product-modal';
-import { EditBarProductModal, EditBarProductFormValues } from './edit-bar-product-modal';
-import { UpdateStockModal } from './update-stock-modal';
-import { deleteBarProduct } from '@/app/actions';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { DataContext, InventoryItem as InventoryItemType } from '@/context/data-provider';
+import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import { BarProductCard } from './bar-product-card';
-import { BarProductDetailsModal } from './bar-product-details-modal';
+import { recordBarSale, updateBarProductStock } from '@/app/actions';
+import { RecordSaleModal } from './record-sale-modal';
 
-const productTypes = ['All', 'Whiskey', 'Vodka', 'Beer', 'Wine', 'Gin', 'Champagne', 'Other'];
+type SaleItem = InventoryItemType & { quantity: number };
 
-export default function BarLiquorManagementDashboard() {
+export default function BarPOS() {
+  const { inventoryItems, setInventoryItems, rooms, recentSales, setRecentSales } = useContext(DataContext);
+  const [currentSale, setCurrentSale] = useState<SaleItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState('');
+  const [isRecordSaleModalOpen, setIsRecordSaleModalOpen] = useState(false);
+  
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const { inventoryItems, setInventoryItems } = useContext(DataContext);
-  
-  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
-  const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
-  const [isUpdateStockModalOpen, setIsUpdateStockModalOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
 
-  const [updatingItem, setUpdatingItem] = useState<InventoryItem | null>(null);
-  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
-  const [viewingItem, setViewingItem] = useState<InventoryItem | null>(null);
-  const [deletingItem, setDeletingItem] = useState<InventoryItem | null>(null);
+  const filteredItems = useMemo(() => {
+    if (!searchTerm) {
+      return inventoryItems;
+    }
+    return inventoryItems.filter((item) =>
+      item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [inventoryItems, searchTerm]);
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('All');
+  const itemsByCategory = useMemo(() => {
+    return filteredItems.reduce((acc, item) => {
+      const { type } = item;
+      if (!acc[type]) {
+        acc[type] = [];
+      }
+      acc[type].push(item);
+      return acc;
+    }, {} as Record<string, InventoryItemType[]>);
+  }, [filteredItems]);
 
-  const getStatusFromStock = (stock: number): 'good' | 'low' | 'critical' => {
-      if (stock < 10) return 'critical';
-      if (stock < 20) return 'low';
-      return 'good';
-  }
-
-  const handleOpenAddProductModal = () => setIsAddProductModalOpen(true);
-  const handleCloseAddProductModal = () => setIsAddProductModalOpen(false);
-  
-  const handleOpenEditProductModal = (item: InventoryItem) => {
-    setEditingItem(item);
-    setIsEditProductModalOpen(true);
-  }
-  const handleCloseEditProductModal = () => {
-    setEditingItem(null);
-    setIsEditProductModalOpen(false);
-  }
-
-  const handleOpenUpdateStockModal = (item: InventoryItem) => {
-    setUpdatingItem(item);
-    setIsUpdateStockModalOpen(true);
-  };
-  const handleCloseUpdateStockModal = () => {
-    setUpdatingItem(null);
-    setIsUpdateStockModalOpen(false);
-  };
-
-  const handleViewProduct = (item: InventoryItem) => {
-    setViewingItem(item);
-    setIsViewModalOpen(true);
-  };
-  const handleCloseViewModal = () => setIsViewModalOpen(false);
-
-  const handleOpenDeleteAlert = (item: InventoryItem) => {
-    setDeletingItem(item);
-    setIsDeleteAlertOpen(true);
-  }
-
-  const handleProductAdded = (productData: BarProductFormValues) => {
-    const newProduct: InventoryItem = {
-      ...productData,
-      status: getStatusFromStock(productData.stock),
-    };
-    setInventoryItems(prevItems => [newProduct, ...prevItems].sort((a, b) => a.name.localeCompare(b.name)));
-    handleCloseAddProductModal();
-  };
-
-  const handleProductUpdated = (updatedProductData: EditBarProductFormValues & { originalName: string }) => {
-    setInventoryItems(prevItems => prevItems.map(item =>
-        item.name === updatedProductData.originalName
-            ? { ...item, ...updatedProductData, status: getStatusFromStock(updatedProductData.stock) }
-            : item
-    ));
-    handleCloseEditProductModal();
-  };
-
-  const handleStockUpdated = (productName: string, newStock: number) => {
-    setInventoryItems(prevItems => prevItems.map(item =>
-        item.name === productName
-            ? { ...item, stock: newStock, status: getStatusFromStock(newStock) }
-            : item
-    ));
-    handleCloseUpdateStockModal();
-  };
-
-  const handleConfirmDelete = () => {
-    if (!deletingItem) return;
-
-    startTransition(async () => {
-        try {
-            const result = await deleteBarProduct(deletingItem.name);
-            if (result.success) {
-                toast({
-                    title: "Product Deleted",
-                    description: `${deletingItem.name} has been removed from inventory.`,
-                });
-                setInventoryItems(prevItems => prevItems.filter(i => i.name !== deletingItem.name));
-            } else {
-                throw new Error(result.error || "Failed to delete product");
-            }
-        } catch (error) {
+  const addToSale = (item: InventoryItemType) => {
+    if (item.stock <= 0) {
+        toast({
+            variant: 'destructive',
+            title: 'Out of Stock',
+            description: `${item.name} is currently out of stock.`,
+        });
+        return;
+    }
+    setCurrentSale((prevSale) => {
+      const existingItem = prevSale.find((saleItem) => saleItem.name === item.name);
+      if (existingItem) {
+        if (existingItem.quantity < item.stock) {
+            return prevSale.map((saleItem) =>
+            saleItem.name === item.name
+                ? { ...saleItem, quantity: saleItem.quantity + 1 }
+                : saleItem
+            );
+        } else {
             toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Failed to delete the product. Please try again.",
+                variant: 'destructive',
+                title: 'Stock Limit Reached',
+                description: `You cannot add more ${item.name} than available in stock.`,
             });
-        } finally {
-            setIsDeleteAlertOpen(false);
-            setDeletingItem(null);
+            return prevSale;
         }
+      }
+      return [...prevSale, { ...item, quantity: 1 }];
     });
   };
 
-  const handleAction = (action: 'edit' | 'stock' | 'delete', item: InventoryItem) => {
-    if (action === 'edit') handleOpenEditProductModal(item);
-    if (action === 'stock') handleOpenUpdateStockModal(item);
-    if (action === 'delete') handleOpenDeleteAlert(item);
+  const removeFromSale = (itemName: string) => {
+    setCurrentSale((prevSale) => prevSale.filter((item) => item.name !== itemName));
+  };
+  
+  const clearSale = () => {
+    setCurrentSale([]);
+    setSelectedRoom('');
   };
 
-  const filteredItems = useMemo(() => {
-    let items = inventoryItems;
-    if (activeFilter !== 'All') {
-      items = items.filter(item => item.type === activeFilter);
-    }
-    if (searchTerm) {
-      items = items.filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
-    }
-    return items;
-  }, [inventoryItems, activeFilter, searchTerm]);
+  const updateQuantity = (itemName: string, quantity: number) => {
+    const itemInStock = inventoryItems.find(i => i.name === itemName);
+    if (!itemInStock) return;
 
-  const stats = useMemo(() => ([
-    {
-      title: 'Total Products',
-      value: inventoryItems.length.toString(),
-      icon: <Box className="h-6 w-6 text-blue-500" />,
-    },
-    {
-      title: 'Low Stock',
-      value: inventoryItems.filter(i => i.status === 'low').length.toString(),
-      icon: <TrendingDown className="h-6 w-6 text-yellow-500" />,
-    },
-    {
-      title: 'Critical Stock',
-      value: inventoryItems.filter(i => i.status === 'critical').length.toString(),
-      icon: <AlertTriangle className="h-6 w-6 text-red-500" />,
-    },
-    {
-      title: 'Total Stock Value',
-      value: `₹${inventoryItems.reduce((acc, i) => acc + i.price * i.stock, 0).toLocaleString()}`,
-      icon: <DollarSign className="h-6 w-6 text-green-500" />,
-    },
-  ]), [inventoryItems]);
+    if (quantity > 0 && quantity <= itemInStock.stock) {
+      setCurrentSale(prevSale => prevSale.map(item => 
+        item.name === itemName ? { ...item, quantity } : item
+      ));
+    } else if (quantity > itemInStock.stock) {
+        toast({
+            variant: 'destructive',
+            title: 'Stock Limit Exceeded',
+            description: `Only ${itemInStock.stock} units of ${itemName} available.`
+        });
+    }
+  };
+
+  const { subtotal, total } = useMemo(() => {
+    const sub = currentSale.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    return { subtotal: sub, total: sub }; // No extra charges for now
+  }, [currentSale]);
+
+  const handleFinalizeSale = () => {
+    if (currentSale.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Empty Sale',
+        description: 'Please add items to the sale.',
+      });
+      return;
+    }
+    setIsRecordSaleModalOpen(true);
+  };
+  
+  const handleSaleRecorded = async () => {
+    const salePromises = currentSale.map(item => 
+      recordBarSale({
+        name: item.name,
+        qty: item.quantity,
+        price: item.price * item.quantity,
+        room: selectedRoom || undefined,
+      })
+    );
+
+    const stockUpdatePromises = currentSale.map(item => {
+        const originalItem = inventoryItems.find(i => i.name === item.name);
+        const newStock = (originalItem?.stock || 0) - item.quantity;
+        return updateBarProductStock(item.name, newStock);
+    });
+
+    try {
+        await Promise.all([...salePromises, ...stockUpdatePromises]);
+        
+        // Optimistically update context
+        const newSales: any[] = currentSale.map(item => ({
+            name: item.name,
+            qty: item.quantity,
+            price: item.price * item.quantity,
+            room: selectedRoom || undefined,
+            time: new Date(),
+        }));
+        setRecentSales(prev => [...newSales, ...prev]);
+
+        setInventoryItems(prevItems => {
+            const newItems = [...prevItems];
+            currentSale.forEach(saleItem => {
+                const itemIndex = newItems.findIndex(i => i.name === saleItem.name);
+                if (itemIndex > -1) {
+                    newItems[itemIndex].stock -= saleItem.quantity;
+                }
+            });
+            return newItems;
+        });
+
+        toast({
+            title: 'Sale Recorded',
+            description: 'The sale has been successfully recorded and stock updated.',
+        });
+
+        clearSale();
+
+    } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'There was an error recording the sale.',
+        });
+    }
+  };
+
 
   return (
-    <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bar & Liquor Management</h1>
-          <p className="text-muted-foreground">Track sales and manage liquor inventory</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleOpenAddProductModal}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Product
-          </Button>
-        </div>
-      </header>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-              {stat.icon}
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card>
-        <CardContent className="p-4 flex flex-col md:flex-row items-center justify-center gap-4">
-          <div className="relative flex-1 w-full md:grow">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search by product name..."
-              className="w-full rounded-lg bg-background pl-8 md:w-[300px]"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {productTypes.map((filter) => (
-              <Button
-                key={filter}
-                variant={activeFilter === filter ? 'default' : 'outline'}
-                onClick={() => setActiveFilter(filter)}
-                className="text-xs h-8"
-              >
-                {filter}
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="flex justify-center mt-6">
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {filteredItems.map((item) => (
-                <BarProductCard 
-                    key={item.name}
-                    item={item} 
-                    onView={handleViewProduct}
-                    onAction={handleAction}
-                />
-            ))}
+    <main className="h-screen overflow-hidden flex bg-background font-sans">
+      <div className="flex-1 flex flex-col p-6">
+        <header className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold text-foreground">Bar &amp; Liquor POS</h1>
+            <Button variant="ghost" asChild>
+                <Link href="/"><LogOut className="mr-2" /> Exit</Link>
+            </Button>
+        </header>
+        
+        <div className="flex-1 overflow-y-auto pr-4">
+            <div className="flex gap-2 mb-6">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input 
+                        placeholder="Search products..." 
+                        className="pl-10 bg-card border-border focus-visible:ring-primary"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </div>
+            
+            <div className="space-y-6">
+                {Object.entries(itemsByCategory).map(([category, items]) => (
+                    <div key={category}>
+                        <div className="flex items-center gap-2 mb-3">
+                            <h3 className="text-lg font-semibold uppercase text-foreground">{category}</h3>
+                            <Badge variant="secondary">{items.length} items</Badge>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            {items.map((item) => (
+                                <div key={item.name} className="bg-card rounded-lg p-3 flex flex-col justify-between border">
+                                    <div>
+                                        <p className="font-semibold text-foreground">{item.name}</p>
+                                        <p className="text-sm text-muted-foreground">Stock: {item.stock}</p>
+                                        <p className="text-primary font-medium">₹{item.price}</p>
+                                    </div>
+                                    <Button size="icon" className="mt-2 self-end h-8 w-8 bg-primary/80 hover:bg-primary" onClick={() => addToSale(item)}>
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
       </div>
-      
-      <AddBarProductModal
-        isOpen={isAddProductModalOpen}
-        onClose={handleCloseAddProductModal}
-        onProductAdded={handleProductAdded}
-      />
-      {updatingItem && (
-        <UpdateStockModal
-          isOpen={isUpdateStockModalOpen}
-          onClose={handleCloseUpdateStockModal}
-          onStockUpdated={handleStockUpdated}
-          item={updatingItem}
+
+      <aside className="w-96 bg-card border-l border-border flex flex-col">
+        <div className="p-6">
+            <h2 className="text-xl font-bold text-foreground mb-4">Current Sale</h2>
+            <div className="space-y-4">
+                <div>
+                    <label className="text-sm font-medium text-muted-foreground">Add to Room Bill (Optional)</label>
+                    <Select value={selectedRoom} onValueChange={setSelectedRoom}>
+                        <SelectTrigger className="bg-secondary border-0 focus:ring-primary">
+                            <SelectValue placeholder="Select a room" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="">None (Direct Sale)</SelectItem>
+                            {rooms.filter(r => r.status === 'Occupied').map(room => (
+                                <SelectItem key={room.number} value={room.number}>
+                                    Room {room.number} ({room.guest})
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+        </div>
+
+        <Separator />
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {currentSale.length > 0 ? currentSale.map(item => (
+              <div key={item.name} className="flex items-start justify-between">
+                  <div className="flex-1">
+                      <p className="font-semibold text-foreground">{item.name}</p>
+                      <p className="text-sm text-muted-foreground">₹{item.price.toFixed(2)}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                      <Input 
+                        type="number" 
+                        value={item.quantity} 
+                        onChange={(e) => updateQuantity(item.name, parseInt(e.target.value))}
+                        className="h-8 w-16"
+                        min="1"
+                        max={item.stock}
+                      />
+                      <p className="font-semibold text-foreground w-16 text-right">₹{(item.price * item.quantity).toFixed(2)}</p>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => removeFromSale(item.name)}>
+                          <Trash2 className="h-4 w-4" />
+                      </Button>
+                  </div>
+              </div>
+            )) : (
+                <div className="text-center text-muted-foreground mt-10">
+                    <p>No items in sale.</p>
+                </div>
+            )}
+        </div>
+        
+        <div className="p-6 mt-auto border-t border-border space-y-4">
+            <div className="space-y-2 text-sm">
+                <div className="flex justify-between font-bold text-lg">
+                    <span className="text-foreground">Total</span>
+                    <span className="text-foreground">₹{total.toFixed(2)}</span>
+                </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+                 <Button variant="destructive" onClick={clearSale}>Clear</Button>
+                <Button className="w-full bg-primary hover:bg-primary/90" onClick={handleFinalizeSale} disabled={currentSale.length === 0 || isPending}>
+                    Finalize Sale
+                </Button>
+            </div>
+        </div>
+      </aside>
+       <RecordSaleModal
+            isOpen={isRecordSaleModalOpen}
+            onClose={() => setIsRecordSaleModalOpen(false)}
+            onSaleRecorded={handleSaleRecorded}
+            saleItems={currentSale}
+            total={total}
+            room={selectedRoom}
         />
-      )}
-      {editingItem && (
-        <EditBarProductModal
-            isOpen={isEditProductModalOpen}
-            onClose={handleCloseEditProductModal}
-            onProductUpdated={handleProductUpdated}
-            product={editingItem}
-        />
-      )}
-      {viewingItem && (
-        <BarProductDetailsModal
-          item={viewingItem}
-          isOpen={isViewModalOpen}
-          onClose={handleCloseViewModal}
-        />
-      )}
-       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure you want to remove this product?</AlertDialogTitle>
-                <AlertDialogDescription>
-                    This action cannot be undone. This will permanently remove {deletingItem?.name} from your inventory.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setDeletingItem(null)}>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleConfirmDelete} disabled={isPending} className="bg-destructive hover:bg-destructive/90">
-                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Remove
-                </AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+      </main>
   );
 }
