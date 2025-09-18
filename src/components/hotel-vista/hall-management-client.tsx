@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useMemo, useContext, useTransition } from 'react';
@@ -32,7 +33,7 @@ import { Input } from '@/components/ui/input';
 import { AddHallModal, HallFormValues } from './add-hall-modal';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { format, isWithinInterval, startOfDay, endOfDay, parseISO, isToday } from 'date-fns';
+import { format, isWithinInterval, startOfDay, endOfDay, parseISO, isToday, isValid } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { QuickActionsDropdown } from './hall-quick-actions-dropdown';
 import { HallDetailsModal } from './hall-details-modal';
@@ -58,12 +59,11 @@ const statusColorMap: { [key: string]: string } = {
   Available: 'bg-blue-100 text-gray-700 border-blue-200',
   Maintenance: 'bg-yellow-100 text-gray-700 border-yellow-200',
   Occupied: 'bg-green-100 text-gray-700 border-green-200',
-  BOOKED: 'bg-red-100 text-gray-700 border-red-200',
-  AVAILABLE: 'bg-blue-100 text-gray-700 border-blue-200',
   OCCUPIED: 'bg-green-100 text-gray-700 border-green-200',
+  AVAILABLE: 'bg-blue-100 text-gray-700 border-blue-200',
 };
 
-function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availability }: { hall: Hall, onViewHall: (hall: Hall) => void, onEditHall: (hall: Hall) => void, onDeleteHall: (hall: Hall) => void, onAction: (action: 'book' | 'maintenance', hall: Hall) => void, availability?: { status: 'BOOKED' | 'AVAILABLE' | 'OCCUPIED', customerName?: string } }) {
+function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availability }: { hall: Hall, onViewHall: (hall: Hall) => void, onEditHall: (hall: Hall) => void, onDeleteHall: (hall: Hall) => void, onAction: (action: 'book' | 'maintenance', hall: Hall) => void, availability?: { status: 'OCCUPIED' | 'AVAILABLE', customerName?: string } }) {
   
   const handleBookClick = (e: React.MouseEvent) => {
     e.stopPropagation(); 
@@ -78,10 +78,9 @@ function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availa
     customerName = availability.customerName;
   } else {
     if (hall.status === 'Booked' && hall.checkIn && hall.checkOut) {
-        const today = new Date();
-        const checkInDate = startOfDay(parseISO(hall.checkIn));
-        const checkOutDate = endOfDay(parseISO(hall.checkOut));
-        if (isWithinInterval(today, { start: checkInDate, end: checkOutDate })) {
+        const checkInDate = parseISO(hall.checkIn);
+        const checkOutDate = parseISO(hall.checkOut);
+        if (isValid(checkInDate) && isValid(checkOutDate) && isWithinInterval(new Date(), { start: startOfDay(checkInDate), end: endOfDay(checkOutDate) })) {
             displayStatus = 'Occupied';
         } else {
             displayStatus = 'Booked';
@@ -171,16 +170,16 @@ export default function HallManagementDashboard() {
   const hallAvailabilities = useMemo(() => {
     if (!selectedDate) return null;
   
-    const availabilities = new Map<string, { status: 'BOOKED' | 'AVAILABLE' | 'OCCUPIED', customerName?: string }>();
+    const availabilities = new Map<string, { status: 'OCCUPIED' | 'AVAILABLE', customerName?: string }>();
     
     halls.forEach(hall => {
-      let status: 'BOOKED' | 'AVAILABLE' | 'OCCUPIED' = 'AVAILABLE';
+      let status: 'OCCUPIED' | 'AVAILABLE' = 'AVAILABLE';
       let customerName: string | undefined;
   
       if (hall.status === 'Booked' && hall.checkIn && hall.checkOut) {
-        const checkInDate = startOfDay(parseISO(hall.checkIn));
-        const checkOutDate = endOfDay(parseISO(hall.checkOut));
-        if (isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
+        const checkInDate = parseISO(hall.checkIn);
+        const checkOutDate = parseISO(hall.checkOut);
+        if (isValid(checkInDate) && isValid(checkOutDate) && isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
           status = 'OCCUPIED';
           customerName = hall.customerName;
         }
@@ -218,8 +217,7 @@ export default function HallManagementDashboard() {
         if (activeFilter === 'Occupied') {
             hallsToDisplay = hallsToDisplay.filter(hall => 
                 hall.status === 'Booked' &&
-                hall.checkIn &&
-                hall.checkOut &&
+                hall.checkIn && hall.checkOut &&
                 isWithinInterval(new Date(), { start: startOfDay(parseISO(hall.checkIn)), end: endOfDay(parseISO(hall.checkOut)) })
             );
         } else if (activeFilter === 'Booked') {
@@ -251,7 +249,7 @@ export default function HallManagementDashboard() {
     let availableCount = 0;
     let occupiedCount = 0;
 
-    if (hallAvailabilities) {
+    if (hallAvailabilities && selectedDate) {
         halls.forEach(hall => {
             const availability = hallAvailabilities.get(hall.id);
             if (availability) {
@@ -463,10 +461,10 @@ export default function HallManagementDashboard() {
             </div>
             {!selectedDate && (
                 <>
-                <div className="relative flex-1 w-full md:max-w-xs">
+                <div className="relative flex-1 w-full md:grow-0 md:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search by hall name or customer..."
+                        placeholder="Search hall or customer..."
                         className="pl-10 w-full"
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
