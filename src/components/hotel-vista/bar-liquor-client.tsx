@@ -269,7 +269,7 @@ export default function BarPOS() {
     <main className="h-screen overflow-hidden flex bg-background font-sans">
       <div className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-foreground">Bar &amp; Liquor POS</h1>
+            <h1 className="text-2xl font-bold text-foreground">Bar &amp; Liquor Sales</h1>
             <Button variant="ghost" asChild>
                 <Link href="/"><LogOut className="mr-2" /> Exit</Link>
             </Button>
@@ -399,3 +399,5 @@ export default function BarPOS() {
       </main>
   );
 }
+
+    
