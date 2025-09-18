@@ -1,12 +1,14 @@
 
 'use client';
 
-import React, { useState, useMemo, useContext, useTransition } from 'react';
+import React, { useState, useMemo, useContext, useTransition, useRef } from 'react';
+import { renderToString } from 'react-dom/server';
 import {
   Search,
   Plus,
   Trash2,
-  LogOut
+  LogOut,
+  Printer
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +26,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { recordBarSale, updateBarProductStock } from '@/app/actions';
 import { RecordSaleModal } from './record-sale-modal';
+import { BarReceiptPrint, type BarReceiptPrintProps } from './bar-receipt-print';
 
 type SaleItem = InventoryItemType & { quantity: number };
 
@@ -31,11 +34,62 @@ export default function BarPOS() {
   const { inventoryItems, setInventoryItems, rooms, recentSales, setRecentSales } = useContext(DataContext);
   const [currentSale, setCurrentSale] = useState<SaleItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRoom, setSelectedRoom] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState('direct-sale');
   const [isRecordSaleModalOpen, setIsRecordSaleModalOpen] = useState(false);
   
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+
+  const handlePrint = (receiptData: BarReceiptPrintProps) => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      const printContent = renderToString(<BarReceiptPrint {...receiptData} />);
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Bar Receipt</title>
+            <style>
+              @media print {
+                body { 
+                  font-family: monospace; 
+                  margin: 0;
+                }
+                .p-8 { padding: 0.5rem; }
+                .text-xs { font-size: 10px; }
+                .text-black { color: #000; }
+                .bg-white { background-color: #fff; }
+                .text-center { text-align: center; }
+                .space-y-1 > * + * { margin-top: 0.25rem; }
+                .text-sm { font-size: 12px; }
+                .font-bold { font-weight: 700; }
+                .flex { display: flex; }
+                .justify-between { justify-content: space-between; }
+                .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
+                .border-t { border-top-width: 1px; }
+                .border-b { border-bottom-width: 1px; }
+                .border-dashed { border-style: dashed; }
+                .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+                .text-right { text-align: right; }
+                .w-full { width: 100%; }
+                table { width: 100%; border-collapse: collapse; }
+                thead { display: table-header-group; }
+                tr { page-break-inside: avoid; }
+                .text-left { text-align: left; }
+                .mt-4 { margin-top: 1rem; }
+              }
+            </style>
+          </head>
+          <body>
+            ${printContent}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    }
+  };
 
   const filteredItems = useMemo(() => {
     if (!searchTerm) {
@@ -94,7 +148,7 @@ export default function BarPOS() {
   
   const clearSale = () => {
     setCurrentSale([]);
-    setSelectedRoom('');
+    setSelectedRoom('direct-sale');
   };
 
   const updateQuantity = (itemName: string, quantity: number) => {
@@ -131,6 +185,27 @@ export default function BarPOS() {
     setIsRecordSaleModalOpen(true);
   };
   
+  const handlePrintReceipt = () => {
+    if (currentSale.length === 0) {
+        toast({
+            variant: 'destructive',
+            title: "Empty Sale",
+            description: "Cannot print a receipt for an empty sale.",
+        });
+        return;
+    }
+
+    const receiptData: BarReceiptPrintProps = {
+        billNo: `BAR-${Date.now()}`,
+        date: new Date(),
+        items: currentSale.map(item => ({ name: item.name, quantity: item.quantity, price: item.price })),
+        total,
+        room: selectedRoom !== 'direct-sale' ? selectedRoom : undefined,
+    };
+    
+    handlePrint(receiptData);
+  };
+
   const handleSaleRecorded = async () => {
     const roomToCharge = selectedRoom === 'direct-sale' ? undefined : selectedRoom;
 
@@ -307,6 +382,10 @@ export default function BarPOS() {
                     Finalize Sale
                 </Button>
             </div>
+             <Button variant="outline" className="w-full" onClick={handlePrintReceipt} disabled={currentSale.length === 0}>
+                <Printer className="mr-2 h-4 w-4" />
+                Print Receipt
+            </Button>
         </div>
       </aside>
        <RecordSaleModal
