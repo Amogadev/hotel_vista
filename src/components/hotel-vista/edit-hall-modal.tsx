@@ -334,3 +334,5 @@ export function EditHallModal({ hall, isOpen, onClose, onHallUpdated }: EditHall
     </Dialog>
   );
 }
+
+    
