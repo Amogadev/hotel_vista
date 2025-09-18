@@ -41,6 +41,7 @@ import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
 import { format, differenceInCalendarDays, parseISO } from 'date-fns';
 import { Textarea } from '../ui/textarea';
+import { ScrollArea } from '../ui/scroll-area';
 
 const facilitiesList = ['Projector', 'Sound System', 'AC', 'Whiteboard', 'TV'];
 
@@ -149,229 +150,230 @@ export function EditHallModal({ hall, isOpen, onClose, onHallUpdated }: EditHall
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Edit Hall: {hall.name}</DialogTitle>
           <DialogDescription>
             Update the hall details. Fill in customer info to automatically set status to "Booked".
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Hall Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
+        <ScrollArea className="flex-grow pr-6 -mr-6">
+            <Form {...form}>
+            <form id="edit-hall-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} disabled={!!(customerName || checkIn || checkOut)}>
+                        <FormLabel>Hall Name</FormLabel>
                         <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select a status" />
-                        </SelectTrigger>
+                        <Input {...field} />
                         </FormControl>
-                        <SelectContent>
-                        <SelectItem value="Available">Available</SelectItem>
-                        <SelectItem value="Booked">Booked</SelectItem>
-                        <SelectItem value="Maintenance">Maintenance</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
+                        <FormMessage />
                     </FormItem>
-                )}
-            />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-               <FormField
-                control={form.control}
-                name="capacity"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Capacity</FormLabel>
-                    <FormControl>
-                        <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
+                    )}
                 />
                 <FormField
                     control={form.control}
-                    name="price"
+                    name="status"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Price/Hour (₹)</FormLabel>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!!(customerName || checkIn || checkOut)}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a status" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            <SelectItem value="Available">Available</SelectItem>
+                            <SelectItem value="Booked">Booked</SelectItem>
+                            <SelectItem value="Maintenance">Maintenance</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="capacity"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Capacity</FormLabel>
                         <FormControl>
                             <Input type="number" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
-                />
-            </div>
-            
-            <div className="space-y-4 rounded-md border p-4">
-                <h4 className="font-medium text-sm">Booking Information</h4>
-                <div className="grid grid-cols-2 gap-4">
+                    />
                     <FormField
                         control={form.control}
-                        name="customerName"
+                        name="price"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Customer Name</FormLabel>
+                            <FormLabel>Price/Hour (₹)</FormLabel>
                             <FormControl>
-                                <Input placeholder="e.g., John Smith" {...field} value={field.value ?? ''} />
+                                <Input type="number" {...field} />
                             </FormControl>
+                            <FormMessage />
                             </FormItem>
                         )}
                     />
-                     <FormField
+                </div>
+                
+                <div className="space-y-4 rounded-md border p-4">
+                    <h4 className="font-medium text-sm">Booking Information</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="customerName"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Customer Name</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., John Smith" {...field} value={field.value ?? ''} />
+                                </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="contact"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Contact</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., 9876543210" {...field} value={field.value ?? ''} />
+                                </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                    <FormField
                         control={form.control}
-                        name="contact"
+                        name="purpose"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Contact</FormLabel>
+                            <FormLabel>Purpose of Booking</FormLabel>
                             <FormControl>
-                                <Input placeholder="e.g., 9876543210" {...field} value={field.value ?? ''} />
+                                <Textarea placeholder="e.g., Wedding Reception" {...field} value={field.value ?? ''} />
                             </FormControl>
                             </FormItem>
                         )}
                     />
-                </div>
-                 <FormField
-                    control={form.control}
-                    name="purpose"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Purpose of Booking</FormLabel>
-                        <FormControl>
-                            <Textarea placeholder="e.g., Wedding Reception" {...field} value={field.value ?? ''} />
-                        </FormControl>
-                        </FormItem>
-                    )}
-                />
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                    control={form.control}
-                    name="idProof"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>ID Proof</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select ID type" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                            <SelectItem value="Aadhar">Aadhar</SelectItem>
-                            <SelectItem value="Passport">Passport</SelectItem>
-                            <SelectItem value="Driving License">Driving License</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <FormField
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
                         control={form.control}
-                        name="email"
+                        name="idProof"
                         render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                            <Input type="email" placeholder="guest@example.com" {...field} value={field.value ?? ''}/>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                </div>
-                 <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="checkIn"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                            <FormLabel>From</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
+                            <FormItem>
+                            <FormLabel>ID Proof</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value ?? ''}>
                                 <FormControl>
-                                    <Button variant={'outline'} className={cn('w-full pl-3 text-left font-normal',!field.value && 'text-muted-foreground' )}>
-                                    {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select ID type" />
+                                </SelectTrigger>
                                 </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                                </PopoverContent>
-                            </Popover>
+                                <SelectContent>
+                                <SelectItem value="Aadhar">Aadhar</SelectItem>
+                                <SelectItem value="Passport">Passport</SelectItem>
+                                <SelectItem value="Driving License">Driving License</SelectItem>
+                                </SelectContent>
+                            </Select>
                             <FormMessage />
                             </FormItem>
                         )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="checkOut"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                            <FormLabel>To</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
+                        />
+                        <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Email</FormLabel>
                                 <FormControl>
-                                    <Button variant={'outline'} className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
-                                    {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
+                                <Input type="email" placeholder="guest@example.com" {...field} value={field.value ?? ''}/>
                                 </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < (checkIn || new Date('1900-01-01'))} initialFocus />
-                                </PopoverContent>
-                            </Popover>
-                            <FormMessage />
+                                <FormMessage />
                             </FormItem>
-                        )}
-                    />
-                 </div>
-            </div>
-
-            {totalPrice > 0 && (
-                <div className="col-span-2 text-lg font-semibold text-center bg-muted p-2 rounded-md">
-                    Total Price: <span className="text-primary">₹{totalPrice.toLocaleString()}</span>
+                            )}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="checkIn"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                <FormLabel>From</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button variant={'outline'} className={cn('w-full pl-3 text-left font-normal',!field.value && 'text-muted-foreground' )}>
+                                        {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="checkOut"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                <FormLabel>To</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button variant={'outline'} className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                        {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < (checkIn || new Date('1900-01-01'))} initialFocus />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
                 </div>
-            )}
 
-            <DialogFooter className="col-span-1 md:col-span-2 pt-4">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Changes
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+                {totalPrice > 0 && (
+                    <div className="col-span-2 text-lg font-semibold text-center bg-muted p-2 rounded-md">
+                        Total Price: <span className="text-primary">₹{totalPrice.toLocaleString()}</span>
+                    </div>
+                )}
+
+            </form>
+            </Form>
+        </ScrollArea>
+        <DialogFooter className="border-t pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+            </Button>
+            <Button type="submit" form="edit-hall-form" disabled={isPending}>
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Save Changes
+            </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-    
