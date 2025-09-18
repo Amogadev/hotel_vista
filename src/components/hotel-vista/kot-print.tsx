@@ -17,7 +17,7 @@ export type KotPrintProps = {
     items: OrderItem[];
 };
 
-export const KotPrint = (props: KotPrintProps) => {
+export function KotPrint(props: KotPrintProps) {
     const { billNo, table, waiter, date, items } = props;
     return (
       <div className="p-8 font-mono text-xs text-black bg-white">
@@ -62,5 +62,3 @@ export const KotPrint = (props: KotPrintProps) => {
       </div>
     );
 };
-
-KotPrint.displayName = 'KotPrint';

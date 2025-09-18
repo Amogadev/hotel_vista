@@ -43,12 +43,20 @@ export default function RestaurantPOS() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
+  const kotData: KotPrintProps = {
+    billNo: `KOT${(activeOrders.length + 1).toString().padStart(4, '0')}`,
+    table: selectedTable,
+    waiter: selectedWaiter,
+    date: new Date(),
+    items: currentOrder,
+  };
+
   const handlePrint = useReactToPrint({
     content: () => {
-        const component = <KotPrint {...kotData} />;
+        const componentToPrint = <KotPrint {...kotData} />;
         const container = document.createElement('div');
         const root = require('react-dom/client').createRoot(container);
-        root.render(component);
+        root.render(componentToPrint);
         return container;
     },
   });
@@ -102,14 +110,6 @@ export default function RestaurantPOS() {
     const grandTotal = sub + ac;
     return { subtotal: sub, ac: ac, total: grandTotal };
   }, [currentOrder, acCharges]);
-
-  const kotData: KotPrintProps = {
-    billNo: `KOT${(activeOrders.length + 1).toString().padStart(4, '0')}`,
-    table: selectedTable,
-    waiter: selectedWaiter,
-    date: new Date(),
-    items: currentOrder,
-  };
 
   const handleSaveAndPrint = () => {
     if(currentOrder.length === 0) {
@@ -184,9 +184,11 @@ export default function RestaurantPOS() {
   };
 
   return (
-    <div className="flex h-full bg-background font-sans">
+    <div className="flex flex-col h-screen">
+      <Topbar />
+      <main className="flex-1 pt-14 overflow-hidden flex bg-background font-sans">
       {/* Main Content */}
-      <main className="flex-1 flex flex-col p-6">
+      <div className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-foreground">Restaurant POS</h1>
         </header>
@@ -198,7 +200,7 @@ export default function RestaurantPOS() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input 
                         placeholder="Search menu items..." 
-                        className="pl-10 bg-secondary border-border focus-visible:ring-primary"
+                        className="pl-10 bg-card border-border focus-visible:ring-primary"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -217,7 +219,7 @@ export default function RestaurantPOS() {
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                             {items.map((item) => (
-                                <div key={item.name} className="bg-secondary rounded-lg p-3 flex flex-col justify-between">
+                                <div key={item.name} className="bg-card rounded-lg p-3 flex flex-col justify-between border">
                                     <div>
                                         <p className="font-semibold text-foreground">{item.name}</p>
                                         <p className="text-primary font-medium">{item.price}</p>
@@ -232,7 +234,7 @@ export default function RestaurantPOS() {
                 ))}
             </div>
         </div>
-      </main>
+      </div>
 
       {/* Order Sidebar */}
       <aside className="w-96 bg-card border-l border-border flex flex-col">
@@ -286,7 +288,7 @@ export default function RestaurantPOS() {
                     </div>
                     <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground">₹{itemTotal.toFixed(2)}</p>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive-foreground" onClick={() => removeFromOrder(item.name)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => removeFromOrder(item.name)}>
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
@@ -318,7 +320,7 @@ export default function RestaurantPOS() {
             <div className="grid grid-cols-2 gap-2">
                 <Button variant="secondary" onClick={handleSaveAndPrint} disabled={isPending}>
                     {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save &amp; Print
+                    Save & Print
                 </Button>
                 <Button variant="destructive" onClick={clearOrder}>Clear</Button>
             </div>
@@ -334,6 +336,7 @@ export default function RestaurantPOS() {
           onClose={() => setIsBillModalOpen(false)}
         />
       )}
+      </main>
     </div>
   );
 }
