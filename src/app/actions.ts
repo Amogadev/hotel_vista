@@ -431,20 +431,28 @@ export async function addHall(newHall: {
 }
 
 export async function updateHall(updatedHall: {
-  originalName: string;
-  name: string;
-  capacity: number;
-  facilities: string[];
-  price: number;
-  status: string;
-  customerName?: string;
-  contact?: string;
-  purpose?: string;
-  checkIn?: string;
-  checkOut?: string;
-  totalPrice?: number;
-  idProof?: string;
-  email?: string;
+    originalName: string;
+    name: string;
+    capacity: number;
+    facilities: string[];
+    price: number;
+    status: 'Available' | 'Booked' | 'Maintenance';
+    customerName?: string;
+    contact?: string;
+    purpose?: string;
+    checkIn?: string;
+    checkOut?: string;
+    checkInTime?: string;
+    checkOutTime?: string;
+    totalPrice?: number;
+    idProof?: string;
+    email?: string;
+    adults?: number;
+    children?: number;
+    foodPreference?: 'veg' | 'non-veg' | 'both';
+    specialRequests?: string;
+    addOns?: string[];
+    foodCost?: number;
 }) {
     try {
         const q = query(collection(db, "halls"), where("name", "==", updatedHall.originalName));

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
@@ -31,9 +32,17 @@ export type Hall = {
     purpose?: string;
     checkIn?: string;
     checkOut?: string;
+    checkInTime?: string;
+    checkOutTime?: string;
     totalPrice?: number;
     idProof?: string;
     email?: string;
+    adults?: number;
+    children?: number;
+    foodPreference?: 'veg' | 'non-veg' | 'both';
+    specialRequests?: string;
+    addOns?: string[];
+    foodCost?: number;
 };
 
 export type MenuItem = {
@@ -462,8 +471,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
                      const cleanedHall = {
                         ...hall,
-                        checkIn: hall.checkIn ? format(parseISO(hall.checkIn), 'yyyy-MM-dd') : undefined,
-                        checkOut: hall.checkOut ? format(parseISO(hall.checkOut), 'yyyy-MM-dd') : undefined,
                         status: newStatus,
                     };
 
@@ -584,5 +591,3 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     </DataContext.Provider>
   );
 };
-
-    
