@@ -200,14 +200,14 @@ export default function BarPOS() {
         date: new Date(),
         items: currentSale.map(item => ({ name: item.name, quantity: item.quantity, price: item.price })),
         total,
-        room: selectedRoom && selectedRoom !== '' ? selectedRoom : undefined,
+        room: selectedRoom && selectedRoom !== 'direct-sale' ? selectedRoom : undefined,
     };
     
     handlePrint(receiptData);
   };
 
   const handleSaleRecorded = async () => {
-    const roomToCharge = selectedRoom && selectedRoom !== '' ? selectedRoom : undefined;
+    const roomToCharge = selectedRoom && selectedRoom !== 'direct-sale' ? selectedRoom : undefined;
 
     const salePromises = currentSale.map(item => 
       recordBarSale({
@@ -362,8 +362,8 @@ export default function BarPOS() {
                   </div>
               </div>
             )) : (
-                <div className="text-center text-muted-foreground mt-10">
-                    <p>No items in sale.</p>
+                <div className="h-full flex items-center justify-center text-muted-foreground">
+                    <p>No items in order</p>
                 </div>
             )}
         </div>
@@ -393,7 +393,7 @@ export default function BarPOS() {
             onSaleRecorded={handleSaleRecorded}
             saleItems={currentSale}
             total={total}
-            room={selectedRoom && selectedRoom !== '' ? selectedRoom : undefined}
+            room={selectedRoom && selectedRoom !== 'direct-sale' ? selectedRoom : undefined}
         />
       </main>
   );
