@@ -90,7 +90,8 @@ export function BookHallModal({ hall, isOpen, onClose, onHallBooked }: BookHallM
   const form = useForm<BookHallFormValues>({
     resolver: zodResolver(bookHallSchema),
     defaultValues: {
-      checkInDate: new Date(),
+      checkInDate: undefined,
+      checkOutDate: undefined,
       checkInTime: '',
       checkOutTime: '',
       customerName: '',
