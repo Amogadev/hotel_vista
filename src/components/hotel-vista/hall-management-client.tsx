@@ -33,7 +33,7 @@ import { Input } from '@/components/ui/input';
 import { AddHallModal, HallFormValues } from './add-hall-modal';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { format, isWithinInterval, startOfDay, endOfDay, parseISO, isToday, isValid, isFuture } from 'date-fns';
+import { format, isWithinInterval, startOfDay, endOfDay, parseISO, isToday, isValid, isFuture, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { QuickActionsDropdown } from './hall-quick-actions-dropdown';
 import { HallDetailsModal } from './hall-details-modal';
@@ -162,11 +162,12 @@ export default function HallManagementDashboard() {
             const checkInDate = startOfDay(parseISO(hall.checkIn));
             const checkOutDate = endOfDay(parseISO(hall.checkOut));
             if (isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
-                status = 'Occupied';
+                if (isToday(selectedDate)) {
+                  status = 'Occupied';
+                } else {
+                  status = 'Booked';
+                }
                 customerName = hall.customerName;
-            } else if (isFuture(checkInDate) && isSameDay(selectedDate, checkInDate)) {
-                 status = 'Booked';
-                 customerName = hall.customerName;
             }
         }
         
@@ -193,8 +194,10 @@ export default function HallManagementDashboard() {
             return statusToCheck === 'Booked' && hall.checkIn && typeof hall.checkIn === 'string' && isValid(parseISO(hall.checkIn)) && isFuture(startOfDay(parseISO(hall.checkIn)));
         }
         if (activeFilter === 'Occupied') {
-            if(statusToCheck === 'Booked' && hall.checkIn && typeof hall.checkIn === 'string' && isValid(parseISO(hall.checkIn)) && isToday(startOfDay(parseISO(hall.checkIn)))) {
-                return true;
+            if(statusToCheck === 'Booked' && hall.checkIn && hall.checkOut && typeof hall.checkIn === 'string' && typeof hall.checkOut === 'string' && isValid(parseISO(hall.checkIn)) && isValid(parseISO(hall.checkOut))) {
+                if (isWithinInterval(new Date(), { start: startOfDay(parseISO(hall.checkIn)), end: endOfDay(parseISO(hall.checkOut)) })) {
+                    return true;
+                }
             }
             return statusToCheck === 'Occupied';
         }
@@ -240,9 +243,9 @@ export default function HallManagementDashboard() {
     } else { // No date selected, show current status
         bookedCount = halls.filter(h => h.status === 'Booked' && h.checkIn && typeof h.checkIn === 'string' && isValid(parseISO(h.checkIn)) && isFuture(startOfDay(parseISO(h.checkIn)))).length;
         occupiedCount = halls.filter(h => {
-            if (h.status !== 'Booked' || !h.checkIn || typeof h.checkIn !== 'string' || !isValid(parseISO(h.checkIn))) return false;
-            if (isToday(startOfDay(parseISO(h.checkIn)))) return true;
-            return isWithinInterval(new Date(), { start: startOfDay(parseISO(h.checkIn)), end: endOfDay(parseISO(h.checkOut || h.checkIn)) });
+            if (h.status === 'Occupied') return true;
+            if (h.status !== 'Booked' || !h.checkIn || !h.checkOut || typeof h.checkIn !== 'string' || typeof h.checkOut !== 'string' || !isValid(parseISO(h.checkIn)) || !isValid(parseISO(h.checkOut))) return false;
+            return isWithinInterval(new Date(), { start: startOfDay(parseISO(h.checkIn)), end: endOfDay(parseISO(h.checkOut)) });
         }).length;
         availableCount = halls.filter(h => h.status === 'Available').length;
     }
@@ -443,8 +446,8 @@ export default function HallManagementDashboard() {
             <div className="relative flex-1 md:grow-0">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                    placeholder="Search by hall..."
-                    className="pl-10 w-full md:w-64"
+                    placeholder="Search..."
+                    className="pl-10 w-full"
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                 />
@@ -520,5 +523,7 @@ export default function HallManagementDashboard() {
     </div>
   );
 }
+
+    
 
     
