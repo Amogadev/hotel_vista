@@ -158,7 +158,7 @@ export default function HallManagementDashboard() {
 
         if (hall.status === 'Maintenance') {
             status = 'Maintenance';
-        } else if (hall.status === 'Booked' && hall.checkIn && hall.checkOut && typeof hall.checkIn === 'string' && typeof hall.checkOut === 'string' && isValid(parseISO(hall.checkIn)) && isValid(parseISO(hall.checkOut))) {
+        } else if (hall.checkIn && hall.checkOut && typeof hall.checkIn === 'string' && typeof hall.checkOut === 'string' && isValid(parseISO(hall.checkIn)) && isValid(parseISO(hall.checkOut))) {
             const checkInDate = startOfDay(parseISO(hall.checkIn));
             const checkOutDate = endOfDay(parseISO(hall.checkOut));
             if (isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
@@ -408,62 +408,65 @@ export default function HallManagementDashboard() {
 
       <Card>
         <CardContent className="p-4 flex flex-col md:flex-row items-center justify-center gap-4">
-            <div className="flex items-center gap-2">
-                <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                <PopoverTrigger asChild>
-                    <Button
-                        variant={'outline'}
-                        className={cn(
-                        'w-full justify-start text-left font-normal md:w-[240px]',
-                        !selectedDate && 'text-muted-foreground'
-                        )}
-                    >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={(day) => {
-                            if (day) {
-                                setSelectedDate(day);
-                            }
-                            setIsDatePickerOpen(false);
-                        }}
-                        initialFocus
-                    />
-                </PopoverContent>
-                </Popover>
-                {selectedDate && (
-                    <Button variant="ghost" size="icon" onClick={() => setSelectedDate(undefined)} >
-                       <X className="h-4 w-4" />
-                    </Button>
-                )}
-            </div>
-            
-            <div className="relative flex-1 md:grow-0">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                    placeholder="Search..."
-                    className="pl-10 w-full"
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
+          <div className="flex items-center gap-2">
+            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={'outline'}
+                  className={cn(
+                    'w-full justify-start text-left font-normal md:w-[240px]',
+                    !selectedDate && 'text-muted-foreground'
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(day) => {
+                    if (day) {
+                      setSelectedDate(day);
+                    }
+                    setIsDatePickerOpen(false);
+                  }}
+                  initialFocus
                 />
-            </div>
+              </PopoverContent>
+            </Popover>
+            {selectedDate && (
+              <Button variant="ghost" size="icon" onClick={() => setSelectedDate(undefined)}>
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <div className="relative w-full md:w-auto md:flex-grow-0">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search halls..."
+              className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {!selectedDate && (
             <div className="flex flex-wrap items-center gap-2">
-                {statusFilters.map(filter => (
-                    <Button
-                        key={filter}
-                        variant={activeFilter === filter ? 'default' : 'outline'}
-                        onClick={() => setActiveFilter(filter)}
-                        className="text-xs h-8"
-                    >
-                        {filter}
-                    </Button>
-                ))}
+              {statusFilters.map((filter) => (
+                <Button
+                  key={filter}
+                  variant={activeFilter === filter ? 'default' : 'outline'}
+                  onClick={() => setActiveFilter(filter)}
+                  className="text-xs h-8"
+                >
+                  {filter}
+                </Button>
+              ))}
             </div>
+          )}
         </CardContent>
       </Card>
       
