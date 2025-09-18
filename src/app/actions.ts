@@ -63,6 +63,7 @@ export async function updateRoom(updatedRoom: {
   checkIn?: string;
   checkOut?: string;
   totalPrice?: number;
+  facilities?: string[];
 }) {
     try {
         const q = query(collection(db, "rooms"), where("number", "==", updatedRoom.originalNumber));
@@ -497,4 +498,5 @@ export async function deleteHall(hallName: string) {
     
 
     
+
 

@@ -9,6 +9,7 @@ import * as z from 'zod';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -33,6 +34,13 @@ import { useToast } from '@/hooks/use-toast';
 import { updateRoom } from '@/app/actions';
 import { DataContext, Room } from '@/context/data-provider';
 import Topbar from '@/components/hotel-vista/topbar';
+import { Checkbox } from '@/components/ui/checkbox';
+
+const facilitiesList = [
+    { id: 'ac', label: 'AC' },
+    { id: 'tv', label: 'TV' },
+    { id: 'kitchen', label: 'With Kitchen' },
+];
 
 const occupySchema = z.object({
   guest: z.string().min(1, 'Guest name is required'),
@@ -41,6 +49,7 @@ const occupySchema = z.object({
   email: z.string().email('Invalid email address'),
   checkIn: z.date({ required_error: 'Check-in date is required' }),
   checkOut: z.date({ required_error: 'Check-out date is required' }),
+  facilities: z.array(z.string()).optional(),
 });
 
 type OccupyFormValues = z.infer<typeof occupySchema>;
@@ -57,6 +66,9 @@ export default function OccupyRoomPage() {
 
   const form = useForm<OccupyFormValues>({
     resolver: zodResolver(occupySchema),
+    defaultValues: {
+      facilities: [],
+    }
   });
 
   const { watch } = form;
@@ -88,6 +100,7 @@ export default function OccupyRoomPage() {
           email: values.email,
           checkIn: values.checkIn.toISOString(),
           checkOut: values.checkOut.toISOString(),
+          facilities: values.facilities,
         });
         if (result.success) {
           toast({
@@ -105,6 +118,7 @@ export default function OccupyRoomPage() {
             email: values.email,
             checkIn: values.checkIn.toISOString(),
             checkOut: values.checkOut.toISOString(),
+            facilities: values.facilities,
           };
           setRooms(prev => prev.map(r => r.number === room.number ? updatedRoom : r));
           
@@ -200,6 +214,56 @@ export default function OccupyRoomPage() {
                         )}
                     />
                 </div>
+                 <FormField
+                    control={form.control}
+                    name="facilities"
+                    render={() => (
+                        <FormItem>
+                        <div className="mb-4">
+                            <FormLabel className="text-base">Facilities</FormLabel>
+                            <FormDescription>
+                            Select the facilities available in room.
+                            </FormDescription>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            {facilitiesList.map((item) => (
+                            <FormField
+                                key={item.id}
+                                control={form.control}
+                                name="facilities"
+                                render={({ field }) => {
+                                return (
+                                    <FormItem
+                                    key={item.id}
+                                    className="flex flex-row items-start space-x-3 space-y-0"
+                                    >
+                                    <FormControl>
+                                        <Checkbox
+                                        checked={field.value?.includes(item.id)}
+                                        onCheckedChange={(checked) => {
+                                            return checked
+                                            ? field.onChange([...(field.value || []), item.id])
+                                            : field.onChange(
+                                                field.value?.filter(
+                                                (value) => value !== item.id
+                                                )
+                                            );
+                                        }}
+                                        />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">
+                                        {item.label}
+                                    </FormLabel>
+                                    </FormItem>
+                                );
+                                }}
+                            />
+                            ))}
+                        </div>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
@@ -273,5 +337,3 @@ export default function OccupyRoomPage() {
     </div>
   );
 }
-
-    
