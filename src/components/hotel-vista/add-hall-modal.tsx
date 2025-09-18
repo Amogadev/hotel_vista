@@ -152,7 +152,7 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
         </DialogHeader>
         <ScrollArea className="flex-grow pr-6 -mr-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <form id="add-hall-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
