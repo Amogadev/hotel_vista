@@ -1,5 +1,6 @@
 
 'use client';
+import 'react-dom';
 
 import React, { useState, useMemo, useContext, useRef, useTransition } from 'react';
 import {
@@ -289,7 +290,7 @@ export default function RestaurantPOS() {
             <div className="grid grid-cols-2 gap-2">
                 <Button variant="secondary" onClick={handleSaveAndPrint} disabled={isPending}>
                     {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save & Print
+                    Save &amp; Print
                 </Button>
                 <Button variant="destructive" onClick={clearOrder}>Clear</Button>
             </div>
