@@ -338,7 +338,7 @@ export default function BarPOS() {
               </div>
             )) : (
                 <div className="h-full flex items-center justify-center text-muted-foreground">
-                    
+                    <p>No item</p>
                 </div>
             )}
         </div>
