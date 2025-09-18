@@ -55,10 +55,10 @@ const statusFilters = ['All', 'Available', 'Occupied', 'Booked', 'Maintenance'];
 
 const statusColorMap: { [key: string]: string } = {
   Booked: 'bg-red-100 text-red-800 border-red-200',
-  Available: 'bg-green-100 text-green-800 border-green-200',
+  Available: 'bg-blue-100 text-blue-800 border-blue-200',
   Maintenance: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   BOOKED: 'bg-red-100 text-red-800 border-red-200',
-  AVAILABLE: 'bg-green-100 text-green-800 border-green-200',
+  AVAILABLE: 'bg-blue-100 text-blue-800 border-blue-200',
 };
 
 function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availability }: { hall: Hall, onViewHall: (hall: Hall) => void, onEditHall: (hall: Hall) => void, onDeleteHall: (hall: Hall) => void, onAction: (action: 'book' | 'maintenance', hall: Hall) => void, availability?: { status: 'BOOKED' | 'AVAILABLE', customerName?: string } }) {
@@ -100,7 +100,7 @@ function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availa
             </div>
         ) : (
             displayStatus === 'Available' && !availability && (
-                <Button variant="outline" size="sm" className="mt-3 h-7 text-xs border-green-500 text-green-500 hover:bg-green-500 hover:text-white" onClick={handleBookClick}>
+                <Button variant="outline" size="sm" className="mt-3 h-7 text-xs border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white" onClick={handleBookClick}>
                     Book
                 </Button>
             )
@@ -501,5 +501,3 @@ export default function HallManagementDashboard() {
     </div>
   );
 }
-
-    
