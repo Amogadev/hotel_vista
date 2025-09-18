@@ -40,6 +40,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
 import { format, differenceInCalendarDays, parseISO } from 'date-fns';
+import { Textarea } from '../ui/textarea';
 
 const facilitiesList = ['Projector', 'Sound System', 'AC', 'Whiteboard', 'TV'];
 
@@ -222,16 +223,42 @@ export function EditHallModal({ hall, isOpen, onClose, onHallUpdated }: EditHall
                 />
             </div>
             
-            <div className="space-y-2 rounded-md border p-4">
+            <div className="space-y-4 rounded-md border p-4">
                 <h4 className="font-medium text-sm">Booking Information</h4>
-                <FormField
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="customerName"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Customer Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., John Smith" {...field} value={field.value ?? ''} />
+                            </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="contact"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Contact</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., 9876543210" {...field} value={field.value ?? ''} />
+                            </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                 <FormField
                     control={form.control}
-                    name="customerName"
+                    name="purpose"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Customer Name</FormLabel>
+                        <FormLabel>Purpose of Booking</FormLabel>
                         <FormControl>
-                            <Input placeholder="e.g., John Smith" {...field} value={field.value ?? ''} />
+                            <Textarea placeholder="e.g., Wedding Reception" {...field} value={field.value ?? ''} />
                         </FormControl>
                         </FormItem>
                     )}
