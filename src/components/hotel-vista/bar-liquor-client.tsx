@@ -148,7 +148,7 @@ export default function BarPOS() {
   
   const clearSale = () => {
     setCurrentSale([]);
-    setSelectedRoom('');
+    setSelectedRoom('direct-sale');
   };
 
   const updateQuantity = (itemName: string, quantity: number) => {
@@ -363,7 +363,7 @@ export default function BarPOS() {
               </div>
             )) : (
                 <div className="h-full flex items-center justify-center text-muted-foreground">
-                    <p></p>
+                    <p>No item</p>
                 </div>
             )}
         </div>
@@ -398,5 +398,3 @@ export default function BarPOS() {
       </main>
   );
 }
-
-    
