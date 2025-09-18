@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useMemo, useContext, useTransition } from 'react';
@@ -154,23 +153,17 @@ export default function HallManagementDashboard() {
   const handleOpenAddModal = () => setIsAddModalOpen(true);
   const handleCloseAddModal = () => setIsAddModalOpen(false);
 
-  const handleHallAdded = (newHallData: HallFormValues) => {
+  const handleHallAdded = (newHallData: HallFormValues & {id: string}) => {
     const newHall: Hall = {
       ...newHallData,
-      id: `hall-${Date.now()}`,
     };
     setHalls(prevHalls => [...prevHalls, newHall].sort((a, b) => a.name.localeCompare(b.name)));
     handleCloseAddModal();
   };
 
-  const handleHallUpdated = (updatedHallData: any) => {
-    const updatedHall: Hall = {
-        ...updatedHallData,
-        checkIn: updatedHallData.checkIn ? format(new Date(updatedHallData.checkIn), 'yyyy-MM-dd') : undefined,
-        checkOut: updatedHallData.checkOut ? format(new Date(updatedHallData.checkOut), 'yyyy-MM-dd') : undefined,
-    };
+  const handleHallUpdated = (updatedHallData: Hall) => {
     setHalls(prevHalls =>
-      prevHalls.map(h => (h.id === updatedHall.id ? updatedHall : h)).sort((a,b) => a.name.localeCompare(b.name))
+      prevHalls.map(h => (h.id === updatedHallData.id ? updatedHallData : h)).sort((a,b) => a.name.localeCompare(b.name))
     );
     handleCloseEditModal();
   };
@@ -211,6 +204,8 @@ export default function HallManagementDashboard() {
                 const currentStatus = availability.status;
                 if (activeFilter.toUpperCase() === 'OCCUPIED' && currentStatus === 'OCCUPIED') return true;
                 if (activeFilter.toUpperCase() === 'AVAILABLE' && currentStatus === 'AVAILABLE') return true;
+                
+                // When filtering by 'Booked' on a specific date, we are interested in 'Occupied' halls for that day.
                 if (activeFilter.toUpperCase() === 'BOOKED' && currentStatus === 'OCCUPIED') return true;
                 
                 return false;
@@ -361,7 +356,7 @@ export default function HallManagementDashboard() {
         if(action === 'cancel') {
             updatedHallData = {
                 ...hall,
-                status: 'Available',
+                status: 'Available' as const,
                 customerName: undefined,
                 contact: undefined,
                 purpose: undefined,
@@ -372,12 +367,11 @@ export default function HallManagementDashboard() {
         } else {
             updatedHallData = {
                 ...hall,
-                status: action === 'maintenance' ? 'Maintenance' : 'Available',
+                status: action === 'maintenance' ? 'Maintenance' as const : 'Available' as const,
             };
         }
 
         try {
-            // @ts-ignore
             const result = await updateHall({ originalName: hall.name, ...updatedHallData });
             if (result.success) {
                 toast({
@@ -432,7 +426,7 @@ export default function HallManagementDashboard() {
       </div>
 
       <Card>
-        <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4">
+        <CardContent className="p-4 flex flex-col md:flex-row items-center justify-center gap-4">
             <div className="flex items-center gap-2">
                 <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
@@ -469,10 +463,10 @@ export default function HallManagementDashboard() {
             </div>
             {!selectedDate && (
                 <>
-                <div className="relative flex-1 w-full md:grow">
+                <div className="relative flex-1 w-full md:max-w-xs">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search by Hall Name, Customer, or Status..."
+                        placeholder="Search by hall name or customer..."
                         className="pl-10 w-full"
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
@@ -497,9 +491,9 @@ export default function HallManagementDashboard() {
       
       <div className="flex justify-center mt-6">
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {filteredHalls.map((hall, index) => (
+            {filteredHalls.map((hall) => (
                 <HallCard 
-                    key={`${hall.id}-${index}`} 
+                    key={hall.id}
                     hall={hall} 
                     onViewHall={handleViewHall} 
                     onEditHall={handleEditHall} 
@@ -551,6 +545,5 @@ export default function HallManagementDashboard() {
     </div>
   );
 }
-
 
     
