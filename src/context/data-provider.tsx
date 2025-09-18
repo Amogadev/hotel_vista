@@ -1,9 +1,8 @@
-
 'use client';
 
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { AlertCircle, CheckCircle2, Clock, Loader2 } from 'lucide-react';
-import { getRooms, getMenuItems, getOrders, getBarProducts, getBarSales, getStockItems } from '@/app/actions';
+import { getRooms, getMenuItems, getOrders, getBarProducts, getBarSales, getStockItems, getHalls } from '@/app/actions';
 import { format, isPast, parseISO } from 'date-fns';
 
 export type Room = {
@@ -17,6 +16,21 @@ export type Room = {
     checkIn?: string;
     checkOut?: string;
     price: number;
+    totalPrice?: number;
+};
+
+export type Hall = {
+    id: string;
+    name: string;
+    capacity: number;
+    facilities: string[];
+    price: number; // per hour
+    status: 'Available' | 'Booked' | 'Maintenance';
+    customerName?: string;
+    contact?: string;
+    purpose?: string;
+    checkIn?: string;
+    checkOut?: string;
     totalPrice?: number;
 };
 
@@ -82,6 +96,8 @@ export type TotalBill = {
 type DataContextType = {
   rooms: Room[];
   setRooms: React.Dispatch<React.SetStateAction<Room[]>>;
+  halls: Hall[];
+  setHalls: React.Dispatch<React.SetStateAction<Hall[]>>;
   menuItems: MenuItem[];
   setMenuItems: React.Dispatch<React.SetStateAction<MenuItem[]>>;
   activeOrders: ActiveOrder[];
@@ -100,6 +116,39 @@ type DataContextType = {
 };
 
 const initialRooms: Room[] = [];
+
+const initialHalls: Hall[] = [
+    {
+        id: 'hall-1',
+        name: 'Grand Ballroom',
+        capacity: 200,
+        facilities: ['Projector', 'Sound System', 'AC'],
+        price: 10000,
+        status: 'Available',
+    },
+    {
+        id: 'hall-2',
+        name: 'Conference Room A',
+        capacity: 50,
+        facilities: ['Whiteboard', 'Projector', 'AC'],
+        price: 5000,
+        status: 'Booked',
+        customerName: 'Tech Corp',
+        contact: '9876543210',
+        purpose: 'Quarterly Meeting',
+        checkIn: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(),
+        checkOut: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(),
+        totalPrice: 5000,
+    },
+    {
+        id: 'hall-3',
+        name: 'Meeting Room B',
+        capacity: 20,
+        facilities: ['TV', 'AC'],
+        price: 2500,
+        status: 'Maintenance',
+    },
+];
 
 const initialMenuItems = [
     {
@@ -330,6 +379,8 @@ const initialTotalBill: TotalBill[] = [
 export const DataContext = createContext<DataContextType>({
   rooms: [],
   setRooms: () => {},
+  halls: [],
+  setHalls: () => {},
   menuItems: [],
   setMenuItems: () => {},
   activeOrders: [],
@@ -349,6 +400,7 @@ export const DataContext = createContext<DataContextType>({
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [halls, setHalls] = useState<Hall[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
@@ -362,8 +414,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [roomsRes, menuItemsRes, ordersRes, barProductsRes, barSalesRes, stockItemsRes] = await Promise.all([
+            const [roomsRes, hallsRes, menuItemsRes, ordersRes, barProductsRes, barSalesRes, stockItemsRes] = await Promise.all([
                 getRooms(),
+                getHalls(),
                 getMenuItems(),
                 getOrders(),
                 getBarProducts(),
@@ -397,6 +450,33 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                     return cleanedRoom;
                 });
                 setRooms(formattedRooms.length > 0 ? formattedRooms.sort((a:Room,b:Room) => a.number.localeCompare(b.number)) : initialRooms);
+            }
+
+            if (hallsRes.success) {
+                const fetchedHalls = hallsRes.halls;
+                 const formattedHalls = fetchedHalls.map((hall: any) => {
+                    const isCheckoutPast = hall.checkOut && isPast(parseISO(hall.checkOut));
+                    const newStatus = hall.status === 'Booked' && isCheckoutPast ? 'Available' : hall.status;
+
+                     const cleanedHall = {
+                        ...hall,
+                        checkIn: hall.checkIn ? format(parseISO(hall.checkIn), 'yyyy-MM-dd') : undefined,
+                        checkOut: hall.checkOut ? format(parseISO(hall.checkOut), 'yyyy-MM-dd') : undefined,
+                        status: newStatus,
+                    };
+
+                     if (newStatus === 'Available') {
+                        delete cleanedHall.customerName;
+                        delete cleanedHall.contact;
+                        delete cleanedHall.purpose;
+                        delete cleanedHall.checkIn;
+                        delete cleanedHall.checkOut;
+                        delete cleanedHall.totalPrice;
+                    }
+
+                    return cleanedHall;
+                });
+                setHalls(formattedHalls.length > 0 ? formattedHalls.sort((a:Hall, b:Hall) => a.name.localeCompare(b.name)) : initialHalls);
             }
 
             if (menuItemsRes.success) {
@@ -452,6 +532,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             console.error("Failed to fetch initial data", error);
             // Fallback to initial data if fetch fails
             setRooms(initialRooms);
+            setHalls(initialHalls);
             setMenuItems(initialMenuItems);
             setActiveOrders(initialActiveOrders);
             setInventoryItems(initialInventoryItems);
@@ -470,6 +551,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       value={{
         rooms,
         setRooms,
+        halls,
+        setHalls,
         menuItems,
         setMenuItems,
         activeOrders,

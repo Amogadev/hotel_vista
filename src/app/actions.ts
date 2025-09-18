@@ -381,10 +381,101 @@ export async function setDailyNote(date: string, content: string) {
         return { success: false, error: "Failed to set note" };
     }
 }
-    
 
-    
+export async function getHalls() {
+    const querySnapshot = await getDocs(collection(db, "halls"));
+    const halls = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return { 
+            ...data, 
+            id: doc.id,
+            checkIn: data.checkIn?.toDate ? data.checkIn.toDate().toISOString() : data.checkIn,
+            checkOut: data.checkOut?.toDate ? data.checkOut.toDate().toISOString() : data.checkOut,
+        };
+    });
+    return { success: true, halls };
+}
 
-    
+export async function addHall(newHall: {
+  name: string;
+  capacity: number;
+  facilities: string[];
+  price: number;
+  status: string;
+  customerName?: string;
+  contact?: string;
+  purpose?: string;
+  checkIn?: string;
+  checkOut?: string;
+  totalPrice?: number;
+}) {
+  try {
+    const hallData: any = { ...newHall };
+    if (newHall.checkIn) hallData.checkIn = Timestamp.fromDate(new Date(newHall.checkIn));
+    if (newHall.checkOut) hallData.checkOut = Timestamp.fromDate(new Date(newHall.checkOut));
 
-    
+    const docRef = await addDoc(collection(db, "halls"), hallData);
+    const resultHall = { 
+        ...newHall, 
+        id: docRef.id,
+        checkIn: newHall.checkIn,
+        checkOut: newHall.checkOut
+    };
+    return { success: true, hall: resultHall };
+  } catch (e) {
+    console.error("Error adding document: ", e);
+    return { success: false, error: "Failed to add hall" };
+  }
+}
+
+export async function updateHall(updatedHall: {
+  originalName: string;
+  name: string;
+  capacity: number;
+  facilities: string[];
+  price: number;
+  status: string;
+  customerName?: string;
+  contact?: string;
+  purpose?: string;
+  checkIn?: string;
+  checkOut?: string;
+  totalPrice?: number;
+}) {
+    try {
+        const q = query(collection(db, "halls"), where("name", "==", updatedHall.originalName));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            const docId = querySnapshot.docs[0].id;
+            const { originalName, ...hallData } = updatedHall;
+
+            const updateData: any = { ...hallData };
+            if (hallData.checkIn) updateData.checkIn = Timestamp.fromDate(new Date(hallData.checkIn));
+            if (hallData.checkOut) updateData.checkOut = Timestamp.fromDate(new Date(hallData.checkOut));
+
+            await updateDoc(doc(db, "halls", docId), updateData);
+            
+            return { success: true, hall: updatedHall };
+        }
+        return { success: false, error: "Hall not found" };
+    } catch (e) {
+        console.error("Error updating document: ", e);
+        return { success: false, error: "Failed to update hall" };
+    }
+}
+
+export async function deleteHall(hallName: string) {
+    try {
+        const q = query(collection(db, "halls"), where("name", "==", hallName));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            const docId = querySnapshot.docs[0].id;
+            await deleteDoc(doc(db, "halls", docId));
+            return { success: true };
+        }
+        return { success: false, error: "Hall not found" };
+    } catch (e) {
+        console.error("Error deleting document: ", e);
+        return { success: false, error: "Failed to delete hall" };
+    }
+}
