@@ -155,19 +155,43 @@ export function EditHallModal({ hall, isOpen, onClose, onHallUpdated }: EditHall
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Hall Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hall Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={!!(customerName || checkIn || checkOut)}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a status" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                        <SelectItem value="Available">Available</SelectItem>
+                        <SelectItem value="Booked">Booked</SelectItem>
+                        <SelectItem value="Maintenance">Maintenance</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
             />
+            </div>
             
             <div className="grid grid-cols-2 gap-4">
                <FormField
@@ -262,29 +286,6 @@ export function EditHallModal({ hall, isOpen, onClose, onHallUpdated }: EditHall
                  </div>
             </div>
 
-             <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} disabled={!!(customerName || checkIn || checkOut)}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select a status" />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                        <SelectItem value="Available">Available</SelectItem>
-                        <SelectItem value="Booked">Booked</SelectItem>
-                        <SelectItem value="Maintenance">Maintenance</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-            />
-            
             {totalPrice > 0 && (
                 <div className="col-span-2 text-lg font-semibold text-center bg-muted p-2 rounded-md">
                     Total Price: <span className="text-primary">₹{totalPrice.toLocaleString()}</span>
@@ -306,5 +307,3 @@ export function EditHallModal({ hall, isOpen, onClose, onHallUpdated }: EditHall
     </Dialog>
   );
 }
-
-    
