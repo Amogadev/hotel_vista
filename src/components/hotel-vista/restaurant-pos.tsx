@@ -29,7 +29,6 @@ import { KotPrint, type KotPrintProps } from './kot-print';
 import { useToast } from '@/hooks/use-toast';
 import { addOrder } from '@/app/actions';
 import { BillModal } from './bill-modal';
-import Topbar from './topbar';
 
 type OrderItem = MenuItemType & { quantity: number };
 
@@ -43,6 +42,8 @@ export default function RestaurantPOS() {
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const kotPrintRef = useRef<HTMLDivElement>(null);
+
 
   const kotData: KotPrintProps = {
     billNo: `KOT${(activeOrders.length + 1).toString().padStart(4, '0')}`,
@@ -53,16 +54,7 @@ export default function RestaurantPOS() {
   };
 
   const handlePrint = useReactToPrint({
-    content: () => {
-      const printableComponent = <KotPrint {...kotData} />;
-      // The react-to-print library requires a component instance to be rendered.
-      // We can create a temporary container, render the component into it,
-      // and return the container.
-      const container = document.createElement('div');
-      const root = require('react-dom/client').createRoot(container);
-      root.render(printableComponent);
-      return container;
-    },
+    content: () => kotPrintRef.current,
   });
 
   const filteredMenuItems = useMemo(() => {
@@ -150,7 +142,10 @@ export default function RestaurantPOS() {
                     title: "Order Saved",
                     description: `Order for ${selectedTable} has been saved.`,
                 });
-                handlePrint();
+                
+                // Trigger print after state is updated
+                setTimeout(handlePrint, 0);
+
             } else {
                 throw new Error(result.error || 'Failed to save order');
             }
@@ -193,6 +188,9 @@ export default function RestaurantPOS() {
       <div className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-foreground">Restaurant POS</h1>
+            <Button variant="ghost" asChild>
+                <Link href="/"><LogOut className="mr-2" /> Exit</Link>
+            </Button>
         </header>
         
         {/* Menu Section */}
@@ -322,7 +320,7 @@ export default function RestaurantPOS() {
             <div className="grid grid-cols-2 gap-2">
                 <Button variant="secondary" onClick={handleSaveAndPrint} disabled={isPending}>
                     {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save & Print
+                    Save &amp; Print
                 </Button>
                 <Button variant="destructive" onClick={clearOrder}>Clear</Button>
             </div>
@@ -338,6 +336,13 @@ export default function RestaurantPOS() {
           onClose={() => setIsBillModalOpen(false)}
         />
       )}
+      <div className="hidden">
+        <div ref={kotPrintRef}>
+          <KotPrint {...kotData} />
+        </div>
+      </div>
       </div>
   );
 }
+
+    
