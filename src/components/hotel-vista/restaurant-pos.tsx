@@ -29,6 +29,7 @@ import { KotPrint, type KotPrintProps } from './kot-print';
 import { useToast } from '@/hooks/use-toast';
 import { addOrder } from '@/app/actions';
 import { BillModal } from './bill-modal';
+import Topbar from './topbar';
 
 type OrderItem = MenuItemType & { quantity: number };
 
@@ -184,8 +185,6 @@ export default function RestaurantPOS() {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <Topbar />
       <main className="flex-1 pt-14 overflow-hidden flex bg-background font-sans">
       {/* Main Content */}
       <div className="flex-1 flex flex-col p-6">
@@ -337,6 +336,5 @@ export default function RestaurantPOS() {
         />
       )}
       </main>
-    </div>
   );
 }
