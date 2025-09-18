@@ -412,22 +412,6 @@ export default function HallManagementDashboard() {
         </CardContent>
       </Card>
       
-      <div className="flex justify-center mt-6">
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {filteredHalls.map(hall => (
-                <HallCard 
-                    key={hall.id} 
-                    hall={hall} 
-                    onViewHall={handleViewHall} 
-                    onEditHall={handleEditHall}
-                    onDeleteHall={handleDeleteHall}
-                    onAction={handleAction}
-                    availability={hallAvailabilities?.get(hall.id)}
-                />
-            ))}
-        </div>
-      </div>
-
       <AddHallModal
         isOpen={isAddModalOpen}
         onClose={handleCloseAddModal}
@@ -468,5 +452,3 @@ export default function HallManagementDashboard() {
     </div>
   );
 }
-
-    
