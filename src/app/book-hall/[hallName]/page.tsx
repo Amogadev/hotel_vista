@@ -221,7 +221,7 @@ export default function BookHallPage() {
     <div className="flex flex-col min-h-screen">
       <Topbar />
       <main className="flex-1 pt-14 flex items-center justify-center p-4">
-        <Card className="w-full max-w-4xl">
+        <Card className="w-full max-w-6xl">
           <CardHeader>
             <CardTitle>Book Hall: {hall.name}</CardTitle>
             <CardDescription>Enter the customer's details to book the hall.</CardDescription>
@@ -229,249 +229,259 @@ export default function BookHallPage() {
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                {/* Guest Details */}
-                <div className="space-y-4 rounded-md border p-4">
-                  <h3 className="text-lg font-semibold">Guest Details</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="customerName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Customer Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="John Smith" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="contact"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Contact Number</FormLabel>
-                          <FormControl>
-                            <Input type="tel" placeholder="9876543210" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <FormField
-                      control={form.control}
-                      name="idProof"
-                      render={({ field }) => (
-                          <FormItem>
-                          <FormLabel>ID Proof</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                              <SelectTrigger>
-                                  <SelectValue placeholder="Select ID type" />
-                              </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                              <SelectItem value="Aadhar">Aadhar</SelectItem>
-                              <SelectItem value="Passport">Passport</SelectItem>
-                              <SelectItem value="Driving License">Driving License</SelectItem>
-                              </SelectContent>
-                          </Select>
-                          <FormMessage />
-                          </FormItem>
-                      )}
-                      />
-                      <FormField
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                  {/* Left Column */}
+                  <div className="space-y-6">
+                    {/* Guest Details */}
+                    <div className="space-y-4 rounded-md border p-4">
+                      <h3 className="text-lg font-semibold">Guest Details</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
                           control={form.control}
-                          name="email"
+                          name="customerName"
                           render={({ field }) => (
-                          <FormItem>
-                              <FormLabel>Email</FormLabel>
+                            <FormItem>
+                              <FormLabel>Customer Name</FormLabel>
                               <FormControl>
-                              <Input type="email" placeholder="customer@example.com" {...field} />
+                                <Input placeholder="John Smith" {...field} />
                               </FormControl>
                               <FormMessage />
-                          </FormItem>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="contact"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Contact Number</FormLabel>
+                              <FormControl>
+                                <Input type="tel" placeholder="9876543210" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <FormField
+                          control={form.control}
+                          name="idProof"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>ID Proof</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                  <SelectTrigger>
+                                      <SelectValue placeholder="Select ID type" />
+                                  </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                  <SelectItem value="Aadhar">Aadhar</SelectItem>
+                                  <SelectItem value="Passport">Passport</SelectItem>
+                                  <SelectItem value="Driving License">Driving License</SelectItem>
+                                  </SelectContent>
+                              </Select>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                          />
+                          <FormField
+                              control={form.control}
+                              name="email"
+                              render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel>Email</FormLabel>
+                                  <FormControl>
+                                  <Input type="email" placeholder="customer@example.com" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                              </FormItem>
+                              )}
+                          />
+                      </div>
+                      <FormField
+                          control={form.control}
+                          name="purpose"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>Purpose of Booking</FormLabel>
+                              <FormControl>
+                                  <Textarea placeholder="e.g., Wedding Reception" {...field} />
+                              </FormControl>
+                              </FormItem>
                           )}
                       />
-                  </div>
-                  <FormField
-                      control={form.control}
-                      name="purpose"
-                      render={({ field }) => (
-                          <FormItem>
-                          <FormLabel>Purpose of Booking</FormLabel>
-                          <FormControl>
-                              <Textarea placeholder="e.g., Wedding Reception" {...field} />
-                          </FormControl>
-                          </FormItem>
-                      )}
-                  />
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <FormField
-                        control={form.control}
-                        name="checkInDate"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                            <FormLabel>Check-in Date</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                    variant={'outline'}
-                                    className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
-                                    >
-                                    {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                                </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="checkInTime"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Check-in Time</FormLabel>
-                          <FormControl>
-                            <Input type="time" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                     <FormField
-                        control={form.control}
-                        name="checkOutDate"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                            <FormLabel>Check-out Date</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                    variant={'outline'}
-                                    className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
-                                    >
-                                    {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < (watch('checkInDate') || new Date('1900-01-01'))} initialFocus />
-                                </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="checkOutTime"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Check-out Time</FormLabel>
-                          <FormControl>
-                            <Input type="time" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                </div>
-                </div>
-                
-                {/* Food Details */}
-                <div className="space-y-4 rounded-md border p-4">
-                  <h3 className="text-lg font-semibold">Food Details</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <FormField control={form.control} name="adults" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Adults</FormLabel>
-                        <FormControl><Input type="number" min="0" {...field} /></FormControl>
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="children" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Children</FormLabel>
-                        <FormControl><Input type="number" min="0" {...field} /></FormControl>
-                      </FormItem>
-                    )} />
-                  </div>
-                  <FormField control={form.control} name="foodPreference" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Food Preference</FormLabel>
-                      <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
-                          <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="veg" /></FormControl><FormLabel className="font-normal">Veg</FormLabel></FormItem>
-                          <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="non-veg" /></FormControl><FormLabel className="font-normal">Non-Veg</FormLabel></FormItem>
-                          <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="both" /></FormControl><FormLabel className="font-normal">Both</FormLabel></FormItem>
-                        </RadioGroup>
-                      </FormControl>
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="specialRequests" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Special Requests</FormLabel>
-                      <FormControl><Textarea placeholder="e.g., Allergen information, specific dishes" {...field} /></FormControl>
-                    </FormItem>
-                  )} />
-                </div>
-                
-                {/* Add-ons */}
-                <div className="space-y-4 rounded-md border p-4">
-                  <FormField control={form.control} name="addOns" render={() => (
-                    <FormItem>
-                      <div className="mb-4">
-                        <FormLabel className="text-lg font-semibold">Add-ons</FormLabel>
-                        <FormDescription>Select any additional services required.</FormDescription>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {addOnsList.map((item) => (
-                          <FormField key={item.id} control={form.control} name="addOns"
-                            render={({ field }) => {
-                              return (
-                                <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(item.id)}
-                                      onCheckedChange={(checked) => {
-                                        return checked
-                                          ? field.onChange([...field.value || [], item.id])
-                                          : field.onChange(field.value?.filter((value) => value !== item.id));
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">{item.label} (+₹{item.price.toLocaleString()})</FormLabel>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <FormField
+                            control={form.control}
+                            name="checkInDate"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                <FormLabel>Check-in Date</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button
+                                        variant={'outline'}
+                                        className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
+                                        >
+                                        {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
                                 </FormItem>
-                              );
-                            }}
-                          />
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                </div>
+                            )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="checkInTime"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Check-in Time</FormLabel>
+                              <FormControl>
+                                <Input type="time" {...field} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="checkOutDate"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                <FormLabel>Check-out Date</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button
+                                        variant={'outline'}
+                                        className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
+                                        >
+                                        {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < (watch('checkInDate') || new Date('1900-01-01'))} initialFocus />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="checkOutTime"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Check-out Time</FormLabel>
+                              <FormControl>
+                                <Input type="time" {...field} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                    </div>
+                    </div>
 
-                <Separator />
-                
-                {/* Estimated Bill */}
-                <div className="flex justify-end text-xl font-bold">
-                    <span>Estimated Bill: </span>
-                    <span className="ml-2 text-primary">₹{estimatedBill.toLocaleString()}</span>
+                    {/* Food Details */}
+                    <div className="space-y-4 rounded-md border p-4">
+                      <h3 className="text-lg font-semibold">Food Details</h3>
+                      <div className="grid grid-cols-2 gap-6">
+                        <FormField control={form.control} name="adults" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Adults</FormLabel>
+                            <FormControl><Input type="number" min="0" {...field} /></FormControl>
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="children" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Children</FormLabel>
+                            <FormControl><Input type="number" min="0" {...field} /></FormControl>
+                          </FormItem>
+                        )} />
+                      </div>
+                      <FormField control={form.control} name="foodPreference" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Food Preference</FormLabel>
+                          <FormControl>
+                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
+                              <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="veg" /></FormControl><FormLabel className="font-normal">Veg</FormLabel></FormItem>
+                              <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="non-veg" /></FormControl><FormLabel className="font-normal">Non-Veg</FormLabel></FormItem>
+                              <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="both" /></FormControl><FormLabel className="font-normal">Both</FormLabel></FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="specialRequests" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Special Requests</FormLabel>
+                          <FormControl><Textarea placeholder="e.g., Allergen information, specific dishes" {...field} /></FormControl>
+                        </FormItem>
+                      )} />
+                    </div>
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="space-y-6">
+                    {/* Add-ons */}
+                    <div className="space-y-4 rounded-md border p-4">
+                      <FormField control={form.control} name="addOns" render={() => (
+                        <FormItem>
+                          <div className="mb-4">
+                            <FormLabel className="text-lg font-semibold">Add-ons</FormLabel>
+                            <FormDescription>Select any additional services required.</FormDescription>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {addOnsList.map((item) => (
+                              <FormField key={item.id} control={form.control} name="addOns"
+                                render={({ field }) => {
+                                  return (
+                                    <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                      <FormControl>
+                                        <Checkbox
+                                          checked={field.value?.includes(item.id)}
+                                          onCheckedChange={(checked) => {
+                                            return checked
+                                              ? field.onChange([...field.value || [], item.id])
+                                              : field.onChange(field.value?.filter((value) => value !== item.id));
+                                          }}
+                                        />
+                                      </FormControl>
+                                      <FormLabel className="font-normal">{item.label} (+₹{item.price.toLocaleString()})</FormLabel>
+                                    </FormItem>
+                                  );
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
+
+                     {/* Estimated Bill */}
+                    <div className="space-y-2 rounded-md border p-4">
+                        <h3 className="text-lg font-semibold">Estimated Bill</h3>
+                        <Separator />
+                        <div className="flex justify-between items-center text-xl font-bold">
+                            <span>Total: </span>
+                            <span className="ml-2 text-primary">₹{estimatedBill.toLocaleString()}</span>
+                        </div>
+                    </div>
+                  </div>
                 </div>
                 
-                <div className="flex justify-end gap-2 pt-4">
+                <div className="flex justify-end gap-2 pt-8 border-t">
                   <Button type="button" variant="outline" onClick={() => router.back()}>
                     Cancel
                   </Button>
