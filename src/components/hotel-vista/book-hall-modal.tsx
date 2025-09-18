@@ -287,83 +287,87 @@ export function BookHallModal({ hall, isOpen, onClose, onHallBooked }: BookHallM
                                 </FormItem>
                             )}
                         />
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                            <FormField
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <FormField
+                                    control={form.control}
+                                    name="checkInDate"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                        <FormLabel>Check-in Date</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                variant={'outline'}
+                                                className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
+                                                >
+                                                {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
                                 control={form.control}
-                                name="checkInDate"
+                                name="checkInTime"
                                 render={({ field }) => (
-                                    <FormItem className="flex flex-col">
-                                    <FormLabel>Check-in Date</FormLabel>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button
-                                            variant={'outline'}
-                                            className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
-                                            >
-                                            {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
+                                    <FormItem>
+                                    <FormLabel>Check-in Time</FormLabel>
+                                    <FormControl>
+                                        <Input type="time" {...field} />
+                                    </FormControl>
                                     </FormItem>
                                 )}
-                            />
-                            <FormField
-                            control={form.control}
-                            name="checkInTime"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Check-in Time</FormLabel>
-                                <FormControl>
-                                    <Input type="time" {...field} />
-                                </FormControl>
-                                </FormItem>
-                            )}
-                            />
-                            <FormField
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <FormField
+                                    control={form.control}
+                                    name="checkOutDate"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                        <FormLabel>Check-out Date</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                variant={'outline'}
+                                                className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
+                                                >
+                                                {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < (watch('checkInDate') || new Date('1900-01-01'))} initialFocus />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
                                 control={form.control}
-                                name="checkOutDate"
+                                name="checkOutTime"
                                 render={({ field }) => (
-                                    <FormItem className="flex flex-col">
-                                    <FormLabel>Check-out Date</FormLabel>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button
-                                            variant={'outline'}
-                                            className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
-                                            >
-                                            {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < (watch('checkInDate') || new Date('1900-01-01'))} initialFocus />
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
+                                    <FormItem>
+                                    <FormLabel>Check-out Time</FormLabel>
+                                    <FormControl>
+                                        <Input type="time" {...field} />
+                                    </FormControl>
                                     </FormItem>
                                 )}
-                            />
-                            <FormField
-                            control={form.control}
-                            name="checkOutTime"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Check-out Time</FormLabel>
-                                <FormControl>
-                                    <Input type="time" {...field} />
-                                </FormControl>
-                                </FormItem>
-                            )}
-                            />
+                                />
+                            </div>
                         </div>
                         </div>
 
