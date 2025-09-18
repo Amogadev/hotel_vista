@@ -22,7 +22,7 @@ export const KotPrint = React.forwardRef<HTMLDivElement, KotPrintProps>(
         <div className="text-center space-y-1">
           <h1 className="text-sm font-bold">MAYILAI NILA MANAMAGIL</h1>
           <h2 className="text-sm font-bold">MANDRAM</h2>
-          <p className="text-xs">KOT</p>
+          <p className="text-xs">Kitchen Order Ticket</p>
         </div>
 
         <div className="flex justify-between my-4 border-t border-b border-dashed py-1">
@@ -63,4 +63,3 @@ export const KotPrint = React.forwardRef<HTMLDivElement, KotPrintProps>(
 );
 
 KotPrint.displayName = 'KotPrint';
-

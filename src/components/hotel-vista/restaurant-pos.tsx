@@ -136,7 +136,7 @@ export default function RestaurantPOS() {
              toast({
                 variant: 'destructive',
                 title: "Error",
-                description: (error as Error).message || "Failed to save and print KOT.",
+                description: (error as Error).message || "Failed to save and print.",
             })
         }
     })
@@ -296,7 +296,7 @@ export default function RestaurantPOS() {
             <div className="grid grid-cols-2 gap-2">
                 <Button variant="secondary" onClick={handleSaveAndPrintKot} disabled={isPending}>
                     {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save &amp; Print KOT
+                    Save &amp; Print
                 </Button>
                 <Button variant="destructive" onClick={clearOrder}>Clear</Button>
             </div>
