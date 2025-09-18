@@ -49,6 +49,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { useRouter } from 'next/navigation';
 
 const statusColorMap: { [key: string]: string } = {
   Booked: 'bg-red-100 text-red-800 border-red-200',
@@ -121,6 +122,7 @@ export default function HallManagementDashboard() {
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleOpenAddModal = () => setIsAddModalOpen(true);
   const handleCloseAddModal = () => setIsAddModalOpen(false);
@@ -283,7 +285,7 @@ export default function HallManagementDashboard() {
 
   const handleAction = (action: 'book' | 'maintenance' | 'cancel', hall: Hall) => {
     if (action === 'book') {
-        handleEditHall(hall);
+        router.push(`/book-hall/${hall.name}`);
         return;
     }
 
