@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useTransition } from 'react';
+import { useTransition, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -33,8 +33,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { addHall } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Checkbox } from '../ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Calendar } from '../ui/calendar';
+import { cn } from '@/lib/utils';
+import { format, differenceInCalendarDays } from 'date-fns';
+
 
 const facilitiesList = ['Projector', 'Sound System', 'AC', 'Whiteboard', 'TV'];
 
@@ -44,6 +49,10 @@ const hallSchema = z.object({
   facilities: z.array(z.string()).min(1, 'At least one facility is required'),
   price: z.coerce.number().min(1, 'Price must be greater than 0'),
   status: z.enum(['Available', 'Booked', 'Maintenance']),
+  customerName: z.string().optional(),
+  checkIn: z.date().optional(),
+  checkOut: z.date().optional(),
+  totalPrice: z.coerce.number().optional(),
 });
 
 export type HallFormValues = z.infer<typeof hallSchema>;
@@ -65,13 +74,51 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
       facilities: [],
       price: 5000,
       status: 'Available',
+      customerName: '',
+      totalPrice: 0,
     },
   });
+
+  const { watch, setValue } = form;
+  const customerName = watch('customerName');
+  const checkIn = watch('checkIn');
+  const checkOut = watch('checkOut');
+  const price = watch('price');
+  const status = watch('status');
+  const totalPrice = watch('totalPrice');
+
+  useEffect(() => {
+    const hasBookingDetails = customerName || checkIn || checkOut;
+    if (hasBookingDetails && status !== 'Booked') {
+      setValue('status', 'Booked');
+    } else if (!hasBookingDetails && status === 'Booked') {
+      setValue('status', 'Available');
+    }
+  }, [customerName, checkIn, checkOut, status, setValue]);
+
+  useEffect(() => {
+    if (checkIn && checkOut && price > 0) {
+      const days = differenceInCalendarDays(checkOut, checkIn);
+       if (days >= 0) {
+        const hours = (days + 1) * 24; // Assuming full day bookings
+        setValue('totalPrice', price * hours);
+      } else {
+        setValue('totalPrice', 0);
+      }
+    } else {
+      setValue('totalPrice', 0);
+    }
+  }, [checkIn, checkOut, price, setValue]);
 
   const onSubmit = (values: HallFormValues) => {
     startTransition(async () => {
       try {
-        const result = await addHall(values);
+        const result = await addHall({
+          ...values,
+          checkIn: values.checkIn ? values.checkIn.toISOString() : undefined,
+          checkOut: values.checkOut ? values.checkOut.toISOString() : undefined,
+        });
+
         if (result.success && result.hall) {
           toast({
             title: 'Hall Added',
@@ -99,7 +146,7 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
         <DialogHeader>
           <DialogTitle>Add New Hall</DialogTitle>
           <DialogDescription>
-            Enter the details for the new hall.
+            Enter the details for the new hall. Fill booking info to auto-set status to Booked.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -206,6 +253,73 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
                 </FormItem>
               )}
             />
+
+            <div className="space-y-2 rounded-md border p-4">
+                 <h4 className="font-medium text-sm">Booking Information</h4>
+                <FormField
+                control={form.control}
+                name="customerName"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Customer Name</FormLabel>
+                    <FormControl>
+                        <Input placeholder="e.g., John Smith" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                    control={form.control}
+                    name="checkIn"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>From</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={'outline'}
+                                className={cn( 'w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground' )}>
+                                {field.value ? (format(field.value, 'PPP')) : (<span>Pick a date</span>)}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="checkOut"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>To</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button variant={'outline'} className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                {field.value ? (format(field.value, 'PPP')) : (<span>Pick a date</span>)}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < (checkIn || new Date('1900-01-01'))} initialFocus />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+            </div>
             
             <FormField
                 control={form.control}
@@ -213,7 +327,7 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={!!(customerName || checkIn || checkOut)}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Select a status" />
@@ -229,6 +343,12 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
                     </FormItem>
                 )}
             />
+
+            {totalPrice > 0 && (
+                <div className="col-span-2 text-lg font-semibold text-center bg-muted p-2 rounded-md">
+                    Total Price: <span className="text-primary">₹{totalPrice.toLocaleString()}</span>
+                </div>
+            )}
 
             <DialogFooter className="col-span-1 md:col-span-2 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
