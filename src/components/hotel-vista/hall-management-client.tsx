@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useMemo, useContext, useTransition } from 'react';
@@ -54,10 +55,10 @@ import { useRouter } from 'next/navigation';
 const statusFilters = ['All', 'Available', 'Occupied', 'Booked', 'Maintenance'];
 
 const statusColorMap: { [key: string]: string } = {
-  Booked: 'bg-red-100 text-gray-700 border-red-200',
-  Available: 'bg-blue-100 text-gray-700 border-blue-200',
-  Maintenance: 'bg-yellow-100 text-gray-700 border-yellow-200',
-  Occupied: 'bg-green-100 text-gray-700 border-green-200',
+    Booked: 'bg-red-100 text-gray-700 border-red-200',
+    Available: 'bg-blue-100 text-gray-700 border-blue-200',
+    Maintenance: 'bg-yellow-100 text-gray-700 border-yellow-200',
+    Occupied: 'bg-green-100 text-gray-700 border-green-200',
 };
 
 function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availability }: { hall: Hall, onViewHall: (hall: Hall) => void, onEditHall: (hall: Hall) => void, onDeleteHall: (hall: Hall) => void, onAction: (action: 'book' | 'maintenance' | 'cancel', hall: Hall) => void, availability?: { status: 'Occupied' | 'Available' | 'Maintenance' | 'Booked', customerName?: string } }) {
@@ -163,9 +164,9 @@ export default function HallManagementDashboard() {
             if (isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
                 status = 'Occupied';
                 customerName = hall.customerName;
-            } else if (isFuture(checkInDate)){
-                status = 'Booked';
-                customerName = hall.customerName;
+            } else if (isFuture(checkInDate) && isSameDay(selectedDate, checkInDate)) {
+                 status = 'Booked';
+                 customerName = hall.customerName;
             }
         }
         
@@ -181,12 +182,21 @@ export default function HallManagementDashboard() {
     let hallStatusFilter = (hall: Hall) => {
         if (activeFilter === 'All') return true;
 
-        const hallAvailability = hallAvailabilities?.get(hall.id);
-        const statusToCheck = hallAvailability ? hallAvailability.status : hall.status;
+        if (selectedDate && hallAvailabilities) {
+            const availability = hallAvailabilities.get(hall.id);
+            return availability?.status === activeFilter;
+        }
 
+        const statusToCheck = hall.status;
+        
+        if (activeFilter === 'Booked') {
+            return statusToCheck === 'Booked' && hall.checkIn && typeof hall.checkIn === 'string' && isValid(parseISO(hall.checkIn)) && isFuture(startOfDay(parseISO(hall.checkIn)));
+        }
         if (activeFilter === 'Occupied') {
-            if (hallAvailability) return hallAvailability.status === 'Occupied';
-            return statusToCheck === 'Occupied' || (hall.status === 'Booked' && hall.checkIn && typeof hall.checkIn === 'string' && isToday(parseISO(hall.checkIn)));
+            if(statusToCheck === 'Booked' && hall.checkIn && typeof hall.checkIn === 'string' && isValid(parseISO(hall.checkIn)) && isToday(startOfDay(parseISO(hall.checkIn)))) {
+                return true;
+            }
+            return statusToCheck === 'Occupied';
         }
         
         return statusToCheck === activeFilter;
@@ -202,7 +212,7 @@ export default function HallManagementDashboard() {
     }
 
     return hallsToDisplay;
-  }, [halls, searchTerm, activeFilter, hallAvailabilities]);
+  }, [halls, searchTerm, activeFilter, selectedDate, hallAvailabilities]);
 
   const stats = useMemo(() => {
     const date = selectedDate || new Date();
@@ -227,11 +237,12 @@ export default function HallManagementDashboard() {
                  availableCount++;
             }
         });
-    } else {
+    } else { // No date selected, show current status
         bookedCount = halls.filter(h => h.status === 'Booked' && h.checkIn && typeof h.checkIn === 'string' && isValid(parseISO(h.checkIn)) && isFuture(startOfDay(parseISO(h.checkIn)))).length;
         occupiedCount = halls.filter(h => {
             if (h.status !== 'Booked' || !h.checkIn || typeof h.checkIn !== 'string' || !isValid(parseISO(h.checkIn))) return false;
-            return isToday(startOfDay(parseISO(h.checkIn))) || isWithinInterval(new Date(), { start: startOfDay(parseISO(h.checkIn)), end: endOfDay(parseISO(h.checkOut || h.checkIn)) });
+            if (isToday(startOfDay(parseISO(h.checkIn)))) return true;
+            return isWithinInterval(new Date(), { start: startOfDay(parseISO(h.checkIn)), end: endOfDay(parseISO(h.checkOut || h.checkIn)) });
         }).length;
         availableCount = halls.filter(h => h.status === 'Available').length;
     }
