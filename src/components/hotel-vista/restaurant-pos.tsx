@@ -37,7 +37,7 @@ export default function RestaurantPOS() {
   const [searchTerm, setSearchTerm] = useState('');
   const [acCharges, setAcCharges] = useState(false);
   const [selectedTable, setSelectedTable] = useState('TABLE-1');
-  const [selectedWaiter, setSelectedWaiter] = useState('DEF-WAITER');
+  const [selectedWaiter, setSelectedWaiter] = useState('WAITER 1');
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
@@ -101,8 +101,8 @@ export default function RestaurantPOS() {
 
   const handlePrint = useReactToPrint({
     content: () => {
-      const component = <KotPrint {...kotData} />;
-      return component as any;
+      const componentToPrint = <KotPrint {...kotData} />;
+      return componentToPrint as any;
     },
   });
 
@@ -230,8 +230,9 @@ export default function RestaurantPOS() {
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="DEF-WAITER">DEF-WAITER</SelectItem>
-                            <SelectItem value="WAITER-2">WAITER-2</SelectItem>
+                            <SelectItem value="WAITER 1">WAITER 1</SelectItem>
+                            <SelectItem value="WAITER 2">WAITER 2</SelectItem>
+                            <SelectItem value="WAITER 3">WAITER 3</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
