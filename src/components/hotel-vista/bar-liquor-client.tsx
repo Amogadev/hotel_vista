@@ -34,7 +34,7 @@ export default function BarPOS() {
   const { inventoryItems, setInventoryItems, rooms, recentSales, setRecentSales } = useContext(DataContext);
   const [currentSale, setCurrentSale] = useState<SaleItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRoom, setSelectedRoom] = useState('direct-sale');
+  const [selectedRoom, setSelectedRoom] = useState('');
   const [isRecordSaleModalOpen, setIsRecordSaleModalOpen] = useState(false);
   
   const { toast } = useToast();
@@ -148,7 +148,7 @@ export default function BarPOS() {
   
   const clearSale = () => {
     setCurrentSale([]);
-    setSelectedRoom('direct-sale');
+    setSelectedRoom('');
   };
 
   const updateQuantity = (itemName: string, quantity: number) => {
@@ -200,14 +200,14 @@ export default function BarPOS() {
         date: new Date(),
         items: currentSale.map(item => ({ name: item.name, quantity: item.quantity, price: item.price })),
         total,
-        room: selectedRoom !== 'direct-sale' ? selectedRoom : undefined,
+        room: selectedRoom && selectedRoom !== '' ? selectedRoom : undefined,
     };
     
     handlePrint(receiptData);
   };
 
   const handleSaleRecorded = async () => {
-    const roomToCharge = selectedRoom === 'direct-sale' ? undefined : selectedRoom;
+    const roomToCharge = selectedRoom && selectedRoom !== '' ? selectedRoom : undefined;
 
     const salePromises = currentSale.map(item => 
       recordBarSale({
@@ -326,7 +326,6 @@ export default function BarPOS() {
                             <SelectValue placeholder="Select a room" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="direct-sale">None (Direct Sale)</SelectItem>
                             {rooms.filter(r => r.status === 'Occupied').map(room => (
                                 <SelectItem key={room.number} value={room.number}>
                                     Room {room.number} ({room.guest})
@@ -394,10 +393,8 @@ export default function BarPOS() {
             onSaleRecorded={handleSaleRecorded}
             saleItems={currentSale}
             total={total}
-            room={selectedRoom === 'direct-sale' ? undefined : selectedRoom}
+            room={selectedRoom && selectedRoom !== '' ? selectedRoom : undefined}
         />
       </main>
   );
 }
-
-    

@@ -63,11 +63,15 @@ export function RecordSaleModal({ isOpen, onClose, onSaleRecorded, saleItems, to
                 <p>Total</p>
                 <p>₹{total.toFixed(2)}</p>
             </div>
-            {room && (
+            {room ? (
                 <div className="flex justify-between items-center text-sm text-muted-foreground border-t pt-4">
                     <p className="flex items-center gap-2"><Bed className="h-4 w-4" /> Charge to Room</p>
                     <p className="font-medium">{room}</p>
                 </div>
+            ) : (
+              <div className="flex justify-between items-center text-sm text-muted-foreground border-t pt-4">
+                  <p className="flex items-center gap-2"><Wine className="h-4 w-4" /> Direct Sale</p>
+              </div>
             )}
         </div>
         <DialogFooter className="pt-4">
