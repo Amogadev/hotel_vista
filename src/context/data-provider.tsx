@@ -40,7 +40,6 @@ export type Hall = {
     adults?: number;
     children?: number;
     foodPreference?: 'veg' | 'non-veg' | 'both';
-    specialRequests?: string;
     addOns?: string[];
     foodCost?: number;
 };
@@ -486,7 +485,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                         delete cleanedHall.adults;
                         delete cleanedHall.children;
                         delete cleanedHall.foodPreference;
-                        delete cleanedHall.specialRequests;
                         delete cleanedHall.addOns;
                         delete cleanedHall.foodCost;
                     }

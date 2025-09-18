@@ -66,7 +66,6 @@ const bookHallSchema = z.object({
   adults: z.coerce.number().min(0, 'Cannot be negative'),
   children: z.coerce.number().min(0, 'Cannot be negative'),
   foodPreference: z.enum(['veg', 'non-veg', 'both']).optional(),
-  specialRequests: z.string().optional(),
   addOns: z.array(z.string()).optional(),
 });
 
@@ -102,7 +101,6 @@ export function BookHallModal({ hall, isOpen, onClose, onHallBooked }: BookHallM
       adults: 0,
       children: 0,
       foodPreference: 'veg',
-      specialRequests: '',
       addOns: [],
     }
   });
@@ -167,7 +165,6 @@ export function BookHallModal({ hall, isOpen, onClose, onHallBooked }: BookHallM
           adults: values.adults,
           children: values.children,
           foodPreference: values.foodPreference,
-          specialRequests: values.specialRequests,
           addOns: values.addOns,
           foodCost: foodCost,
         };
@@ -396,12 +393,6 @@ export function BookHallModal({ hall, isOpen, onClose, onHallBooked }: BookHallM
                                 <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="both" /></FormControl><FormLabel className="font-normal">Both</FormLabel></FormItem>
                                 </RadioGroup>
                             </FormControl>
-                            </FormItem>
-                        )} />
-                        <FormField control={form.control} name="specialRequests" render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Special Requests</FormLabel>
-                            <FormControl><Textarea placeholder="e.g., Allergen information, specific dishes" {...field} /></FormControl>
                             </FormItem>
                         )} />
                         </div>

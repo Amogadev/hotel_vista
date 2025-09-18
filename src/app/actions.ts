@@ -450,7 +450,6 @@ export async function updateHall(updatedHall: {
     adults?: number;
     children?: number;
     foodPreference?: 'veg' | 'non-veg' | 'both';
-    specialRequests?: string;
     addOns?: string[];
     foodCost?: number;
 }) {
@@ -498,4 +497,3 @@ export async function deleteHall(hallName: string) {
     
 
     
-
