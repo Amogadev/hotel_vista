@@ -110,9 +110,18 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Hall Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Grand Ballroom" {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a hall name" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Grand Ballroom">Grand Ballroom</SelectItem>
+                      <SelectItem value="Conference Room">Conference Room</SelectItem>
+                      <SelectItem value="Meeting Room">Meeting Room</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -236,5 +245,3 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
     </Dialog>
   );
 }
-
-    
