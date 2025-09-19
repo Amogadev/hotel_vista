@@ -53,13 +53,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import { BookHallModal } from './book-hall-modal';
 
-const statusFilters = ['All', 'Available', 'Occupied', 'Booked', 'Maintenance'];
+const statusFilters = ['All', 'Available', 'Occupied', 'Booked', 'Cleaning', 'Maintenance'];
 
 const statusColorMap: { [key: string]: string } = {
     Booked: 'bg-red-100 text-gray-700 border-red-200',
     Available: 'bg-blue-100 text-gray-700 border-blue-200',
     Maintenance: 'bg-yellow-100 text-gray-700 border-yellow-200',
     Occupied: 'bg-green-100 text-gray-700 border-green-200',
+    Cleaning: 'bg-yellow-100 text-gray-700 border-yellow-200',
 };
 
 function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availability }: { hall: Hall, onViewHall: (hall: Hall) => void, onEditHall: (hall: Hall) => void, onDeleteHall: (hall: Hall) => void, onAction: (action: 'book' | 'maintenance' | 'cancel', hall: Hall) => void, availability?: { status: 'Occupied' | 'Available' | 'Booked', customerName?: string } }) {
@@ -69,7 +70,7 @@ function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availa
     onAction('book', hall);
   };
   
-  let displayStatus: 'Occupied' | 'Available' | 'Booked' | 'Maintenance' = availability ? availability.status : hall.status;
+  let displayStatus: 'Occupied' | 'Available' | 'Booked' | 'Maintenance' | 'Cleaning' = availability ? availability.status : hall.status;
   if (hall.status === 'Booked' && hall.checkIn && hall.checkOut && isWithinInterval(new Date(), { start: parseISO(hall.checkIn), end: parseISO(hall.checkOut) })) {
       displayStatus = 'Occupied';
   }
@@ -216,7 +217,7 @@ export default function HallManagementDashboard() {
 
     if (activeFilter !== 'All') {
         hallsToDisplay = hallsToDisplay.filter(hall => {
-            let currentStatus: 'Occupied' | 'Available' | 'Booked' | 'Maintenance' = hall.status;
+            let currentStatus: 'Occupied' | 'Available' | 'Booked' | 'Maintenance' | 'Cleaning' = hall.status;
             if (hall.status === 'Booked' && hall.checkIn && hall.checkOut && typeof hall.checkIn === 'string' && typeof hall.checkOut === 'string' && isValid(parseISO(hall.checkIn)) && isValid(parseISO(hall.checkOut))) {
                  if (isWithinInterval(new Date(), { start: startOfDay(parseISO(hall.checkIn)), end: endOfDay(parseISO(hall.checkOut)) })) {
                     currentStatus = 'Occupied';
@@ -484,7 +485,7 @@ export default function HallManagementDashboard() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search by Hall Name or Customer..."
+              placeholder="Search by Hall Name, Customer, or Status..."
               className="w-full rounded-lg bg-background pl-8 md:w-[300px]"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -570,3 +571,5 @@ export default function HallManagementDashboard() {
     </div>
   );
 }
+
+    
