@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useMemo, useContext, useTransition, useRef } from 'react';
@@ -158,16 +159,67 @@ export default function BarPOS() {
         });
         return;
     }
-
-    const receiptData: BarReceiptPrintProps = {
-        billNo: `BAR-${Date.now()}`,
-        date: new Date(),
-        items: currentSale.map(item => ({ name: item.name, quantity: item.quantity, price: item.price })),
-        total,
-        room: selectedRoom ? selectedRoom : undefined,
-    };
     
-    handlePrint(receiptData);
+    startTransition(async () => {
+        try {
+            for (const item of currentSale) {
+                const result = await recordBarSale({
+                    name: item.name,
+                    qty: item.quantity,
+                    price: item.price * item.quantity,
+                    room: selectedRoom || undefined,
+                });
+                if (!result.success) throw new Error(`Failed to record sale for ${item.name}`);
+
+                const product = inventoryItems.find(p => p.name === item.name);
+                if (product) {
+                    await updateBarProductStock(item.name, product.stock - item.quantity);
+                }
+            }
+
+            const receiptData: BarReceiptPrintProps = {
+                billNo: `BAR-${Date.now()}`,
+                date: new Date(),
+                items: currentSale.map(item => ({ name: item.name, quantity: item.quantity, price: item.price })),
+                total,
+                room: selectedRoom ? selectedRoom : undefined,
+            };
+            
+            handlePrint(receiptData);
+
+            toast({
+                title: "Sale Recorded",
+                description: "The bar sale has been successfully recorded and stock updated.",
+            });
+
+            // Optimistic updates
+            setInventoryItems(prev => prev.map(p => {
+                const soldItem = currentSale.find(s => s.name === p.name);
+                if (soldItem) {
+                    return { ...p, stock: p.stock - soldItem.quantity };
+                }
+                return p;
+            }));
+            const newSales = currentSale.map(item => ({
+                name: item.name,
+                qty: item.quantity,
+                price: item.price * item.quantity,
+                room: selectedRoom || undefined,
+                time: new Date(),
+            }));
+            // @ts-ignore
+            setRecentSales(prev => [...newSales, ...prev]);
+
+            clearSale();
+
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: (error as Error).message || "Failed to finalize the sale.",
+            });
+        }
+    });
   };
 
 
@@ -175,7 +227,7 @@ export default function BarPOS() {
     <main className="h-screen overflow-hidden flex bg-background font-sans">
       <div className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-foreground">Bar &amp; Liquor</h1>
+            <h1 className="text-2xl font-bold text-foreground">Bar &amp; Liquor Sales</h1>
             <Button variant="ghost" asChild>
                 <Link href="/"><LogOut className="mr-2" /> Exit</Link>
             </Button>
@@ -220,7 +272,7 @@ export default function BarPOS() {
         </div>
       </div>
 
-      <aside className="w-96 bg-card border-l border-border flex flex-col">
+      <aside className="w-80 bg-card border-l border-border flex flex-col">
         <div className="p-6">
             <h2 className="text-xl font-bold text-foreground mb-4">Current Order</h2>
             <div className="space-y-4">

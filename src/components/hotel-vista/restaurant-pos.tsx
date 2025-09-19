@@ -352,7 +352,7 @@ export default function RestaurantPOS() {
               );
             }) : (
                 <div className="text-center text-muted-foreground mt-10">
-                    <p>No items in order.</p>
+                    <p>No item</p>
                 </div>
             )}
         </div>

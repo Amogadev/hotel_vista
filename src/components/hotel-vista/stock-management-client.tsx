@@ -195,19 +195,19 @@ export default function StockManagementDashboard() {
       items = items.filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
     }
 
-    return items;
+    return items.map(item => ({...item, status: getStatus(item.current, item.min)}));
   }, [activeFilter, searchTerm, stockItems]);
 
   const stats = useMemo(() => {
     return [
       {
         title: 'Critical Stock',
-        value: stockItems.filter(i => i.status === 'critical').length.toString(),
+        value: stockItems.filter(i => getStatus(i.current, i.min) === 'critical').length.toString(),
         icon: <AlertTriangle className="h-6 w-6 text-red-500" />,
       },
       {
         title: 'Low Stock',
-        value: stockItems.filter(i => i.status === 'low').length.toString(),
+        value: stockItems.filter(i => getStatus(i.current, i.min) === 'low').length.toString(),
         icon: <TrendingDown className="h-6 w-6 text-yellow-500" />,
       },
       {
