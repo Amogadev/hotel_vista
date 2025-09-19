@@ -15,7 +15,7 @@ import { Sofa, User, Lock, Eye, EyeOff } from 'lucide-react';
 import AnimatedShapes from '@/components/hotel-vista/animated-shapes';
 
 const users = [
-  { username: 'admin', password: 'admin', role: 'admin', redirect: '/' },
+  { username: 'admin', password: 'admin', role: 'admin', redirect: '/dashboard' },
   { username: 'staff', password: 'staff', role: 'reception', redirect: '/room-management' },
   { username: 'hotel', password: 'hotel', role: 'restaurant', redirect: '/restaurant' },
   { username: 'bar', password: 'bar', role: 'bar', redirect: '/bar-liquor' },

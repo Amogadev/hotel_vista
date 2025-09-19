@@ -23,7 +23,7 @@ import { Separator } from '../ui/separator';
 
 const allMenuItems = [
   {
-    href: '/',
+    href: '/dashboard',
     label: 'Dashboard',
     icon: Home,
     roles: ['admin'],
