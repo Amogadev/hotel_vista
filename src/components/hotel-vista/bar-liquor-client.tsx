@@ -2,8 +2,9 @@
 
 'use client';
 
-import React, { useState, useMemo, useContext, useTransition, useRef } from 'react';
+import React, { useState, useMemo, useContext, useTransition, useRef, useEffect } from 'react';
 import { renderToString } from 'react-dom/server';
+import { useRouter } from 'next/navigation';
 import {
   Search,
   Plus,
@@ -26,7 +27,6 @@ import { DataContext, InventoryItem as InventoryItemType } from '@/context/data-
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { recordBarSale, updateBarProductStock } from '@/app/actions';
-import { RecordSaleModal } from './record-sale-modal';
 import { BarReceiptPrint, type BarReceiptPrintProps } from './bar-receipt-print';
 
 type SaleItem = InventoryItemType & { quantity: number };
@@ -36,6 +36,16 @@ export default function BarPOS() {
   const [currentSale, setCurrentSale] = useState<SaleItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRoom, setSelectedRoom] = useState('');
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userRole = localStorage.getItem('userRole');
+      if (!userRole) {
+        router.push('/login');
+      }
+    }
+  }, [router]);
   
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
@@ -224,7 +234,7 @@ export default function BarPOS() {
 
 
   return (
-    <main className="h-screen overflow-hidden flex bg-background font-sans">
+    <main className="h-full overflow-hidden flex bg-background font-sans">
       <div className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-foreground">Bar &amp; Liquor Sales</h1>

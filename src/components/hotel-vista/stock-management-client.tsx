@@ -2,7 +2,8 @@
 
 'use client';
 
-import React, { useState, useMemo, useContext, useTransition } from 'react';
+import React, { useState, useMemo, useContext, useTransition, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DataContext, type StockItem as StockItemType } from '@/context/data-provider';
 import {
   AlertTriangle,
@@ -73,6 +74,16 @@ export default function StockManagementDashboard() {
   const [deletingItem, setDeletingItem] = useState<StockItemType | null>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userRole = localStorage.getItem('userRole');
+      if (!userRole) {
+        router.push('/login');
+      }
+    }
+  }, [router]);
 
   const handlePrintReport = () => {
     const printWindow = window.open('', '', 'height=600,width=800');
@@ -374,5 +385,3 @@ export default function StockManagementDashboard() {
     </div>
   );
 }
-
-    

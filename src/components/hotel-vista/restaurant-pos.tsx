@@ -2,8 +2,9 @@
 
 'use client';
 
-import React, { useState, useMemo, useContext, useTransition, useRef } from 'react';
+import React, { useState, useMemo, useContext, useTransition, useRef, useEffect } from 'react';
 import { renderToString } from 'react-dom/server';
+import { useRouter } from 'next/navigation';
 import {
   Search,
   Plus,
@@ -33,7 +34,7 @@ import { BillModal } from './bill-modal';
 type OrderItem = MenuItemType & { quantity: number };
 
 export default function RestaurantPOS() {
-  const { menuItems: allMenuItems, activeOrders, setActiveOrders } = useContext(DataContext);
+  const { menuItems: allMenuItems, activeOrders, setActiveOrders, rooms } = useContext(DataContext);
   const [currentOrder, setCurrentOrder] = useState<OrderItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [acCharges, setAcCharges] = useState(false);
@@ -42,6 +43,16 @@ export default function RestaurantPOS() {
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userRole = localStorage.getItem('userRole');
+      if (!userRole) {
+        router.push('/login');
+      }
+    }
+  }, [router]);
 
   const handlePrint = (kotData: KotPrintProps) => {
     const printWindow = window.open('', '_blank');
@@ -165,8 +176,12 @@ export default function RestaurantPOS() {
 
     startTransition(async () => {
         try {
+            const tableNumber = selectedTable.startsWith('Room') 
+                ? parseInt(selectedTable.split(' ')[1]) 
+                : parseInt(selectedTable.split('-')[1]);
+
             const newOrderPayload = {
-                table: parseInt(selectedTable.split('-')[1]),
+                table: tableNumber,
                 items: currentOrder.map(item => `${item.quantity}x ${item.name}`).join(', '),
                 price: total,
             }
@@ -179,9 +194,8 @@ export default function RestaurantPOS() {
                     status: 'pending',
                     table: newOrderPayload.table,
                     items: newOrderPayload.items,
-                    price: `₹${newOrderPayload.price.toFixed(2)}`,
+                    price: newOrderPayload.price,
                     time: new Date(),
-                    icon: <></>,
                 };
                 setActiveOrders(prev => [...prev, newActiveOrder]);
 
@@ -231,15 +245,22 @@ export default function RestaurantPOS() {
   const currentActiveOrderForBill: ActiveOrder = {
     id: `ORD${(activeOrders.length + 1).toString().padStart(3, '0')}`,
     status: 'pending',
-    table: parseInt(selectedTable.split('-')[1]) || 0,
+    table: parseInt(selectedTable.split(/[- ]/)[1]) || 0,
     items: currentOrder.map(i => `${i.quantity}x ${i.name}`).join(', '),
     time: new Date(),
-    price: `₹${total.toFixed(2)}`,
-    icon: <></>,
+    price: total,
   };
 
+  const tableOptions = useMemo(() => {
+    const tables = Array.from({ length: 10 }, (_, i) => `TABLE-${i + 1}`);
+    const occupiedRooms = rooms
+        .filter(r => r.status === 'Occupied' && r.guest)
+        .map(r => `Room ${r.number}`);
+    return [...tables, ...occupiedRooms];
+  }, [rooms]);
+
   return (
-    <main className="h-screen overflow-hidden flex bg-background font-sans">
+    <main className="h-full overflow-hidden flex bg-background font-sans">
       {/* Main Content */}
       <div className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
@@ -305,9 +326,9 @@ export default function RestaurantPOS() {
                             <SelectValue placeholder="Select a table" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="TABLE-1">TABLE-1</SelectItem>
-                            <SelectItem value="TABLE-2">TABLE-2</SelectItem>
-                            <SelectItem value="TABLE-3">TABLE-3</SelectItem>
+                            {tableOptions.map(option => (
+                                <SelectItem key={option} value={option}>{option}</SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 </div>
@@ -352,7 +373,7 @@ export default function RestaurantPOS() {
               );
             }) : (
                 <div className="text-center text-muted-foreground mt-10">
-                    <p>No item</p>
+                    <p>No items in order</p>
                 </div>
             )}
         </div>

@@ -2,7 +2,8 @@
 
 'use client';
 
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo, useContext, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DataContext, Room } from '@/context/data-provider';
 import {
   Card,
@@ -25,9 +26,19 @@ import { Bed, Utensils, Wine, FileText } from 'lucide-react';
 import { InvoiceModal } from './invoice-modal';
 
 export default function CheckoutDashboard() {
-  const { rooms, recentSales, totalBill } = useContext(DataContext);
+  const { rooms, recentSales, activeOrders } = useContext(DataContext);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userRole = localStorage.getItem('userRole');
+      if (!userRole) {
+        router.push('/login');
+      }
+    }
+  }, [router]);
 
   const occupiedRooms = useMemo(() => rooms.filter(room => room.status === 'Occupied'), [rooms]);
 
@@ -43,9 +54,9 @@ export default function CheckoutDashboard() {
     const barCharges = recentSales
       .filter(sale => sale.room === selectedRoom.number)
       .reduce((acc, sale) => acc + sale.price, 0);
-    const restaurantCharges = totalBill
-        .filter(bill => bill.room === selectedRoom.number)
-        .reduce((acc, bill) => acc + bill.restaurant, 0);
+    const restaurantCharges = activeOrders
+        .filter(order => `Room ${order.table}` === selectedRoom.number) // This logic might need adjustment based on how rooms are associated with orders
+        .reduce((acc, order) => acc + order.price, 0);
 
     const grandTotal = roomRate + barCharges + restaurantCharges;
 
@@ -55,7 +66,7 @@ export default function CheckoutDashboard() {
       restaurant: restaurantCharges,
       total: grandTotal,
     };
-  }, [selectedRoom, recentSales, totalBill]);
+  }, [selectedRoom, recentSales, activeOrders]);
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">

@@ -48,7 +48,7 @@ export type Hall = {
 export type MenuItem = {
     name: string;
     category: string;
-    price: string;
+    price: number;
     status: string;
 };
 
@@ -58,8 +58,7 @@ export type ActiveOrder = {
     table: number;
     items: string;
     time: Date;
-    price: string;
-    icon: React.ReactNode;
+    price: number;
 };
 
 export type InventoryItem = {
@@ -163,57 +162,56 @@ const initialHalls: Hall[] = [
 
 const initialMenuItems: MenuItem[] = [
     // Starters
-    { name: 'Chicken 65', category: 'Starters', price: '₹250', status: 'Available' },
-    { name: 'Paneer Tikka', category: 'Starters', price: '₹220', status: 'Available' },
-    { name: 'Gobi Manchurian', category: 'Starters', price: '₹180', status: 'Available' },
-    { name: 'Fish Finger', category: 'Starters', price: '₹280', status: 'Available' },
-    { name: 'Spring Rolls', category: 'Starters', price: '₹160', status: 'Available' },
+    { name: 'Chicken 65', category: 'Starters', price: 250, status: 'Available' },
+    { name: 'Paneer Tikka', category: 'Starters', price: 220, status: 'Available' },
+    { name: 'Gobi Manchurian', category: 'Starters', price: 180, status: 'Available' },
+    { name: 'Fish Finger', category: 'Starters', price: 280, status: 'Available' },
+    { name: 'Spring Rolls', category: 'Starters', price: 160, status: 'Available' },
   
     // Main Course – Indian
-    { name: 'Butter Chicken with Naan', category: 'Main Course – Indian', price: '₹450', status: 'Available' },
-    { name: 'Paneer Butter Masala', category: 'Main Course – Indian', price: '₹380', status: 'Available' },
-    { name: 'Mutton Rogan Josh', category: 'Main Course – Indian', price: '₹550', status: 'Available' },
-    { name: 'Vegetable Biryani', category: 'Main Course – Indian', price: '₹320', status: 'Available' },
-    { name: 'Egg Curry with Rice', category: 'Main Course – Indian', price: '₹280', status: 'Available' },
+    { name: 'Butter Chicken with Naan', category: 'Main Course – Indian', price: 450, status: 'Available' },
+    { name: 'Paneer Butter Masala', category: 'Main Course – Indian', price: 380, status: 'Available' },
+    { name: 'Mutton Rogan Josh', category: 'Main Course – Indian', price: 550, status: 'Available' },
+    { name: 'Vegetable Biryani', category: 'Main Course – Indian', price: 320, status: 'Available' },
+    { name: 'Egg Curry with Rice', category: 'Main Course – Indian', price: 280, status: 'Available' },
   
     // South Indian Specials
-    { name: 'Chettinad Chicken Curry', category: 'South Indian Specials', price: '₹420', status: 'Available' },
-    { name: 'Fish Kuzhambu', category: 'South Indian Specials', price: '₹390', status: 'Available' },
-    { name: 'Prawn Masala', category: 'South Indian Specials', price: '₹480', status: 'Available' },
-    { name: 'Veg Kurma with Appam', category: 'South Indian Specials', price: '₹280', status: 'Available' },
-    { name: 'Sambar, Rasam, Poriyal set', category: 'South Indian Specials', price: '₹250', status: 'Available' },
+    { name: 'Chettinad Chicken Curry', category: 'South Indian Specials', price: 420, status: 'Available' },
+    { name: 'Fish Kuzhambu', category: 'South Indian Specials', price: 390, status: 'Available' },
+    { name: 'Prawn Masala', category: 'South Indian Specials', price: 480, status: 'Available' },
+    { name: 'Veg Kurma with Appam', category: 'South Indian Specials', price: 280, status: 'Available' },
+    { name: 'Sambar, Rasam, Poriyal set', category: 'South Indian Specials', price: 250, status: 'Available' },
   
     // Continental / Hi-Fi
-    { name: 'Grilled Chicken with Pepper Sauce', category: 'Continental / Hi-Fi', price: '₹520', status: 'Available' },
-    { name: 'Pasta Alfredo / Arrabbiata', category: 'Continental / Hi-Fi', price: '₹450', status: 'Available' },
-    { name: 'Stuffed Mushroom with Cheese', category: 'Continental / Hi-Fi', price: '₹380', status: 'Available' },
-    { name: 'BBQ Chicken Pizza', category: 'Continental / Hi-Fi', price: '₹550', status: 'Available' },
-    { name: 'Caesar Salad', category: 'Continental / Hi-Fi', price: '₹320', status: 'Available' },
+    { name: 'Grilled Chicken with Pepper Sauce', category: 'Continental / Hi-Fi', price: 520, status: 'Available' },
+    { name: 'Pasta Alfredo / Arrabbiata', category: 'Continental / Hi-Fi', price: 450, status: 'Available' },
+    { name: 'Stuffed Mushroom with Cheese', category: 'Continental / Hi-Fi', price: 380, status: 'Available' },
+    { name: 'BBQ Chicken Pizza', category: 'Continental / Hi-Fi', price: 550, status: 'Available' },
+    { name: 'Caesar Salad', category: 'Continental / Hi-Fi', price: 320, status: 'Available' },
   
     // Desserts
-    { name: 'Gulab Jamun', category: 'Desserts', price: '₹120', status: 'Available' },
-    { name: 'Chocolate Brownie with Ice Cream', category: 'Desserts', price: '₹180', status: 'Available' },
-    { name: 'Rasmalai', category: 'Desserts', price: '₹150', status: 'Available' },
-    { name: 'Cheesecake', category: 'Desserts', price: '₹200', status: 'Available' },
-    { name: 'Payasam', category: 'Desserts', price: '₹100', status: 'Available' },
+    { name: 'Gulab Jamun', category: 'Desserts', price: 120, status: 'Available' },
+    { name: 'Chocolate Brownie with Ice Cream', category: 'Desserts', price: 180, status: 'Available' },
+    { name: 'Rasmalai', category: 'Desserts', price: 150, status: 'Available' },
+    { name: 'Cheesecake', category: 'Desserts', price: 200, status: 'Available' },
+    { name: 'Payasam', category: 'Desserts', price: 100, status: 'Available' },
   
     // Beverages
-    { name: 'Fresh Juices', category: 'Beverages', price: '₹150', status: 'Available' },
-    { name: 'Mocktails (Virgin Mojito, Blue Lagoon)', category: 'Beverages', price: '₹180', status: 'Available' },
-    { name: 'Filter Coffee', category: 'Beverages', price: '₹80', status: 'Available' },
-    { name: 'Milkshakes', category: 'Beverages', price: '₹160', status: 'Available' },
-    { name: 'Soft Drinks', category: 'Beverages', price: '₹60', status: 'Available' },
+    { name: 'Fresh Juices', category: 'Beverages', price: 150, status: 'Available' },
+    { name: 'Mocktails (Virgin Mojito, Blue Lagoon)', category: 'Beverages', price: 180, status: 'Available' },
+    { name: 'Filter Coffee', category: 'Beverages', price: 80, status: 'Available' },
+    { name: 'Milkshakes', category: 'Beverages', price: 160, status: 'Available' },
+    { name: 'Soft Drinks', category: 'Beverages', price: 60, status: 'Available' },
 ];
 
-const initialActiveOrders = [
+const initialActiveOrders: ActiveOrder[] = [
     {
       id: 'ORD001',
       status: 'preparing',
       table: 5,
       items: 'Grilled Salmon, Caesar Salad',
       time: new Date(Date.now() - 15 * 60 * 1000),
-      price: '₹40',
-      icon: <Clock className="h-5 w-5 mr-2" />,
+      price: 40,
     },
     {
       id: 'ORD002',
@@ -221,8 +219,7 @@ const initialActiveOrders = [
       table: 12,
       items: 'Ribeye Steak, Chocolate Mousse',
       time: new Date(Date.now() - 5 * 60 * 1000),
-      price: '₹54',
-      icon: <AlertCircle className="h-5 w-5 mr-2" />,
+      price: 54,
     },
     {
       id: 'ORD003',
@@ -230,8 +227,7 @@ const initialActiveOrders = [
       table: 3,
       items: 'Caesar Salad, Chocolate Mousse',
       time: new Date(Date.now() - 25 * 60 * 1000),
-      price: '₹21',
-      icon: <CheckCircle2 className="h-5 w-5 mr-2" />,
+      price: 21,
     },
 ];
 
@@ -507,19 +503,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             }
 
             if (menuItemsRes.success) {
-                const formattedMenuItems = menuItemsRes.items.map((item: any) => ({
-                    ...item,
-                    price: `₹${item.price}`
-                }));
-                setMenuItems(formattedMenuItems.length > 0 ? formattedMenuItems.sort((a:MenuItem,b:MenuItem) => a.name.localeCompare(b.name)) : initialMenuItems);
+                setMenuItems(menuItemsRes.items.length > 0 ? menuItemsRes.items.sort((a:MenuItem,b:MenuItem) => a.name.localeCompare(b.name)) : initialMenuItems);
             }
 
             if (ordersRes.success) {
                 const formattedOrders = ordersRes.orders.map((order: any) => ({
                     ...order,
-                    price: `₹${order.price}`,
                     status: 'pending', // You might want to store status in DB
-                    icon: <AlertCircle className="h-5 w-5 mr-2" />,
                 }));
                 setActiveOrders(formattedOrders.length > 0 ? formattedOrders : initialActiveOrders);
             }

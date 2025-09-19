@@ -2,7 +2,8 @@
 
 'use client';
 
-import React, { useState, useTransition, useMemo, useContext } from 'react';
+import React, { useState, useTransition, useMemo, useContext, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DataContext } from '@/context/data-provider';
 import {
   Bed,
@@ -58,7 +59,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Room } from '@/context/data-provider';
 import { cn } from '@/lib/utils';
 import { RoomManagementSidebar } from './room-management-sidebar';
-import { useRouter } from 'next/navigation';
 
 
 const statusFilters = ['All', 'Available', 'Occupied', 'Booked', 'Cleaning', 'Maintenance'];
@@ -142,6 +142,14 @@ export default function RoomManagementDashboard() {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userRole = localStorage.getItem('userRole');
+      if (!userRole) {
+        router.push('/login');
+      }
+    }
+  }, [router]);
 
   const handleQuickAction = (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => {
     if (action === 'occupy') {
@@ -617,47 +625,3 @@ const stats = useMemo(() => {
     </div>
   );
 }
-    
-
-    
-
-    
-
-    
-
-    
-
-
-
-
-
-
-
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-
-

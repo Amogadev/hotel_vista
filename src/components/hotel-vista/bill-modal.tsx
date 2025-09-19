@@ -21,7 +21,7 @@ type ActiveOrder = {
   table: number;
   items: string;
   time: Date;
-  price: string;
+  price: number;
 };
 
 type BillModalProps = {
@@ -36,7 +36,7 @@ export function BillModal({ order, isOpen, onClose }: BillModalProps) {
   const items = order.items.split(', ').map(item => {
     const quantity = (item.match(/(\d+)x/) || [null, 1])[1];
     const name = item.replace(/(\d+)x /, '');
-    const itemPrice = parseFloat(order.price.replace('₹', '')) / (order.items.split(', ').reduce((acc, i) => acc + (parseInt(i.split('x')[0]) || 1), 0));
+    const itemPrice = order.price / (order.items.split(', ').reduce((acc, i) => acc + (parseInt(i.split('x')[0]) || 1), 0));
     return {
       name,
       quantity,
@@ -45,8 +45,7 @@ export function BillModal({ order, isOpen, onClose }: BillModalProps) {
   });
   
   const subtotal = items.reduce((acc, item) => acc + (item.price * Number(item.quantity)), 0);
-  const tax = subtotal * 0.1; // Example 10% tax
-  const total = parseFloat(order.price.replace('₹', ''));
+  const total = order.price;
 
 
   return (

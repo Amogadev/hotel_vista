@@ -2,7 +2,8 @@
 
 'use client';
 
-import React, { useState, useMemo, useContext, useTransition } from 'react';
+import React, { useState, useMemo, useContext, useTransition, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DataContext, Hall } from '@/context/data-provider';
 import {
   Building,
@@ -50,7 +51,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { useRouter } from 'next/navigation';
 import { BookHallModal } from './book-hall-modal';
 
 const statusFilters = ['All', 'Available', 'Occupied', 'Booked', 'Maintenance'];
@@ -135,6 +135,15 @@ export default function HallManagementDashboard() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userRole = localStorage.getItem('userRole');
+      if (!userRole) {
+        router.push('/login');
+      }
+    }
+  }, [router]);
 
   const handleOpenAddModal = () => setIsAddModalOpen(true);
   const handleCloseAddModal = () => setIsAddModalOpen(false);
@@ -561,9 +570,3 @@ export default function HallManagementDashboard() {
     </div>
   );
 }
-
-    
-
-    
-
-

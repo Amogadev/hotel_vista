@@ -61,6 +61,15 @@ export default function OccupyRoomPage() {
   const params = useParams();
   const { rooms, setRooms } = useContext(DataContext);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userRole = localStorage.getItem('userRole');
+      if (!userRole) {
+        router.push('/login');
+      }
+    }
+  }, [router]);
+
   const roomNumber = params.roomNumber as string;
   const room = rooms.find(r => r.number === roomNumber);
 

@@ -1,7 +1,8 @@
 
 "use client";
 
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { DataContext } from "@/context/data-provider";
 
 import { Button } from "@/components/ui/button";
@@ -69,6 +70,17 @@ const chartData = [
 
 export default function Dashboard() {
   const { rooms, activeOrders } = useContext(DataContext);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userRole = localStorage.getItem('userRole');
+      if (!userRole) {
+        router.push('/login');
+      }
+    }
+  }, [router]);
+
   const totalRevenue = rooms
   .filter(room => room.status === 'Occupied')
   .reduce((acc, room) => acc + (room.totalPrice || room.price), 0);
@@ -191,5 +203,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-    
