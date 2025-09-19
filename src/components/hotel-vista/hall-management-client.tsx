@@ -486,7 +486,7 @@ export default function HallManagementDashboard() {
             <Input
               type="search"
               placeholder="Search by Hall Name, Customer, or Status..."
-              className="w-full rounded-lg bg-background pl-8 md:w-[300px]"
+              className="w-full rounded-lg bg-background pl-8 md:w-[400px]"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
