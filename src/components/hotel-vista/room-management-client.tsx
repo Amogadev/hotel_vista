@@ -280,7 +280,7 @@ const stats = useMemo(() => {
 
     todaysIncome = rooms
         .filter(room => room.checkOut && isSameDay(parseISO(room.checkOut), today))
-        .reduce((acc, room) => acc + (room.totalPrice || 0), 0);
+        .reduce((acc, room) => acc + (room.paidAmount || 0), 0);
 
     return {
       date: format(date, 'PPP'),
@@ -545,8 +545,8 @@ const stats = useMemo(() => {
         {activeView === 'todays-income' && (
           <Card>
             <CardHeader>
-              <CardTitle>Today's Income</CardTitle>
-              <CardDescription>Total revenue from rooms that checked out today, {format(today, 'PPP')}.</CardDescription>
+              <CardTitle>Today's Paid Income</CardTitle>
+              <CardDescription>Total paid amount from rooms that checked out today, {format(today, 'PPP')}.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-5xl font-bold text-green-600 mb-6">{stats.todaysIncome}</div>
@@ -560,7 +560,7 @@ const stats = useMemo(() => {
                         <p className="text-sm text-muted-foreground">{room.guest}</p>
                       </div>
                       <div className="font-semibold text-green-600">
-                        +₹{(room.totalPrice || 0).toLocaleString()}
+                        +₹{(room.paidAmount || 0).toLocaleString()}
                       </div>
                     </div>
                   ))
