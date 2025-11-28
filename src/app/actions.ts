@@ -4,18 +4,6 @@
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc, Timestamp, setDoc, getDoc } from 'firebase/firestore';
 
-// Note: The errorEmitter and FirestorePermissionError are for client-side use.
-// Server actions should throw errors directly to be caught by the client.
-
-async function handleFirestoreError(error: any, context: { path: string, operation: string, requestResourceData?: any }) {
-    // In a real app, you might log this error to a server-side logging service.
-    console.error(`Firestore Error (${context.operation} on ${context.path}):`, error);
-    
-    // We throw a generic but informative error that the client can display.
-    // The detailed context is logged on the server.
-    throw new Error(`Database error: Could not perform '${context.operation}' operation.`);
-}
-
 
 export async function getRooms() {
     const querySnapshot = await getDocs(collection(db, "rooms"));
@@ -50,21 +38,14 @@ export async function addRoom(newRoom: {
 
   const collectionRef = collection(db, "rooms");
   
-  try {
-    const docRef = await addDoc(collectionRef, roomData);
-    const resultRoom = { 
-        ...newRoom, 
-        id: docRef.id,
-        checkIn: newRoom.checkIn,
-        checkOut: newRoom.checkOut
-    };
-    return { success: true, room: resultRoom };
-  } catch (error) {
-    await handleFirestoreError(error, { path: 'rooms', operation: 'create', requestResourceData: roomData });
-    // The function will not reach here because handleFirestoreError throws an error.
-    // This is for type safety in case the implementation of handleFirestoreError changes.
-    return { success: false, error: 'Failed to add room.' };
-  }
+  const docRef = await addDoc(collectionRef, roomData);
+  const resultRoom = { 
+      ...newRoom, 
+      id: docRef.id,
+      checkIn: newRoom.checkIn,
+      checkOut: newRoom.checkOut
+  };
+  return { success: true, room: resultRoom };
 }
 
 export async function updateRoom(updatedRoom: {
@@ -97,18 +78,13 @@ export async function updateRoom(updatedRoom: {
     if (roomData.checkIn) updateData.checkIn = Timestamp.fromDate(new Date(roomData.checkIn));
     if (roomData.checkOut) updateData.checkOut = Timestamp.fromDate(new Date(roomData.checkOut));
 
-    try {
-        await updateDoc(docRef, updateData);
-        const resultRoom = { 
-            ...updatedRoom,
-            checkIn: updatedRoom.checkIn,
-            checkOut: updatedRoom.checkOut
-        };
-        return { success: true, room: resultRoom };
-    } catch (error) {
-        await handleFirestoreError(error, { path: `rooms/${docId}`, operation: 'update', requestResourceData: updateData });
-        return { success: false, error: 'Failed to update room.' };
-    }
+    await updateDoc(docRef, updateData);
+    const resultRoom = { 
+        ...updatedRoom,
+        checkIn: updatedRoom.checkIn,
+        checkOut: updatedRoom.checkOut
+    };
+    return { success: true, room: resultRoom };
 }
 
 export async function deleteRoom(roomNumber: string) {
@@ -122,13 +98,8 @@ export async function deleteRoom(roomNumber: string) {
     const docId = querySnapshot.docs[0].id;
     const docRef = doc(db, "rooms", docId);
     
-    try {
-        await deleteDoc(docRef);
-        return { success: true };
-    } catch (error) {
-        await handleFirestoreError(error, { path: `rooms/${docId}`, operation: 'delete' });
-        return { success: false, error: 'Failed to delete room.' };
-    }
+    await deleteDoc(docRef);
+    return { success: true };
 }
 
 export async function getRestaurantMenuItems() {
@@ -144,13 +115,8 @@ export async function addRestaurantMenuItem(newMenuItem: {
   status: string;
 }) {
     const collectionRef = collection(db, "menuItems");
-    try {
-        const docRef = await addDoc(collectionRef, newMenuItem);
-        return { success: true, item: { ...newMenuItem, id: docRef.id } };
-    } catch (error) {
-        await handleFirestoreError(error, { path: 'menuItems', operation: 'create', requestResourceData: newMenuItem });
-        return { success: false, error: 'Failed to add menu item.' };
-    }
+    const docRef = await addDoc(collectionRef, newMenuItem);
+    return { success: true, item: { ...newMenuItem, id: docRef.id } };
 }
 
 export async function updateRestaurantMenuItem(updatedMenuItem: {
@@ -171,13 +137,8 @@ export async function updateRestaurantMenuItem(updatedMenuItem: {
     const docRef = doc(db, "menuItems", docId);
     const { originalName, ...itemData } = updatedMenuItem;
     
-    try {
-        await updateDoc(docRef, itemData);
-        return { success: true, item: updatedMenuItem };
-    } catch (error) {
-        await handleFirestoreError(error, { path: `menuItems/${docId}`, operation: 'update', requestResourceData: itemData });
-        return { success: false, error: 'Failed to update menu item.' };
-    }
+    await updateDoc(docRef, itemData);
+    return { success: true, item: updatedMenuItem };
 }
 
 export async function deleteRestaurantMenuItem(itemName: string) {
@@ -191,13 +152,8 @@ export async function deleteRestaurantMenuItem(itemName: string) {
     const docId = querySnapshot.docs[0].id;
     const docRef = doc(db, "menuItems", docId);
     
-    try {
-        await deleteDoc(docRef);
-        return { success: true };
-    } catch (error) {
-        await handleFirestoreError(error, { path: `menuItems/${docId}`, operation: 'delete' });
-        return { success: false, error: 'Failed to delete menu item.' };
-    }
+    await deleteDoc(docRef);
+    return { success: true };
 }
 
 export async function getOrders() {
@@ -216,13 +172,8 @@ export async function addOrder(newOrder: {
 }) {
     const orderData = { ...newOrder, time: new Date() };
     const collectionRef = collection(db, "orders");
-    try {
-        const docRef = await addDoc(collectionRef, orderData);
-        return { success: true, order: { ...newOrder, id: docRef.id } };
-    } catch (error) {
-        await handleFirestoreError(error, { path: 'orders', operation: 'create', requestResourceData: orderData });
-        return { success: false, error: 'Failed to add order.' };
-    }
+    const docRef = await addDoc(collectionRef, orderData);
+    return { success: true, order: { ...newOrder, id: docRef.id } };
 }
 
 export async function getBarSales() {
@@ -242,13 +193,8 @@ export async function recordBarSale(newSale: {
 }) {
     const saleData = { ...newSale, time: new Date() };
     const collectionRef = collection(db, "barSales");
-    try {
-        const docRef = await addDoc(collectionRef, saleData);
-        return { success: true, sale: { ...newSale, id: docRef.id } };
-    } catch (error) {
-        await handleFirestoreError(error, { path: 'barSales', operation: 'create', requestResourceData: saleData });
-        return { success: false, error: 'Failed to record bar sale.' };
-    }
+    const docRef = await addDoc(collectionRef, saleData);
+    return { success: true, sale: { ...newSale, id: docRef.id } };
 }
 
 export async function getBarProducts() {
@@ -264,13 +210,8 @@ export async function addBarProduct(newProduct: {
   stock: number;
 }) {
     const collectionRef = collection(db, "barProducts");
-    try {
-        const docRef = await addDoc(collectionRef, newProduct);
-        return { success: true, product: { ...newProduct, id: docRef.id } };
-    } catch (error) {
-        await handleFirestoreError(error, { path: 'barProducts', operation: 'create', requestResourceData: newProduct });
-        return { success: false, error: 'Failed to add bar product.' };
-    }
+    const docRef = await addDoc(collectionRef, newProduct);
+    return { success: true, product: { ...newProduct, id: docRef.id } };
 }
 
 export async function updateBarProductStock(productName: string, newStock: number) {
@@ -285,13 +226,8 @@ export async function updateBarProductStock(productName: string, newStock: numbe
     const docRef = doc(db, "barProducts", docId);
     const updateData = { stock: newStock };
 
-    try {
-        await updateDoc(docRef, updateData);
-        return { success: true, productName, newStock };
-    } catch (error) {
-        await handleFirestoreError(error, { path: `barProducts/${docId}`, operation: 'update', requestResourceData: updateData });
-        return { success: false, error: 'Failed to update bar product stock.' };
-    }
+    await updateDoc(docRef, updateData);
+    return { success: true, productName, newStock };
 }
 
 export async function updateBarProduct(updatedProduct: {
@@ -312,13 +248,8 @@ export async function updateBarProduct(updatedProduct: {
     const docRef = doc(db, "barProducts", docId);
     const { originalName, ...productData } = updatedProduct;
     
-    try {
-        await updateDoc(docRef, productData);
-        return { success: true, product: updatedProduct };
-    } catch (error) {
-        await handleFirestoreError(error, { path: `barProducts/${docId}`, operation: 'update', requestResourceData: productData });
-        return { success: false, error: 'Failed to update bar product.' };
-    }
+    await updateDoc(docRef, productData);
+    return { success: true, product: updatedProduct };
 }
 
 export async function deleteBarProduct(productName: string) {
@@ -332,13 +263,8 @@ export async function deleteBarProduct(productName: string) {
     const docId = querySnapshot.docs[0].id;
     const docRef = doc(db, "barProducts", docId);
 
-    try {
-        await deleteDoc(docRef);
-        return { success: true };
-    } catch (error) {
-        await handleFirestoreError(error, { path: `barProducts/${docId}`, operation: 'delete' });
-        return { success: false, error: 'Failed to delete bar product.' };
-    }
+    await deleteDoc(docRef);
+    return { success: true };
 }
 
 export async function getStockItems() {
@@ -357,13 +283,8 @@ export async function addStockItem(newItem: {
   supplier: string;
 }) {
     const collectionRef = collection(db, "stockItems");
-    try {
-        const docRef = await addDoc(collectionRef, newItem);
-        return { success: true, item: { ...newItem, id: docRef.id } };
-    } catch (error) {
-        await handleFirestoreError(error, { path: 'stockItems', operation: 'create', requestResourceData: newItem });
-        return { success: false, error: 'Failed to add stock item.' };
-    }
+    const docRef = await addDoc(collectionRef, newItem);
+    return { success: true, item: { ...newItem, id: docRef.id } };
 }
 
 export async function updateStockItem(updatedItem: {
@@ -387,13 +308,8 @@ export async function updateStockItem(updatedItem: {
     const docRef = doc(db, "stockItems", docId);
     const { originalName, ...itemData } = updatedItem;
 
-    try {
-        await updateDoc(docRef, itemData);
-        return { success: true, item: updatedItem };
-    } catch (error) {
-        await handleFirestoreError(error, { path: `stockItems/${docId}`, operation: 'update', requestResourceData: itemData });
-        return { success: false, error: 'Failed to update stock item.' };
-    }
+    await updateDoc(docRef, itemData);
+    return { success: true, item: updatedItem };
 }
 
 export async function deleteStockItem(itemName: string) {
@@ -407,39 +323,24 @@ export async function deleteStockItem(itemName: string) {
     const docId = querySnapshot.docs[0].id;
     const docRef = doc(db, "stockItems", docId);
 
-    try {
-        await deleteDoc(docRef);
-        return { success: true };
-    } catch (error) {
-        await handleFirestoreError(error, { path: `stockItems/${docId}`, operation: 'delete' });
-        return { success: false, error: 'Failed to delete stock item.' };
-    }
+    await deleteDoc(docRef);
+    return { success: true };
 }
 
 export async function getDailyNote(date: string) {
-    try {
-        const docRef = doc(db, "dailyNotes", date);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            return { success: true, note: docSnap.data().content };
-        }
-        return { success: true, note: "" };
-    } catch (e) {
-        const error = e as Error;
-        return { success: false, error: error.message };
+    const docRef = doc(db, "dailyNotes", date);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        return { success: true, note: docSnap.data().content };
     }
+    return { success: true, note: "" };
 }
 
 export async function setDailyNote(date: string, content: string) {
     const docRef = doc(db, "dailyNotes", date);
     const noteData = { content };
-    try {
-        await setDoc(docRef, noteData);
-        return { success: true };
-    } catch (error) {
-        await handleFirestoreError(error, { path: `dailyNotes/${date}`, operation: 'create', requestResourceData: noteData });
-        return { success: false, error: 'Failed to set daily note.' };
-    }
+    await setDoc(docRef, noteData);
+    return { success: true };
 }
 
 export async function getHalls() {
@@ -477,19 +378,14 @@ export async function addHall(newHall: {
 
   const collectionRef = collection(db, "halls");
 
-  try {
-    const docRef = await addDoc(collectionRef, hallData);
-    const resultHall = { 
-        ...newHall, 
-        id: docRef.id,
-        checkIn: newHall.checkIn,
-        checkOut: newHall.checkOut
-    };
-    return { success: true, hall: resultHall };
-  } catch (error) {
-    await handleFirestoreError(error, { path: 'halls', operation: 'create', requestResourceData: hallData });
-    return { success: false, error: 'Failed to add hall.' };
-  }
+  const docRef = await addDoc(collectionRef, hallData);
+  const resultHall = { 
+      ...newHall, 
+      id: docRef.id,
+      checkIn: newHall.checkIn,
+      checkOut: newHall.checkOut
+  };
+  return { success: true, hall: resultHall };
 }
 
 export async function updateHall(updatedHall: {
@@ -530,15 +426,10 @@ export async function updateHall(updatedHall: {
     if (hallData.checkIn) updateData.checkIn = Timestamp.fromDate(new Date(hallData.checkIn));
     if (hallData.checkOut) updateData.checkOut = Timestamp.fromDate(new Date(hallData.checkOut));
     
-    try {
-        await updateDoc(docRef, updateData);
-        const resultHall: any = { ...updatedHall };
-        delete resultHall.originalName;
-        return { success: true, hall: resultHall };
-    } catch (error) {
-        await handleFirestoreError(error, { path: `halls/${docId}`, operation: 'update', requestResourceData: updateData });
-        return { success: false, error: 'Failed to update hall.' };
-    }
+    await updateDoc(docRef, updateData);
+    const resultHall: any = { ...updatedHall };
+    delete resultHall.originalName;
+    return { success: true, hall: resultHall };
 }
 
 export async function deleteHall(hallName: string) {
@@ -552,11 +443,6 @@ export async function deleteHall(hallName: string) {
     const docId = querySnapshot.docs[0].id;
     const docRef = doc(db, "halls", docId);
 
-    try {
-        await deleteDoc(docRef);
-        return { success: true };
-    } catch (error) {
-        await handleFirestoreError(error, { path: `halls/${docId}`, operation: 'delete' });
-        return { success: false, error: 'Failed to delete hall.' };
-    }
+    await deleteDoc(docRef);
+    return { success: true };
 }

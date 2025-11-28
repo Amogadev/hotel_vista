@@ -444,62 +444,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
             if (roomsRes.success) {
                 const fetchedRooms = roomsRes.rooms.filter((room: any): room is Room => !!room.number);
-                const formattedRooms = fetchedRooms.map((room: any) => {
-                    const isCheckoutPast = room.checkOut && isPast(parseISO(room.checkOut));
-                    const newStatus = room.status === 'Occupied' && isCheckoutPast ? 'Available' : room.status;
-
-                    const cleanedRoom = {
-                        ...room,
-                        checkIn: room.checkIn ? format(parseISO(room.checkIn), 'yyyy-MM-dd') : undefined,
-                        checkOut: room.checkOut ? format(parseISO(room.checkOut), 'yyyy-MM-dd') : undefined,
-                        status: newStatus,
-                    };
-
-                    if (newStatus === 'Available') {
-                        delete cleanedRoom.guest;
-                        delete cleanedRoom.checkIn;
-                        delete cleanedRoom.checkOut;
-                        delete cleanedRoom.totalPrice;
-                        delete cleanedRoom.peopleCount;
-                        delete cleanedRoom.idProof;
-                        delete cleanedRoom.email;
-                    }
-                    
-                    return cleanedRoom;
-                });
-                setRooms(formattedRooms.length > 0 ? formattedRooms.sort((a:Room,b:Room) => a.number.localeCompare(b.number)) : initialRooms);
+                setRooms(fetchedRooms.length > 0 ? fetchedRooms.sort((a:Room,b:Room) => a.number.localeCompare(b.number)) : initialRooms);
             }
 
             if (hallsRes.success) {
                 const fetchedHalls = hallsRes.halls;
-                 const formattedHalls = fetchedHalls.map((hall: any) => {
-                    const isCheckoutPast = hall.checkOut && isPast(parseISO(hall.checkOut));
-                    const newStatus = hall.status === 'Booked' && isCheckoutPast ? 'Available' : hall.status;
-
-                     const cleanedHall = {
-                        ...hall,
-                        status: newStatus,
-                    };
-
-                     if (newStatus === 'Available') {
-                        delete cleanedHall.customerName;
-                        delete cleanedHall.contact;
-                        delete cleanedHall.purpose;
-                        delete cleanedHall.checkIn;
-                        delete cleanedHall.checkOut;
-                        delete cleanedHall.totalPrice;
-                        delete cleanedHall.idProof;
-                        delete cleanedHall.email;
-                        delete cleanedHall.adults;
-                        delete cleanedHall.children;
-                        delete cleanedHall.foodPreference;
-                        delete cleanedHall.addOns;
-                        delete cleanedHall.foodCost;
-                    }
-
-                    return cleanedHall;
-                });
-                setHalls(formattedHalls.length > 0 ? formattedHalls.sort((a:Hall, b:Hall) => a.name.localeCompare(b.name)) : initialHalls);
+                setHalls(fetchedHalls.length > 0 ? fetchedHalls.sort((a:Hall, b:Hall) => a.name.localeCompare(b.name)) : initialHalls);
             }
 
             if (menuItemsRes.success) {
