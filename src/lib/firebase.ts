@@ -17,17 +17,15 @@ let app: FirebaseApp;
 let firestore: Firestore;
 let auth: Auth;
 
-if (typeof window === 'undefined') {
-  // Server-side initialization
-  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-  firestore = getFirestore(app);
-  auth = getAuth(app);
+if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
 } else {
-  // Client-side initialization
-  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-  firestore = getFirestore(app);
-  auth = getAuth(app);
+    app = getApp();
 }
+
+firestore = getFirestore(app);
+auth = getAuth(app);
+
 
 const db = firestore;
 

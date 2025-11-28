@@ -30,7 +30,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { addRoom } from '@/lib/rooms-service';
+import { addRoom } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -103,20 +103,30 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
   }, [checkIn, checkOut, price, setValue]);
 
   const onSubmit = (values: RoomFormValues) => {
-    startTransition(() => {
-        const newRoom: Room = {
-            ...values,
-            checkIn: values.checkIn ? values.checkIn.toISOString() : undefined,
-            checkOut: values.checkOut ? values.checkOut.toISOString() : undefined,
-        };
-        addRoom(newRoom);
+    startTransition(async () => {
+      const newRoomForAction = {
+        ...values,
+        checkIn: values.checkIn ? values.checkIn.toISOString() : undefined,
+        checkOut: values.checkOut ? values.checkOut.toISOString() : undefined,
+      };
+
+      const result = await addRoom(newRoomForAction);
+      
+      if (result.success && result.room) {
         toast({
             title: 'Room Added',
             description: `Room ${values.number} has been successfully added.`,
         });
-        onRoomAdded(newRoom);
+        onRoomAdded(result.room as Room);
         onClose();
         form.reset();
+      } else {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: result.error || 'Failed to add the room. Please try again.',
+        });
+      }
     });
   };
 

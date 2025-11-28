@@ -15,7 +15,6 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { setDailyNote } from '@/lib/rooms-service';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -36,7 +35,6 @@ type EditNotesModalProps = {
 
 export function EditNotesModal({ isOpen, onClose, date, initialNote, onNoteUpdated }: EditNotesModalProps) {
   const [isPending, startTransition] = useTransition();
-  const { toast } = useToast();
   const form = useForm<NotesFormValues>({
     resolver: zodResolver(notesSchema),
     defaultValues: {
@@ -47,18 +45,12 @@ export function EditNotesModal({ isOpen, onClose, date, initialNote, onNoteUpdat
   useEffect(() => {
     form.reset({ notes: initialNote });
   }, [initialNote, form]);
-
-  const dateKey = format(date, 'yyyy-MM-dd');
+  
   const formattedDate = format(date, 'MMMM d, yyyy');
 
 
   const onSubmit = (values: NotesFormValues) => {
     startTransition(() => {
-        setDailyNote(dateKey, values.notes);
-        toast({
-            title: 'Notes Updated',
-            description: `Notes for ${formattedDate} have been saved.`,
-        });
         onNoteUpdated(values.notes);
     });
   };

@@ -14,8 +14,7 @@ import {
   Users,
   Building,
 } from 'lucide-react';
-import { usePathname } from 'next/navigation';
-import { useUserRole } from '@/hooks/use-user-role';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '../ui/button';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -26,66 +25,47 @@ const allMenuItems = [
     href: '/dashboard',
     label: 'Dashboard',
     icon: Home,
-    roles: ['admin'],
   },
   {
     href: '/room-management',
     label: 'Room Management',
     icon: BedDouble,
-    roles: ['admin', 'reception'],
   },
   {
     href: '/hall-management',
     label: 'Hall Management',
     icon: Building,
-    roles: ['admin'],
   },
   {
     href: '/restaurant',
     label: 'Restaurant',
     icon: UtensilsCrossed,
-    roles: ['admin', 'restaurant'],
   },
   {
     href: '/bar-liquor',
     label: 'Bar & Liquor',
     icon: Wine,
-    roles: ['admin', 'bar'],
   },
   {
     href: '/stock-management',
     label: 'Stock Management',
     icon: Box,
-    roles: ['admin'],
   },
   {
     href: '/total-bill',
     label: 'Total Bill',
     icon: FileText,
-    roles: ['admin', 'reception'],
   },
 ];
 
 export default function Topbar() {
   const pathname = usePathname();
-  const userRole = useUserRole();
+  const router = useRouter();
 
   const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('activeUser');
-    }
+    // In a real app, you'd clear tokens, etc.
+    router.push('/login');
   };
-
-  const menuItems = React.useMemo(() => {
-    if (!userRole) return [];
-    if (userRole === 'admin')
-      return allMenuItems.filter((item) => item.roles.includes('admin'));
-    if (userRole === 'reception') {
-        return allMenuItems.filter(item => item.roles.includes('reception'));
-    }
-    return allMenuItems.filter((item) => item.roles.includes(userRole));
-  }, [userRole]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b shadow-sm">
@@ -100,7 +80,7 @@ export default function Topbar() {
             </Link>
              <Separator orientation="vertical" className="h-6 mx-1" />
             <nav className="hidden md:flex items-center gap-0">
-              {menuItems.map((item) => (
+              {allMenuItems.map((item) => (
                 <Button
                   key={item.label}
                   variant={pathname === item.href ? 'secondary' : 'ghost'}
@@ -120,11 +100,8 @@ export default function Topbar() {
               variant="ghost"
               size="icon"
               onClick={handleLogout}
-              asChild
             >
-              <Link href="/login">
                 <LogOut className="h-5 w-5" />
-              </Link>
             </Button>
           </div>
         </div>

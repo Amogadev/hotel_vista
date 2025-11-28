@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useTransition, useMemo, useContext, useEffect } from 'react';
@@ -54,7 +53,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 
 import { format, differenceInCalendarDays, parseISO, isWithinInterval, startOfDay, endOfDay, isSameDay, isFuture } from 'date-fns';
-import { deleteRoom, updateRoom } from '@/lib/rooms-service';
+import { deleteRoom, updateRoom } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Room } from '@/context/data-provider';
 import { cn } from '@/lib/utils';
@@ -142,29 +141,22 @@ export default function RoomManagementDashboard() {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const userRole = localStorage.getItem('userRole');
-      if (!userRole) {
-        router.push('/login');
-      }
-    }
-  }, [router]);
-
   const handleQuickAction = (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => {
     if (action === 'occupy') {
       router.push(`/occupy/${room.number}`);
       return;
     }
     
-    startTransition(() => {
+    startTransition(async () => {
         let updatedRoomData: Room & { originalNumber: string };
+        let newStatus: string;
 
         if (action === 'checkout') {
+            newStatus = 'Cleaning';
             updatedRoomData = { 
                 ...room, 
                 originalNumber: room.number, 
-                status: 'Cleaning', 
+                status: newStatus, 
                 guest: undefined, 
                 checkIn: undefined, 
                 checkOut: undefined, 
@@ -174,33 +166,33 @@ export default function RoomManagementDashboard() {
                 email: undefined,
             };
         } else { 
+            newStatus = 'Maintenance';
             updatedRoomData = { 
                 ...room, 
                 originalNumber: room.number, 
-                status: 'Maintenance' 
+                status: newStatus
             };
         }
 
-        updateRoom(updatedRoomData);
-        toast({
-            title: `Room Status Updated`,
-            description: `Room ${room.number} is now ${action === 'checkout' ? 'Cleaning' : 'under Maintenance'}.`,
-        });
-        
-        const finalUpdatedRoom = {
-            ...room,
-            status: updatedRoomData.status,
-            guest: updatedRoomData.guest,
-            checkIn: updatedRoomData.checkIn,
-            checkOut: updatedRoomData.checkOut,
-            totalPrice: updatedRoomData.totalPrice,
-            peopleCount: updatedRoomData.peopleCount,
-            idProof: updatedRoomData.idProof,
-            email: updatedRoomData.email,
+        const result = await updateRoom(updatedRoomData);
+
+        if (result.success) {
+            toast({
+                title: `Room Status Updated`,
+                description: `Room ${room.number} is now ${newStatus}.`,
+            });
+            
+            const finalUpdatedRoom = { ...room, ...result.room };
+            setRooms(prevRooms =>
+                prevRooms.map(r => (r.number === room.number ? finalUpdatedRoom : r))
+            );
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: result.error || `Failed to update room status.`,
+            });
         }
-        setRooms(prevRooms =>
-            prevRooms.map(r => (r.number === room.number ? finalUpdatedRoom : r))
-        );
     });
 };
 
@@ -360,21 +352,8 @@ const stats = useMemo(() => {
   };
 
   const handleRoomUpdated = (updatedRoomData: EditRoomFormValues & { originalNumber: string }) => {
-    const updatedRoom: Room = {
-      number: updatedRoomData.number,
-      type: updatedRoomData.type,
-      status: updatedRoomData.status,
-      price: updatedRoomData.price,
-      guest: updatedRoomData.guest,
-      peopleCount: updatedRoomData.peopleCount,
-      idProof: updatedRoomData.idProof,
-      email: updatedRoomData.email,
-      checkIn: updatedRoomData.checkIn ? format(new Date(updatedRoomData.checkIn), 'yyyy-MM-dd') : undefined,
-      checkOut: updatedRoomData.checkOut ? format(new Date(updatedRoomData.checkOut), 'yyyy-MM-dd') : undefined,
-      totalPrice: updatedRoomData.totalPrice,
-    };
     setRooms(prevRooms =>
-      prevRooms.map(r => (r.number === updatedRoomData.originalNumber ? updatedRoom : r)).sort((a,b) => a.number.localeCompare(b.number))
+      prevRooms.map(r => (r.number === updatedRoomData.originalNumber ? {...r, ...updatedRoomData} : r)).sort((a,b) => a.number.localeCompare(b.number))
     );
     handleCloseEditModal();
   };
@@ -386,13 +365,21 @@ const stats = useMemo(() => {
 
   const handleConfirmDelete = () => {
     if (!deletingRoom) return;
-    startTransition(() => {
-        deleteRoom(deletingRoom.number);
-        toast({
-            title: "Room Deleted",
-            description: `Room ${deletingRoom.number} has been successfully deleted.`,
-        });
-        setRooms(prevRooms => prevRooms.filter(r => r.number !== deletingRoom.number));
+    startTransition(async () => {
+        const result = await deleteRoom(deletingRoom.number);
+        if (result.success) {
+            toast({
+                title: "Room Deleted",
+                description: `Room ${deletingRoom.number} has been successfully deleted.`,
+            });
+            setRooms(prevRooms => prevRooms.filter(r => r.number !== deletingRoom.number));
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: result.error || 'Failed to delete room.'
+            })
+        }
         setIsDeleteAlertOpen(false);
         setDeletingRoom(null);
     });
@@ -586,4 +573,3 @@ const stats = useMemo(() => {
     </div>
   );
 }
-

@@ -17,9 +17,10 @@ import { LogIn, LogOut, Wrench, Bed, User, Calendar, Pencil, Sparkles } from 'lu
 import type { Room } from '@/context/data-provider';
 import { format, isSameDay, parseISO } from 'date-fns';
 import { Separator } from '../ui/separator';
-import { getDailyNote } from '@/lib/rooms-service';
+import { getDailyNote, setDailyNote } from '@/app/actions';
 import { EditNotesModal } from './edit-notes-modal';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 type DailyBookingModalProps = {
   date: Date;
@@ -32,14 +33,15 @@ type DailyBookingModalProps = {
 export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: DailyBookingModalProps) {
   const formattedDate = format(date, 'MMMM d, yyyy');
   const dateKey = format(date, 'yyyy-MM-dd');
-  const [note, setNote] = useState('');
+  const [note, setNoteContent] = useState('');
   const [isEditNoteModalOpen, setIsEditNoteModalOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if(isOpen) {
       getDailyNote(dateKey).then(res => {
         if(res.success) {
-          setNote(res.note);
+          setNoteContent(res.note);
         }
       })
     }
@@ -57,8 +59,14 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
   const checkOuts = rooms.filter(r => r.checkOut && isSameDay(parseISO(r.checkOut), date));
   const maintenanceRooms = rooms.filter(r => r.status === 'Maintenance');
 
-  const handleNoteUpdated = (newNote: string) => {
-    setNote(newNote);
+  const handleNoteUpdated = async (newNote: string) => {
+    const result = await setDailyNote(dateKey, newNote);
+    if(result.success) {
+      setNoteContent(newNote);
+      toast({ title: 'Note updated' });
+    } else {
+      toast({ variant: 'destructive', title: 'Error', description: result.error });
+    }
     setIsEditNoteModalOpen(false);
   }
 

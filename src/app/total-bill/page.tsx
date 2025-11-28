@@ -9,15 +9,6 @@ import CheckoutDashboard from '@/components/hotel-vista/checkout-client';
 export default function CheckoutPage() {
   const router = useRouter();
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const userRole = localStorage.getItem('userRole');
-      if (!userRole) {
-        router.push('/login');
-      }
-    }
-  }, [router]);
-
   return (
     <div className="flex flex-col min-h-screen">
       <Topbar />

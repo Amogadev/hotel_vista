@@ -8,15 +8,6 @@ import StockManagementDashboard from '@/components/hotel-vista/stock-management-
 
 export default function StockManagementPage() {
   const router = useRouter();
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const userRole = localStorage.getItem('userRole');
-      if (!userRole) {
-        router.push('/login');
-      }
-    }
-  }, [router]);
   
   return (
     <div className="flex flex-col min-h-screen">

@@ -8,15 +8,6 @@ import HallManagementDashboard from '@/components/hotel-vista/hall-management-cl
 export default function HallManagementPage() {
   const router = useRouter();
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const userRole = localStorage.getItem('userRole');
-      if (!userRole) {
-        router.push('/login');
-      }
-    }
-  }, [router]);
-
   return (
     <div className="flex flex-col min-h-screen">
       <Topbar />
