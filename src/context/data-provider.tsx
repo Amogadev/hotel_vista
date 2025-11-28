@@ -19,6 +19,8 @@ export type Room = {
     price: number;
     totalPrice?: number;
     facilities?: string[];
+    advanceAmount?: number;
+    paidAmount?: number;
 };
 
 export type Hall = {

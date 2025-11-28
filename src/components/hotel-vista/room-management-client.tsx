@@ -164,6 +164,8 @@ export default function RoomManagementDashboard() {
                 peopleCount: undefined,
                 idProof: undefined,
                 email: undefined,
+                advanceAmount: undefined,
+                paidAmount: undefined
             };
         } else { 
             newStatus = 'Maintenance';
@@ -358,6 +360,15 @@ const stats = useMemo(() => {
     handleCloseEditModal();
   };
 
+  const handlePaymentUpdated = (roomNumber: string, newPaidAmount: number) => {
+    setRooms(prevRooms => prevRooms.map(r => 
+        r.number === roomNumber ? { ...r, paidAmount: newPaidAmount } : r
+    ));
+    if(viewingRoom?.number === roomNumber) {
+        setViewingRoom(prev => prev ? { ...prev, paidAmount: newPaidAmount } : null);
+    }
+  };
+
   const handleDeleteRoom = (room: Room) => {
     setDeletingRoom(room);
     setIsDeleteAlertOpen(true);
@@ -533,6 +544,7 @@ const stats = useMemo(() => {
             room={viewingRoom}
             isOpen={isViewModalOpen}
             onClose={handleCloseViewModal}
+            onPaymentUpdated={handlePaymentUpdated}
           />
         )}
         {editingRoom && (

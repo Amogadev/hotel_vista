@@ -31,6 +31,8 @@ export async function addRoom(newRoom: {
   checkIn?: string;
   checkOut?: string;
   totalPrice?: number;
+  advanceAmount?: number;
+  paidAmount?: number;
 }) {
   const roomData: any = { ...newRoom };
   if (newRoom.checkIn) roomData.checkIn = Timestamp.fromDate(new Date(newRoom.checkIn));
@@ -62,6 +64,8 @@ export async function updateRoom(updatedRoom: {
   checkOut?: string;
   totalPrice?: number;
   facilities?: string[];
+  advanceAmount?: number;
+  paidAmount?: number;
 }) {
     const q = query(collection(db, "rooms"), where("number", "==", updatedRoom.originalNumber));
     const querySnapshot = await getDocs(q);
@@ -364,13 +368,9 @@ export async function addHall(newHall: {
   price: number;
   status: string;
   customerName?: string;
-  contact?: string;
-  purpose?: string;
   checkIn?: string;
   checkOut?: string;
   totalPrice?: number;
-  idProof?: string;
-  email?: string;
 }) {
   const hallData: any = { ...newHall };
   if (newHall.checkIn) hallData.checkIn = Timestamp.fromDate(new Date(newHall.checkIn));

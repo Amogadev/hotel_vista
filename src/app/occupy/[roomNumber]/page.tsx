@@ -29,7 +29,7 @@ import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { updateRoom } from '@/app/actions';
 import { DataContext, Room } from '@/context/data-provider';
@@ -50,6 +50,7 @@ const occupySchema = z.object({
   checkIn: z.date({ required_error: 'Check-in date is required' }),
   checkOut: z.date({ required_error: 'Check-out date is required' }),
   facilities: z.array(z.string()).optional(),
+  advanceAmount: z.coerce.number().optional(),
 });
 
 type OccupyFormValues = z.infer<typeof occupySchema>;
@@ -68,11 +69,16 @@ export default function OccupyRoomPage() {
     resolver: zodResolver(occupySchema),
     defaultValues: {
       facilities: [],
+      advanceAmount: 0,
     }
   });
 
-  const { watch } = form;
+  const { watch, setValue } = form;
   const checkIn = watch('checkIn');
+  const checkOut = watch('checkOut');
+  
+  const totalNights = checkIn && checkOut ? differenceInDays(checkOut, checkIn) : 0;
+  const totalPrice = room && totalNights > 0 ? room.price * totalNights : 0;
 
   if (!room) {
     return (
@@ -101,6 +107,9 @@ export default function OccupyRoomPage() {
           checkIn: values.checkIn.toISOString(),
           checkOut: values.checkOut.toISOString(),
           facilities: values.facilities,
+          totalPrice: totalPrice,
+          advanceAmount: values.advanceAmount,
+          paidAmount: values.advanceAmount,
         });
         if (result.success) {
           toast({
@@ -119,6 +128,9 @@ export default function OccupyRoomPage() {
             checkIn: values.checkIn.toISOString(),
             checkOut: values.checkOut.toISOString(),
             facilities: values.facilities,
+            totalPrice: totalPrice,
+            advanceAmount: values.advanceAmount,
+            paidAmount: values.advanceAmount
           };
           setRooms(prev => prev.map(r => r.number === room.number ? updatedRoom : r));
           
@@ -311,9 +323,34 @@ export default function OccupyRoomPage() {
                                 </FormControl>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < (checkIn || new Date('1900-01-01'))} initialFocus />
+                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date <= (checkIn || new Date())} initialFocus />
                                 </PopoverContent>
                             </Popover>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2 rounded-lg border p-4">
+                        <h4 className="text-sm font-medium text-muted-foreground">Total Cost</h4>
+                        <p className="text-2xl font-bold">₹{totalPrice.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">
+                            {room.price.toLocaleString()}/night x {totalNights > 0 ? totalNights : 0} night(s)
+                        </p>
+                    </div>
+                    <FormField
+                        control={form.control}
+                        name="advanceAmount"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Advance Payment</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="e.g., 5000" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                                Enter any advance amount paid by the guest.
+                            </FormDescription>
                             <FormMessage />
                             </FormItem>
                         )}
