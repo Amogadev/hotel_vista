@@ -434,9 +434,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            // This will likely fail due to permissions, and we'll fall back to mock data.
             const roomsRes = await getRooms();
-            if (roomsRes.success) {
+            if (roomsRes.success && roomsRes.rooms) {
                 const fetchedRooms = roomsRes.rooms.filter((room: any): room is Room => !!room.number);
                 setRooms(fetchedRooms.sort((a:Room,b:Room) => a.number.localeCompare(b.number)));
             } else {

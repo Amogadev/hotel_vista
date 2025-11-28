@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
@@ -104,29 +105,33 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
 
   const onSubmit = (values: RoomFormValues) => {
     startTransition(async () => {
-      const newRoomForAction = {
-        ...values,
-        checkIn: values.checkIn ? values.checkIn.toISOString() : undefined,
-        checkOut: values.checkOut ? values.checkOut.toISOString() : undefined,
-      };
+        try {
+            const newRoomForAction = {
+                ...values,
+                checkIn: values.checkIn ? values.checkIn.toISOString() : undefined,
+                checkOut: values.checkOut ? values.checkOut.toISOString() : undefined,
+            };
 
-      const result = await addRoom(newRoomForAction);
-      
-      if (result.success && result.room) {
-        toast({
-            title: 'Room Added',
-            description: `Room ${values.number} has been successfully added.`,
-        });
-        onRoomAdded(result.room as Room);
-        onClose();
-        form.reset();
-      } else {
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: result.error || 'Failed to add the room. Please try again.',
-        });
-      }
+            const result = await addRoom(newRoomForAction);
+            
+            if (result.success && result.room) {
+                toast({
+                    title: 'Room Added',
+                    description: `Room ${values.number} has been successfully added.`,
+                });
+                onRoomAdded(result.room as Room);
+                onClose();
+                form.reset();
+            } else {
+                throw new Error(result.error || 'Failed to add the room. Please try again.');
+            }
+        } catch(error: any) {
+             toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: error.message || 'Failed to add the room. Please try again.',
+            });
+        }
     });
   };
 

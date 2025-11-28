@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useTransition, useMemo, useContext, useEffect } from 'react';
@@ -175,24 +176,27 @@ export default function RoomManagementDashboard() {
                 status: newStatus
             };
         }
+        try {
+            const result = await updateRoom(updatedRoomData);
 
-        const result = await updateRoom(updatedRoomData);
-
-        if (result.success) {
-            toast({
-                title: `Room Status Updated`,
-                description: `Room ${room.number} is now ${newStatus}.`,
-            });
-            
-            const finalUpdatedRoom = { ...room, ...result.room };
-            setRooms(prevRooms =>
-                prevRooms.map(r => (r.number === room.number ? finalUpdatedRoom : r))
-            );
-        } else {
-            toast({
+            if (result.success) {
+                toast({
+                    title: `Room Status Updated`,
+                    description: `Room ${room.number} is now ${newStatus}.`,
+                });
+                
+                const finalUpdatedRoom = { ...room, ...result.room };
+                setRooms(prevRooms =>
+                    prevRooms.map(r => (r.number === room.number ? finalUpdatedRoom : r))
+                );
+            } else {
+                 throw new Error(result.error || `Failed to update room status.`);
+            }
+        } catch(error: any) {
+             toast({
                 variant: 'destructive',
                 title: 'Error',
-                description: result.error || `Failed to update room status.`,
+                description: error.message || `Failed to update room status.`,
             });
         }
     });
@@ -328,9 +332,33 @@ const stats = useMemo(() => {
     setIsAddModalOpen(false);
   };
 
-  const handleRoomAdded = (newRoom: Room) => {
-    setRooms(prevRooms => [...prevRooms, newRoom].sort((a,b) => a.number.localeCompare(b.number)));
-    handleCloseAddModal();
+  const handleRoomAdded = async (newRoomData: RoomFormValues) => {
+    try {
+        const result = await addRoom(newRoomData);
+        if (result.success && result.room) {
+            const newRoom: Room = {
+                ...result.room,
+                number: result.room.number,
+                type: result.room.type,
+                price: result.room.price,
+                status: result.room.status,
+            };
+            setRooms(prevRooms => [...prevRooms, newRoom].sort((a,b) => a.number.localeCompare(b.number)));
+            handleCloseAddModal();
+            toast({
+                title: 'Room Added',
+                description: `Room ${newRoom.number} has been successfully added.`,
+            });
+        } else {
+            throw new Error(result.error || 'Failed to add room.');
+        }
+    } catch (error: any) {
+         toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: error.message || 'Failed to add room. Please try again.',
+        });
+    }
   };
 
   const handleViewRoom = (room: Room) => {
@@ -353,11 +381,28 @@ const stats = useMemo(() => {
     setEditingRoom(null);
   };
 
-  const handleRoomUpdated = (updatedRoomData: EditRoomFormValues & { originalNumber: string }) => {
-    setRooms(prevRooms =>
-      prevRooms.map(r => (r.number === updatedRoomData.originalNumber ? {...r, ...updatedRoomData} : r)).sort((a,b) => a.number.localeCompare(b.number))
-    );
-    handleCloseEditModal();
+  const handleRoomUpdated = async (updatedRoomData: EditRoomFormValues & { originalNumber: string }) => {
+    try {
+        const result = await updateRoom(updatedRoomData);
+         if (result.success && result.room) {
+            setRooms(prevRooms =>
+                prevRooms.map(r => (r.number === updatedRoomData.originalNumber ? {...r, ...result.room} : r)).sort((a,b) => a.number.localeCompare(b.number))
+            );
+            handleCloseEditModal();
+             toast({
+                title: 'Room Updated',
+                description: `Room ${result.room.number} has been successfully updated.`,
+            });
+        } else {
+           throw new Error(result.error || 'Failed to update room.');
+        }
+    } catch(error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: error.message || 'Failed to update room. Please try again.',
+        });
+    }
   };
 
   const handlePaymentUpdated = (roomNumber: string, newPaidAmount: number) => {
@@ -377,20 +422,25 @@ const stats = useMemo(() => {
   const handleConfirmDelete = () => {
     if (!deletingRoom) return;
     startTransition(async () => {
-        const result = await deleteRoom(deletingRoom.number);
-        if (result.success) {
-            toast({
-                title: "Room Deleted",
-                description: `Room ${deletingRoom.number} has been successfully deleted.`,
-            });
-            setRooms(prevRooms => prevRooms.filter(r => r.number !== deletingRoom.number));
-        } else {
-            toast({
+        try {
+            const result = await deleteRoom(deletingRoom.number);
+            if (result.success) {
+                toast({
+                    title: "Room Deleted",
+                    description: `Room ${deletingRoom.number} has been successfully deleted.`,
+                });
+                setRooms(prevRooms => prevRooms.filter(r => r.number !== deletingRoom.number));
+            } else {
+                throw new Error(result.error || 'Failed to delete room.')
+            }
+        } catch (error: any) {
+             toast({
                 variant: 'destructive',
                 title: 'Error',
-                description: result.error || 'Failed to delete room.'
+                description: error.message || 'Failed to delete room.'
             })
         }
+        
         setIsDeleteAlertOpen(false);
         setDeletingRoom(null);
     });
@@ -537,7 +587,7 @@ const stats = useMemo(() => {
         <AddRoomModal
           isOpen={isAddModalOpen}
           onClose={handleCloseAddModal}
-          onRoomAdded={handleRoomAdded}
+          onRoomAdded={handleRoomAdded as any}
         />
         {viewingRoom && (
           <RoomDetailsModal
