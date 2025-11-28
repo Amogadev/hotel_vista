@@ -282,33 +282,13 @@ const stats = useMemo(() => {
         .filter(room => room.checkOut && isSameDay(parseISO(room.checkOut), today))
         .reduce((acc, room) => acc + (room.totalPrice || 0), 0);
 
-    return [
-      {
-        title: 'Date',
-        value: format(date, 'PPP'),
-        icon: <CalendarIcon className="h-6 w-6 text-orange-300" />,
-      },
-      {
-        title: "Today's Income",
-        value: `₹${todaysIncome.toLocaleString()}`,
-        icon: <DollarSign className="h-6 w-6 text-green-500" />,
-      },
-      {
-        title: 'Booked',
-        value: bookedCount.toString(),
-        icon: <Bed className="h-6 w-6 text-red-500" />,
-      },
-      {
-        title: 'Occupied',
-        value: occupiedCount.toString(),
-        icon: <Users className="h-6 w-6 text-green-500" />,
-      },
-      {
-        title: 'Available',
-        value: availableCount.toString(),
-        icon: <CalendarDays className="h-6 w-6 text-blue-500" />,
-      },
-    ];
+    return {
+      date: format(date, 'PPP'),
+      todaysIncome: `₹${todaysIncome.toLocaleString()}`,
+      booked: bookedCount.toString(),
+      occupied: occupiedCount.toString(),
+      available: availableCount.toString(),
+    };
   }, [rooms, selectedDate, roomAvailabilities]);
 
 
@@ -394,6 +374,9 @@ const stats = useMemo(() => {
     }
   };
 
+  const today = new Date();
+  const checkingOutToday = rooms.filter(room => room.checkOut && isSameDay(parseISO(room.checkOut), today));
+
 
   return (
     <div className="flex h-full">
@@ -423,19 +406,53 @@ const stats = useMemo(() => {
         </header>
         {activeView === 'all-rooms' && (
           <div className="flex justify-center">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-                  {stats.map((stat) => (
-                  <Card key={stat.title} className="w-full md:w-56">
-                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                      <CardTitle className="text-xs font-medium">{stat.title}</CardTitle>
-                      {stat.icon}
-                      </CardHeader>
-                      <CardContent className="pb-4">
-                      <div className={cn("font-bold", stat.title === 'Date' ? 'text-base' : 'text-xl')}>{stat.value}</div>
-                      </CardContent>
-                  </Card>
-                  ))}
-              </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+              <Card className="w-full md:w-56">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                  <CardTitle className="text-xs font-medium">Date</CardTitle>
+                  <CalendarIcon className="h-6 w-6 text-orange-300" />
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <div className="text-base font-bold">{stats.date}</div>
+                </CardContent>
+              </Card>
+              <Card className="w-full md:w-56">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                  <CardTitle className="text-xs font-medium">Today's Income</CardTitle>
+                  <DollarSign className="h-6 w-6 text-green-500" />
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <div className="text-xl font-bold">{stats.todaysIncome}</div>
+                </CardContent>
+              </Card>
+              <Card className="w-full md:w-56">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                  <CardTitle className="text-xs font-medium">Booked</CardTitle>
+                  <Bed className="h-6 w-6 text-red-500" />
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <div className="text-xl font-bold">{stats.booked}</div>
+                </CardContent>
+              </Card>
+              <Card className="w-full md:w-56">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                  <CardTitle className="text-xs font-medium">Occupied</CardTitle>
+                  <Users className="h-6 w-6 text-green-500" />
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <div className="text-xl font-bold">{stats.occupied}</div>
+                </CardContent>
+              </Card>
+              <Card className="w-full md:w-56">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                  <CardTitle className="text-xs font-medium">Available</CardTitle>
+                  <CalendarDays className="h-6 w-6 text-blue-500" />
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <div className="text-xl font-bold">{stats.available}</div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
 
@@ -524,6 +541,36 @@ const stats = useMemo(() => {
           </>
         )}
         {activeView === 'calendar' && <RoomCalendarView rooms={rooms} />}
+        
+        {activeView === 'todays-income' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Today's Income</CardTitle>
+              <CardDescription>Total revenue from rooms that checked out today, {format(today, 'PPP')}.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-5xl font-bold text-green-600 mb-6">{stats.todaysIncome}</div>
+              <h4 className="font-semibold mb-2">Contributing Check-outs:</h4>
+              <div className="space-y-2">
+                {checkingOutToday.length > 0 ? (
+                  checkingOutToday.map(room => (
+                    <div key={room.number} className="flex justify-between items-center p-2 border rounded-md">
+                      <div>
+                        <p className="font-semibold">Room {room.number}</p>
+                        <p className="text-sm text-muted-foreground">{room.guest}</p>
+                      </div>
+                      <div className="font-semibold text-green-600">
+                        +₹{(room.totalPrice || 0).toLocaleString()}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground">No rooms checked out today.</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <AddRoomModal
           isOpen={isAddModalOpen}
@@ -576,5 +623,3 @@ const stats = useMemo(() => {
     </div>
   );
 }
-
-    
