@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bed, Users, CalendarDays, DollarSign } from 'lucide-react';
 import type { Room } from '@/context/data-provider';
+import { format, parseISO } from 'date-fns';
 
 type RoomDetailsModalProps = {
   room: Room;
@@ -25,6 +26,7 @@ const statusColorMap: { [key: string]: string } = {
     Available: 'bg-blue-100 text-blue-800 border-blue-200',
     Cleaning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     Maintenance: 'bg-red-100 text-red-800 border-red-200',
+    Booked: 'bg-red-100 text-red-800 border-red-200',
   };
 
 export function RoomDetailsModal({ room, isOpen, onClose }: RoomDetailsModalProps) {
@@ -76,14 +78,14 @@ export function RoomDetailsModal({ room, isOpen, onClose }: RoomDetailsModalProp
                             <CalendarDays className="h-5 w-5 text-muted-foreground" />
                             <div>
                                 <p className="text-sm text-muted-foreground">Check-in</p>
-                                <p className="font-medium">{room.checkIn}</p>
+                                <p className="font-medium">{room.checkIn ? format(parseISO(room.checkIn), 'PPP') : 'N/A'}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <CalendarDays className="h-5 w-5 text-muted-foreground" />
                             <div>
                                 <p className="text-sm text-muted-foreground">Check-out</p>
-                                <p className="font-medium">{room.checkOut}</p>
+                                <p className="font-medium">{room.checkOut ? format(parseISO(room.checkOut), 'PPP') : 'N/A'}</p>
                             </div>
                         </div>
                     </div>

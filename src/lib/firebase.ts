@@ -13,15 +13,27 @@ const firebaseConfig = {
   "messagingSenderId": "726288828301"
 };
 
-function initializeFirebase(): { app: FirebaseApp, firestore: Firestore, auth: Auth } {
-    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    const firestore = getFirestore(app);
-    const auth = getAuth(app);
+let app: FirebaseApp;
+let firestore: Firestore;
+let auth: Auth;
 
+if (typeof window === 'undefined') {
+  // Server-side initialization
+  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  firestore = getFirestore(app);
+  auth = getAuth(app);
+} else {
+  // Client-side initialization
+  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  firestore = getFirestore(app);
+  auth = getAuth(app);
+}
+
+const db = firestore;
+
+function initializeFirebase() {
     return { app, firestore, auth };
 }
 
-// Export the initialized services
-const { app, firestore: db, auth } = initializeFirebase();
 
 export { app, db, auth, initializeFirebase };

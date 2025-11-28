@@ -3,8 +3,18 @@
 
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc, Timestamp, setDoc, getDoc } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+
+// Note: The errorEmitter and FirestorePermissionError are for client-side use.
+// Server actions should throw errors directly to be caught by the client.
+
+async function handleFirestoreError(error: any, context: { path: string, operation: string, requestResourceData?: any }) {
+    // In a real app, you might log this error to a server-side logging service.
+    console.error(`Firestore Error (${context.operation} on ${context.path}):`, error);
+    
+    // We throw a generic but informative error that the client can display.
+    // The detailed context is logged on the server.
+    throw new Error(`Database error: Could not perform '${context.operation}' operation.`);
+}
 
 
 export async function getRooms() {
@@ -49,14 +59,11 @@ export async function addRoom(newRoom: {
         checkOut: newRoom.checkOut
     };
     return { success: true, room: resultRoom };
-  } catch (serverError) {
-    const permissionError = new FirestorePermissionError({
-      path: collectionRef.path,
-      operation: 'create',
-      requestResourceData: roomData,
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    return { success: false, error: permissionError.message };
+  } catch (error) {
+    await handleFirestoreError(error, { path: 'rooms', operation: 'create', requestResourceData: roomData });
+    // The function will not reach here because handleFirestoreError throws an error.
+    // This is for type safety in case the implementation of handleFirestoreError changes.
+    return { success: false, error: 'Failed to add room.' };
   }
 }
 
@@ -98,14 +105,9 @@ export async function updateRoom(updatedRoom: {
             checkOut: updatedRoom.checkOut
         };
         return { success: true, room: resultRoom };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'update',
-            requestResourceData: updateData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: `rooms/${docId}`, operation: 'update', requestResourceData: updateData });
+        return { success: false, error: 'Failed to update room.' };
     }
 }
 
@@ -123,13 +125,9 @@ export async function deleteRoom(roomNumber: string) {
     try {
         await deleteDoc(docRef);
         return { success: true };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: `rooms/${docId}`, operation: 'delete' });
+        return { success: false, error: 'Failed to delete room.' };
     }
 }
 
@@ -149,14 +147,9 @@ export async function addRestaurantMenuItem(newMenuItem: {
     try {
         const docRef = await addDoc(collectionRef, newMenuItem);
         return { success: true, item: { ...newMenuItem, id: docRef.id } };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: collectionRef.path,
-            operation: 'create',
-            requestResourceData: newMenuItem,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: 'menuItems', operation: 'create', requestResourceData: newMenuItem });
+        return { success: false, error: 'Failed to add menu item.' };
     }
 }
 
@@ -181,14 +174,9 @@ export async function updateRestaurantMenuItem(updatedMenuItem: {
     try {
         await updateDoc(docRef, itemData);
         return { success: true, item: updatedMenuItem };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'update',
-            requestResourceData: itemData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: `menuItems/${docId}`, operation: 'update', requestResourceData: itemData });
+        return { success: false, error: 'Failed to update menu item.' };
     }
 }
 
@@ -206,13 +194,9 @@ export async function deleteRestaurantMenuItem(itemName: string) {
     try {
         await deleteDoc(docRef);
         return { success: true };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: `menuItems/${docId}`, operation: 'delete' });
+        return { success: false, error: 'Failed to delete menu item.' };
     }
 }
 
@@ -235,14 +219,9 @@ export async function addOrder(newOrder: {
     try {
         const docRef = await addDoc(collectionRef, orderData);
         return { success: true, order: { ...newOrder, id: docRef.id } };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: collectionRef.path,
-            operation: 'create',
-            requestResourceData: orderData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: 'orders', operation: 'create', requestResourceData: orderData });
+        return { success: false, error: 'Failed to add order.' };
     }
 }
 
@@ -266,14 +245,9 @@ export async function recordBarSale(newSale: {
     try {
         const docRef = await addDoc(collectionRef, saleData);
         return { success: true, sale: { ...newSale, id: docRef.id } };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: collectionRef.path,
-            operation: 'create',
-            requestResourceData: saleData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: 'barSales', operation: 'create', requestResourceData: saleData });
+        return { success: false, error: 'Failed to record bar sale.' };
     }
 }
 
@@ -293,17 +267,11 @@ export async function addBarProduct(newProduct: {
     try {
         const docRef = await addDoc(collectionRef, newProduct);
         return { success: true, product: { ...newProduct, id: docRef.id } };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: collectionRef.path,
-            operation: 'create',
-            requestResourceData: newProduct,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: 'barProducts', operation: 'create', requestResourceData: newProduct });
+        return { success: false, error: 'Failed to add bar product.' };
     }
 }
-
 
 export async function updateBarProductStock(productName: string, newStock: number) {
     const q = query(collection(db, "barProducts"), where("name", "==", productName));
@@ -320,14 +288,9 @@ export async function updateBarProductStock(productName: string, newStock: numbe
     try {
         await updateDoc(docRef, updateData);
         return { success: true, productName, newStock };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'update',
-            requestResourceData: updateData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: `barProducts/${docId}`, operation: 'update', requestResourceData: updateData });
+        return { success: false, error: 'Failed to update bar product stock.' };
     }
 }
 
@@ -352,14 +315,9 @@ export async function updateBarProduct(updatedProduct: {
     try {
         await updateDoc(docRef, productData);
         return { success: true, product: updatedProduct };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'update',
-            requestResourceData: productData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: `barProducts/${docId}`, operation: 'update', requestResourceData: productData });
+        return { success: false, error: 'Failed to update bar product.' };
     }
 }
 
@@ -377,13 +335,9 @@ export async function deleteBarProduct(productName: string) {
     try {
         await deleteDoc(docRef);
         return { success: true };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: `barProducts/${docId}`, operation: 'delete' });
+        return { success: false, error: 'Failed to delete bar product.' };
     }
 }
 
@@ -406,14 +360,9 @@ export async function addStockItem(newItem: {
     try {
         const docRef = await addDoc(collectionRef, newItem);
         return { success: true, item: { ...newItem, id: docRef.id } };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: collectionRef.path,
-            operation: 'create',
-            requestResourceData: newItem,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: 'stockItems', operation: 'create', requestResourceData: newItem });
+        return { success: false, error: 'Failed to add stock item.' };
     }
 }
 
@@ -441,14 +390,9 @@ export async function updateStockItem(updatedItem: {
     try {
         await updateDoc(docRef, itemData);
         return { success: true, item: updatedItem };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'update',
-            requestResourceData: itemData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: `stockItems/${docId}`, operation: 'update', requestResourceData: itemData });
+        return { success: false, error: 'Failed to update stock item.' };
     }
 }
 
@@ -466,13 +410,9 @@ export async function deleteStockItem(itemName: string) {
     try {
         await deleteDoc(docRef);
         return { success: true };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: `stockItems/${docId}`, operation: 'delete' });
+        return { success: false, error: 'Failed to delete stock item.' };
     }
 }
 
@@ -496,14 +436,9 @@ export async function setDailyNote(date: string, content: string) {
     try {
         await setDoc(docRef, noteData);
         return { success: true };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'create', // or 'update' depending on logic
-            requestResourceData: noteData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: `dailyNotes/${date}`, operation: 'create', requestResourceData: noteData });
+        return { success: false, error: 'Failed to set daily note.' };
     }
 }
 
@@ -551,14 +486,9 @@ export async function addHall(newHall: {
         checkOut: newHall.checkOut
     };
     return { success: true, hall: resultHall };
-  } catch (serverError) {
-    const permissionError = new FirestorePermissionError({
-        path: collectionRef.path,
-        operation: 'create',
-        requestResourceData: hallData,
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    return { success: false, error: permissionError.message };
+  } catch (error) {
+    await handleFirestoreError(error, { path: 'halls', operation: 'create', requestResourceData: hallData });
+    return { success: false, error: 'Failed to add hall.' };
   }
 }
 
@@ -605,14 +535,9 @@ export async function updateHall(updatedHall: {
         const resultHall: any = { ...updatedHall };
         delete resultHall.originalName;
         return { success: true, hall: resultHall };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'update',
-            requestResourceData: updateData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: `halls/${docId}`, operation: 'update', requestResourceData: updateData });
+        return { success: false, error: 'Failed to update hall.' };
     }
 }
 
@@ -630,14 +555,8 @@ export async function deleteHall(hallName: string) {
     try {
         await deleteDoc(docRef);
         return { success: true };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        return { success: false, error: permissionError.message };
+    } catch (error) {
+        await handleFirestoreError(error, { path: `halls/${docId}`, operation: 'delete' });
+        return { success: false, error: 'Failed to delete hall.' };
     }
 }
-
-    
