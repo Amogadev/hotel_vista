@@ -419,14 +419,14 @@ export const DataContext = createContext<DataContextType>({
 });
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [halls, setHalls] = useState<Hall[]>([]);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-  const [recentSales, setRecentSales] = useState<RecentSale[]>([]);
-  const [stockItems, setStockItems] = useState<StockItem[]>([]);
-  const [guests, setGuests] = useState<Guest[]>([]);
+  const [rooms, setRooms] = useState<Room[]>(initialRooms);
+  const [halls, setHalls] = useState<Hall[]>(initialHalls);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
+  const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>(initialActiveOrders);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(initialInventoryItems);
+  const [recentSales, setRecentSales] = useState<RecentSale[]>(initialRecentSales);
+  const [stockItems, setStockItems] = useState<StockItem[]>(initialStockItems);
+  const [guests, setGuests] = useState<Guest[]>(initialGuests);
   const [totalBill, setTotalBill] = useState<TotalBill[]>(initialTotalBill);
   const [loading, setLoading] = useState(true);
 
@@ -434,80 +434,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [roomsRes, hallsRes, menuItemsRes, ordersRes, barProductsRes, barSalesRes, stockItemsRes] = await Promise.all([
-                getRooms(),
-                getHalls(),
-                getRestaurantMenuItems(),
-                getOrders(),
-                getBarProducts(),
-                getBarSales(),
-                getStockItems(),
-            ]);
-
+            // This will likely fail due to permissions, and we'll fall back to mock data.
+            const roomsRes = await getRooms();
             if (roomsRes.success) {
                 const fetchedRooms = roomsRes.rooms.filter((room: any): room is Room => !!room.number);
-                setRooms(fetchedRooms.length > 0 ? fetchedRooms.sort((a:Room,b:Room) => a.number.localeCompare(b.number)) : initialRooms);
+                setRooms(fetchedRooms.sort((a:Room,b:Room) => a.number.localeCompare(b.number)));
+            } else {
+                 setRooms(initialRooms);
             }
-
-            if (hallsRes.success) {
-                const fetchedHalls = hallsRes.halls;
-                setHalls(fetchedHalls.length > 0 ? fetchedHalls.sort((a:Hall, b:Hall) => a.name.localeCompare(b.name)) : initialHalls);
-            }
-
-            if (menuItemsRes.success) {
-                setMenuItems(menuItemsRes.items.length > 0 ? menuItemsRes.items.sort((a:MenuItem,b:MenuItem) => a.name.localeCompare(b.name)) : initialMenuItems);
-            }
-
-            if (ordersRes.success) {
-                const formattedOrders = ordersRes.orders.map((order: any) => ({
-                    ...order,
-                    status: 'pending', // You might want to store status in DB
-                }));
-                setActiveOrders(formattedOrders.length > 0 ? formattedOrders : initialActiveOrders);
-            }
-            
-            if (barProductsRes.success) {
-                const getStatus = (stock: number): 'good' | 'low' | 'critical' => {
-                    if (stock < 10) return 'critical';
-                    if (stock < 20) return 'low';
-                    return 'good';
-                }
-                const formattedBarProducts = barProductsRes.products.map((item: any) => ({
-                    ...item,
-                    status: getStatus(item.stock),
-                }));
-                setInventoryItems(formattedBarProducts.length > 0 ? formattedBarProducts.sort((a:InventoryItem,b:InventoryItem) => a.name.localeCompare(b.name)) : initialInventoryItems);
-            }
-
-            if (barSalesRes.success) {
-                setRecentSales(barSalesRes.sales.length > 0 ? barSalesRes.sales.sort((a: RecentSale, b: RecentSale) => new Date(b.time).getTime() - new Date(a.time).getTime()) : initialRecentSales);
-            }
-
-            if (stockItemsRes.success) {
-                const getStatus = (current: number, min: number): 'critical' | 'low' | 'normal' => {
-                    if (current < min) return 'critical';
-                    if (current < min * 2) return 'low';
-                    return 'normal';
-                  };
-                const formattedStockItems = stockItemsRes.items.map((item: any) => ({
-                    ...item,
-                    status: getStatus(item.current, item.min),
-                }));
-                setStockItems(formattedStockItems.length > 0 ? formattedStockItems.sort((a:StockItem,b:StockItem) => a.name.localeCompare(b.name)) : initialStockItems);
-            }
-
-            
         } catch (error) {
-            console.error("Failed to fetch initial data", error);
-            // Fallback to initial data if fetch fails
+            console.warn("Could not fetch rooms from Firestore, using initial mock data.", error);
             setRooms(initialRooms);
-            setHalls(initialHalls);
-            setMenuItems(initialMenuItems);
-            setActiveOrders(initialActiveOrders);
-            setInventoryItems(initialInventoryItems);
-            setRecentSales(initialRecentSales);
-            setStockItems(initialStockItems);
-            setGuests(initialGuests);
         } finally {
             setLoading(false);
         }
