@@ -628,3 +628,5 @@ export async function deleteHall(hallName: string) {
             return { success: false, error: permissionError.message };
         });
 }
+
+    
