@@ -35,6 +35,8 @@ import { updateRoom } from '@/app/actions';
 import { DataContext, Room } from '@/context/data-provider';
 import Topbar from '@/components/hotel-vista/topbar';
 import { Checkbox } from '@/components/ui/checkbox';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const facilitiesList = [
     { id: 'ac', label: 'AC' },
@@ -93,13 +95,12 @@ export default function OccupyRoomPage() {
 
   const onSubmit = (values: OccupyFormValues) => {
     startTransition(async () => {
-      try {
-        const result = await updateRoom({
+      const updatedRoomData = {
           originalNumber: room.number,
           number: room.number,
           type: room.type,
           price: room.price,
-          status: 'Occupied',
+          status: 'Occupied' as const,
           guest: values.guest,
           peopleCount: values.peopleCount,
           idProof: values.idProof,
@@ -110,7 +111,10 @@ export default function OccupyRoomPage() {
           totalPrice: totalPrice,
           advanceAmount: values.advanceAmount,
           paidAmount: values.advanceAmount,
-        });
+        };
+
+      try {
+        const result = await updateRoom(updatedRoomData);
         if (result.success) {
           toast({
             title: 'Room Occupied',
@@ -138,12 +142,21 @@ export default function OccupyRoomPage() {
         } else {
           throw new Error(result.error || 'Failed to occupy room');
         }
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: (error as Error).message || 'Failed to occupy the room. Please try again.',
-        });
+      } catch (error: any) {
+        if (error.message.includes('permission-denied') || error.message.includes('insufficient permissions')) {
+            const permissionError = new FirestorePermissionError({
+                path: `rooms/${room.number}`, // Approximate path
+                operation: 'update',
+                requestResourceData: updatedRoomData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        } else {
+             toast({
+              variant: 'destructive',
+              title: 'Error',
+              description: error.message || 'Failed to occupy the room. Please try again.',
+            });
+        }
       }
     });
   };
