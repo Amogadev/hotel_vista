@@ -31,7 +31,6 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { addRoom } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -104,34 +103,14 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
   }, [checkIn, checkOut, price, setValue]);
 
   const onSubmit = (values: RoomFormValues) => {
-    startTransition(async () => {
-        try {
-            const newRoomForAction = {
-                ...values,
-                checkIn: values.checkIn ? values.checkIn.toISOString() : undefined,
-                checkOut: values.checkOut ? values.checkOut.toISOString() : undefined,
-            };
-
-            const result = await addRoom(newRoomForAction);
-            
-            if (result.success && result.room) {
-                toast({
-                    title: 'Room Added',
-                    description: `Room ${values.number} has been successfully added.`,
-                });
-                onRoomAdded(result.room as Room);
-                onClose();
-                form.reset();
-            } else {
-                throw new Error(result.error || 'Failed to add the room. Please try again.');
-            }
-        } catch(error: any) {
-             toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: error.message || 'Failed to add the room. Please try again.',
-            });
-        }
+    startTransition(() => {
+        const newRoomForAction = {
+            ...values,
+            checkIn: values.checkIn ? values.checkIn.toISOString() : undefined,
+            checkOut: values.checkOut ? values.checkOut.toISOString() : undefined,
+        };
+        onRoomAdded(newRoomForAction as Room);
+        form.reset();
     });
   };
 

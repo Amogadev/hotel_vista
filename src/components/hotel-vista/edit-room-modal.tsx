@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useTransition, useEffect } from 'react';
@@ -30,13 +31,12 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { updateRoom } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
-import { format, differenceInCalendarDays } from 'date-fns';
+import { format, differenceInCalendarDays, parseISO } from 'date-fns';
 import type { Room } from '@/context/data-provider';
 
 const roomSchema = z.object({
@@ -59,7 +59,7 @@ type EditRoomModalProps = {
   room: Room;
   isOpen: boolean;
   onClose: () => void;
-  onRoomUpdated: (updatedRoom: EditRoomFormValues & { originalNumber: string }) => void;
+  onRoomUpdated: (updatedRoom: Room & { originalNumber: string }) => void;
   isOccupyFlow?: boolean;
 };
 
@@ -121,31 +121,13 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated, isOccupyFl
   }, [checkIn, checkOut, price, setValue]);
 
   const onSubmit = (values: EditRoomFormValues) => {
-    startTransition(async () => {
-      try {
-        const result = await updateRoom({
-            originalNumber: room.number,
-            ...values,
-            checkIn: values.checkIn ? values.checkIn.toISOString() : undefined,
-            checkOut: values.checkOut ? values.checkOut.toISOString() : undefined,
-        });
-        if (result.success) {
-          toast({
-            title: 'Room Updated',
-            description: `Room ${values.number} has been successfully updated.`,
-          });
-          onRoomUpdated({ ...values, originalNumber: room.number });
-          onClose();
-        } else {
-          throw new Error(result.error || 'Failed to update room');
-        }
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: (error as Error).message || 'Failed to update the room. Please try again.',
-        });
-      }
+    startTransition(() => {
+      const updatedRoom = {
+          ...values,
+          checkIn: values.checkIn ? values.checkIn.toISOString() : undefined,
+          checkOut: values.checkOut ? values.checkOut.toISOString() : undefined,
+      };
+      onRoomUpdated({ ...updatedRoom, originalNumber: room.number } as Room & { originalNumber: string });
     });
   };
 
@@ -360,5 +342,3 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated, isOccupyFl
     </Dialog>
   );
 }
-
-    
