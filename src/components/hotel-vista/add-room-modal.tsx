@@ -30,13 +30,14 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { addRoom } from '@/app/actions';
+import { addRoom } from '@/lib/rooms-service';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
 import { format, differenceInCalendarDays } from 'date-fns';
+import { Room } from '@/context/data-provider';
 
 const roomSchema = z.object({
   number: z.string().min(1, 'Room number is required'),
@@ -54,7 +55,7 @@ export type RoomFormValues = z.infer<typeof roomSchema>;
 type AddRoomModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onRoomAdded: (newRoom: RoomFormValues) => void;
+  onRoomAdded: (newRoom: Room) => void;
 };
 
 export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps) {
@@ -102,31 +103,20 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
   }, [checkIn, checkOut, price, setValue]);
 
   const onSubmit = (values: RoomFormValues) => {
-    startTransition(async () => {
-      try {
-        const result = await addRoom({
+    startTransition(() => {
+        const newRoom: Room = {
             ...values,
             checkIn: values.checkIn ? values.checkIn.toISOString() : undefined,
             checkOut: values.checkOut ? values.checkOut.toISOString() : undefined,
-        });
-        if (result.success) {
-          toast({
+        };
+        addRoom(newRoom);
+        toast({
             title: 'Room Added',
             description: `Room ${values.number} has been successfully added.`,
-          });
-          onRoomAdded(values);
-          onClose();
-          form.reset();
-        } else {
-          throw new Error(result.error || 'Failed to add room');
-        }
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: (error as Error).message || 'Failed to add the room. Please try again.',
         });
-      }
+        onRoomAdded(newRoom);
+        onClose();
+        form.reset();
     });
   };
 
@@ -142,7 +132,7 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+          <form id="add-room-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -324,17 +314,18 @@ export function AddRoomModal({ isOpen, onClose, onRoomAdded }: AddRoomModalProps
                 </div>
             )}
 
-            <DialogFooter className="col-span-1 md:col-span-2 pt-4">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Room
-              </Button>
-            </DialogFooter>
+            
           </form>
         </Form>
+        <DialogFooter className="col-span-1 md:col-span-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+            </Button>
+            <Button type="submit" form="add-room-form" disabled={isPending}>
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Save Room
+            </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

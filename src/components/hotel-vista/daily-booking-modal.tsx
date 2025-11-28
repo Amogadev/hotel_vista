@@ -17,7 +17,7 @@ import { LogIn, LogOut, Wrench, Bed, User, Calendar, Pencil, Sparkles } from 'lu
 import type { Room } from '@/context/data-provider';
 import { format, isSameDay, parseISO } from 'date-fns';
 import { Separator } from '../ui/separator';
-import { getDailyNote } from '@/app/actions';
+import { getDailyNote } from '@/lib/rooms-service';
 import { EditNotesModal } from './edit-notes-modal';
 import { cn } from '@/lib/utils';
 

@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { setDailyNote } from '@/app/actions';
+import { setDailyNote } from '@/lib/rooms-service';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -53,25 +53,13 @@ export function EditNotesModal({ isOpen, onClose, date, initialNote, onNoteUpdat
 
 
   const onSubmit = (values: NotesFormValues) => {
-    startTransition(async () => {
-      try {
-        const result = await setDailyNote(dateKey, values.notes);
-        if (result.success) {
-          toast({
+    startTransition(() => {
+        setDailyNote(dateKey, values.notes);
+        toast({
             title: 'Notes Updated',
             description: `Notes for ${formattedDate} have been saved.`,
-          });
-          onNoteUpdated(values.notes);
-        } else {
-          throw new Error('Failed to save notes');
-        }
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to save the notes. Please try again.',
         });
-      }
+        onNoteUpdated(values.notes);
     });
   };
 

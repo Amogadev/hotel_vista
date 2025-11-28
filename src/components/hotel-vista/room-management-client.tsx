@@ -54,7 +54,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 
 import { format, differenceInCalendarDays, parseISO, isWithinInterval, startOfDay, endOfDay, isSameDay, isFuture } from 'date-fns';
-import { deleteRoom, updateRoom } from '@/app/actions';
+import { deleteRoom, updateRoom } from '@/lib/rooms-service';
 import { useToast } from '@/hooks/use-toast';
 import { Room } from '@/context/data-provider';
 import { cn } from '@/lib/utils';
@@ -157,8 +157,8 @@ export default function RoomManagementDashboard() {
       return;
     }
     
-    startTransition(async () => {
-        let updatedRoomData: Partial<Room> & { originalNumber: string; number: string; type: string; price: number, status: string; };
+    startTransition(() => {
+        let updatedRoomData: Room & { originalNumber: string };
 
         if (action === 'checkout') {
             updatedRoomData = { 
@@ -181,39 +181,26 @@ export default function RoomManagementDashboard() {
             };
         }
 
-        try {
-            // @ts-ignore
-            const result = await updateRoom(updatedRoomData);
-            if (result.success) {
-                toast({
-                    title: `Room Status Updated`,
-                    description: `Room ${room.number} is now ${action === 'checkout' ? 'Cleaning' : 'under Maintenance'}.`,
-                });
-                
-                const finalUpdatedRoom = {
-                    ...room,
-                    status: updatedRoomData.status,
-                    guest: updatedRoomData.guest,
-                    checkIn: updatedRoomData.checkIn,
-                    checkOut: updatedRoomData.checkOut,
-                    totalPrice: updatedRoomData.totalPrice,
-                    peopleCount: updatedRoomData.peopleCount,
-                    idProof: updatedRoomData.idProof,
-                    email: updatedRoomData.email,
-                }
-                setRooms(prevRooms =>
-                    prevRooms.map(r => (r.number === room.number ? finalUpdatedRoom : r))
-                );
-            } else {
-                throw new Error(result.error || 'Failed to update room status');
-            }
-        } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: (error as Error).message,
-            });
+        updateRoom(updatedRoomData);
+        toast({
+            title: `Room Status Updated`,
+            description: `Room ${room.number} is now ${action === 'checkout' ? 'Cleaning' : 'under Maintenance'}.`,
+        });
+        
+        const finalUpdatedRoom = {
+            ...room,
+            status: updatedRoomData.status,
+            guest: updatedRoomData.guest,
+            checkIn: updatedRoomData.checkIn,
+            checkOut: updatedRoomData.checkOut,
+            totalPrice: updatedRoomData.totalPrice,
+            peopleCount: updatedRoomData.peopleCount,
+            idProof: updatedRoomData.idProof,
+            email: updatedRoomData.email,
         }
+        setRooms(prevRooms =>
+            prevRooms.map(r => (r.number === room.number ? finalUpdatedRoom : r))
+        );
     });
 };
 
@@ -347,20 +334,7 @@ const stats = useMemo(() => {
     setIsAddModalOpen(false);
   };
 
-  const handleRoomAdded = (newRoomData: RoomFormValues) => {
-    const newRoom: Room = {
-      number: newRoomData.number,
-      type: newRoomData.type,
-      status: newRoomData.status,
-      price: newRoomData.price,
-      guest: newRoomData.guest,
-      peopleCount: newRoomData.peopleCount,
-      idProof: newRoomData.idProof,
-      email: newRoomData.email,
-      checkIn: newRoomData.checkIn ? format(newRoomData.checkIn, 'yyyy-MM-dd') : undefined,
-      checkOut: newRoomData.checkOut ? format(newRoomData.checkOut, 'yyyy-MM-dd') : undefined,
-      totalPrice: newRoomData.totalPrice,
-    };
+  const handleRoomAdded = (newRoom: Room) => {
     setRooms(prevRooms => [...prevRooms, newRoom].sort((a,b) => a.number.localeCompare(b.number)));
     handleCloseAddModal();
   };
@@ -412,28 +386,15 @@ const stats = useMemo(() => {
 
   const handleConfirmDelete = () => {
     if (!deletingRoom) return;
-    startTransition(async () => {
-        try {
-            const result = await deleteRoom(deletingRoom.number);
-            if (result.success) {
-                toast({
-                    title: "Room Deleted",
-                    description: `Room ${deletingRoom.number} has been successfully deleted.`,
-                });
-                setRooms(prevRooms => prevRooms.filter(r => r.number !== deletingRoom.number));
-            } else {
-                throw new Error("Failed to delete room");
-            }
-        } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Failed to delete the room. Please try again.",
-            });
-        } finally {
-            setIsDeleteAlertOpen(false);
-            setDeletingRoom(null);
-        }
+    startTransition(() => {
+        deleteRoom(deletingRoom.number);
+        toast({
+            title: "Room Deleted",
+            description: `Room ${deletingRoom.number} has been successfully deleted.`,
+        });
+        setRooms(prevRooms => prevRooms.filter(r => r.number !== deletingRoom.number));
+        setIsDeleteAlertOpen(false);
+        setDeletingRoom(null);
     });
   };
 
@@ -625,3 +586,4 @@ const stats = useMemo(() => {
     </div>
   );
 }
+
