@@ -142,3 +142,5 @@ export function RoomDetailsModal({ room, isOpen, onClose, onPaymentUpdated }: Ro
     </>
   );
 }
+
+    

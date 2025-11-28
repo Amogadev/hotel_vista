@@ -35,8 +35,6 @@ import { updateRoom } from '@/app/actions';
 import { DataContext, Room } from '@/context/data-provider';
 import Topbar from '@/components/hotel-vista/topbar';
 import { Checkbox } from '@/components/ui/checkbox';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 const facilitiesList = [
     { id: 'ac', label: 'AC' },
@@ -113,50 +111,37 @@ export default function OccupyRoomPage() {
           paidAmount: values.advanceAmount,
         };
 
-      try {
-        const result = await updateRoom(updatedRoomData);
-        if (result.success) {
-          toast({
-            title: 'Room Occupied',
-            description: `Room ${room.number} has been successfully occupied.`,
-          });
+      const result = await updateRoom(updatedRoomData);
+      if (result.success) {
+        toast({
+          title: 'Room Occupied',
+          description: `Room ${room.number} has been successfully occupied.`,
+        });
 
-          // Optimistically update context
-          const updatedRoom: Room = {
-            ...room,
-            status: 'Occupied',
-            guest: values.guest,
-            peopleCount: values.peopleCount,
-            idProof: values.idProof,
-            email: values.email,
-            checkIn: values.checkIn.toISOString(),
-            checkOut: values.checkOut.toISOString(),
-            facilities: values.facilities,
-            totalPrice: totalPrice,
-            advanceAmount: values.advanceAmount,
-            paidAmount: values.advanceAmount
-          };
-          setRooms(prev => prev.map(r => r.number === room.number ? updatedRoom : r));
-          
-          router.push('/room-management');
-        } else {
-          throw new Error(result.error || 'Failed to occupy room');
-        }
-      } catch (error: any) {
-        if (error.message.includes('permission-denied') || error.message.includes('insufficient permissions')) {
-            const permissionError = new FirestorePermissionError({
-                path: `rooms/${room.number}`, // Approximate path
-                operation: 'update',
-                requestResourceData: updatedRoomData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        } else {
-             toast({
-              variant: 'destructive',
-              title: 'Error',
-              description: error.message || 'Failed to occupy the room. Please try again.',
-            });
-        }
+        // Optimistically update context
+        const updatedRoom: Room = {
+          ...room,
+          status: 'Occupied',
+          guest: values.guest,
+          peopleCount: values.peopleCount,
+          idProof: values.idProof,
+          email: values.email,
+          checkIn: values.checkIn.toISOString(),
+          checkOut: values.checkOut.toISOString(),
+          facilities: values.facilities,
+          totalPrice: totalPrice,
+          advanceAmount: values.advanceAmount,
+          paidAmount: values.advanceAmount
+        };
+        setRooms(prev => prev.map(r => r.number === room.number ? updatedRoom : r));
+        
+        router.push('/room-management');
+      } else {
+          toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: result.error || 'Failed to occupy the room. Please try again.',
+          });
       }
     });
   };
@@ -387,3 +372,5 @@ export default function OccupyRoomPage() {
     </div>
   );
 }
+
+    

@@ -28,10 +28,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import type { Room } from '@/context/data-provider';
 import { Separator } from '../ui/separator';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
-import { doc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 
 const paymentSchema = z.object({
   newPayment: z.coerce.number().min(0, 'Payment cannot be negative'),
@@ -70,33 +66,20 @@ export function ManagePaymentModal({ room, isOpen, onClose, onPaymentUpdated }: 
           paidAmount: newPaidAmount,
       };
 
-      try {
-        const result = await updateRoom(updatedRoomData);
-        if (result.success) {
+      const result = await updateRoom(updatedRoomData);
+      if (result.success) {
+        toast({
+          title: 'Payment Updated',
+          description: `₹${values.newPayment.toLocaleString()} has been added to the bill.`,
+        });
+        onPaymentUpdated(room.number, newPaidAmount);
+        onClose();
+      } else {
           toast({
-            title: 'Payment Updated',
-            description: `₹${values.newPayment.toLocaleString()} has been added to the bill.`,
+              variant: 'destructive',
+              title: 'Error',
+              description: result.error || 'Failed to update payment. Please try again.',
           });
-          onPaymentUpdated(room.number, newPaidAmount);
-          onClose();
-        } else {
-           throw new Error(result.error || 'Failed to update payment');
-        }
-      } catch (error: any) {
-         if (error.message.includes('permission-denied') || error.message.includes('insufficient permissions')) {
-            const permissionError = new FirestorePermissionError({
-                path: `rooms/${room.number}`, // Approximate path
-                operation: 'update',
-                requestResourceData: updatedRoomData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        } else {
-             toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: error.message || 'Failed to update payment. Please try again.',
-            });
-        }
       }
     });
   };
@@ -157,3 +140,5 @@ export function ManagePaymentModal({ room, isOpen, onClose, onPaymentUpdated }: 
     </Dialog>
   );
 }
+
+    
