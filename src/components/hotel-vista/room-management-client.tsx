@@ -58,6 +58,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Room, Transaction } from '@/context/data-provider';
 import { cn } from '@/lib/utils';
 import { RoomManagementSidebar } from './room-management-sidebar';
+import { ScrollArea } from '../ui/scroll-area';
 
 
 const statusFilters = ['All', 'Available', 'Occupied', 'Booked', 'Cleaning', 'Maintenance'];
@@ -137,7 +138,7 @@ export default function RoomManagementDashboard() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeView, setActiveView] = useState('all-rooms');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const router = useRouter();
 
@@ -252,7 +253,19 @@ const stats = useMemo(() => {
     let occupiedCount = 0;
     let availableCount = 0;
     let bookedCount = 0;
-    let todaysIncome = 0;
+    let dailyIncome = 0;
+    let dailyTransactions: (Transaction & { roomNumber: string, guest?: string })[] = [];
+
+    rooms.forEach(room => {
+        if (room.transactions) {
+            room.transactions.forEach(tx => {
+                if(isSameDay(parseISO(tx.date), date)) {
+                    dailyIncome += tx.amount;
+                    dailyTransactions.push({ ...tx, roomNumber: room.number, guest: room.guest });
+                }
+            })
+        }
+    })
 
     if (roomAvailabilities) { // Date is selected
         rooms.forEach(room => {
@@ -279,13 +292,10 @@ const stats = useMemo(() => {
         });
     }
 
-    todaysIncome = rooms
-        .filter(room => room.checkOut && isSameDay(parseISO(room.checkOut), today))
-        .reduce((acc, room) => acc + (room.paidAmount || 0), 0);
-
     return {
       date: format(date, 'PPP'),
-      todaysIncome: `₹${todaysIncome.toLocaleString()}`,
+      dailyIncome: `₹${dailyIncome.toLocaleString()}`,
+      dailyTransactions,
       booked: bookedCount.toString(),
       occupied: occupiedCount.toString(),
       available: availableCount.toString(),
@@ -375,10 +385,6 @@ const stats = useMemo(() => {
     }
   };
 
-  const today = new Date();
-  const checkingOutToday = rooms.filter(room => room.checkOut && isSameDay(parseISO(room.checkOut), today));
-
-
   return (
     <div className="flex h-full">
       <RoomManagementSidebar 
@@ -419,11 +425,11 @@ const stats = useMemo(() => {
               </Card>
               <Card className="w-full md:w-56">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                  <CardTitle className="text-xs font-medium">Today's Paid Income</CardTitle>
+                  <CardTitle className="text-xs font-medium">Daily Income</CardTitle>
                   <DollarSign className="h-6 w-6 text-green-500" />
                 </CardHeader>
                 <CardContent className="pb-4">
-                  <div className="text-xl font-bold">{stats.todaysIncome}</div>
+                  <div className="text-xl font-bold">{stats.dailyIncome}</div>
                 </CardContent>
               </Card>
               <Card className="w-full md:w-56">
@@ -480,9 +486,7 @@ const stats = useMemo(() => {
                                 mode="single"
                                 selected={selectedDate}
                                 onSelect={(day) => {
-                                    if (day) {
-                                        setSelectedDate(day);
-                                    }
+                                    setSelectedDate(day);
                                     setIsDatePickerOpen(false);
                                 }}
                                 initialFocus
@@ -546,29 +550,31 @@ const stats = useMemo(() => {
         {activeView === 'todays-income' && (
           <Card>
             <CardHeader>
-              <CardTitle>Today's Paid Income</CardTitle>
-              <CardDescription>Total paid amount from rooms that checked out today, {format(today, 'PPP')}.</CardDescription>
+              <CardTitle>Daily Income Summary</CardTitle>
+              <CardDescription>Total paid amount for {stats.date}.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-5xl font-bold text-green-600 mb-6">{stats.todaysIncome}</div>
-              <h4 className="font-semibold mb-2">Contributing Check-outs:</h4>
-              <div className="space-y-2">
-                {checkingOutToday.length > 0 ? (
-                  checkingOutToday.map(room => (
-                    <div key={room.number} className="flex justify-between items-center p-2 border rounded-md">
-                      <div>
-                        <p className="font-semibold">Room {room.number}</p>
-                        <p className="text-sm text-muted-foreground">{room.guest}</p>
+              <div className="text-5xl font-bold text-green-600 mb-6">{stats.dailyIncome}</div>
+              <h4 className="font-semibold mb-2">Transaction History for {stats.date}:</h4>
+              <ScrollArea className="h-72 w-full rounded-md border">
+                <div className="p-4">
+                  {stats.dailyTransactions.length > 0 ? (
+                    stats.dailyTransactions.map((tx, index) => (
+                      <div key={index} className="flex justify-between items-center p-2 border-b last:border-b-0">
+                        <div>
+                          <p className="font-semibold">Room {tx.roomNumber} <span className="text-sm font-normal text-muted-foreground">({tx.guest || 'N/A'})</span></p>
+                          <p className="text-sm text-muted-foreground">{tx.method}</p>
+                        </div>
+                        <div className="font-semibold text-green-600">
+                          +₹{tx.amount.toLocaleString()}
+                        </div>
                       </div>
-                      <div className="font-semibold text-green-600">
-                        +₹{(room.paidAmount || 0).toLocaleString()}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground">No rooms checked out today.</p>
-                )}
-              </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-center py-10">No transactions recorded for this day.</p>
+                  )}
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         )}
@@ -624,3 +630,4 @@ const stats = useMemo(() => {
     </div>
   );
 }
+
