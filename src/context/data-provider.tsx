@@ -6,6 +6,12 @@ import { AlertCircle, CheckCircle2, Clock, Loader2 } from 'lucide-react';
 import { getRooms, getRestaurantMenuItems, getOrders, getBarProducts, getBarSales, getStockItems, getHalls } from '@/app/actions';
 import { format, isPast, parseISO } from 'date-fns';
 
+export type Transaction = {
+    date: string;
+    amount: number;
+    method: string;
+};
+
 export type Room = {
     number: string;
     type: string;
@@ -21,6 +27,7 @@ export type Room = {
     facilities?: string[];
     advanceAmount?: number;
     paidAmount?: number;
+    transactions?: Transaction[];
 };
 
 export type Hall = {

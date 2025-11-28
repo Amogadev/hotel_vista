@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bed, Users, CalendarDays, DollarSign, Wallet } from 'lucide-react';
-import type { Room } from '@/context/data-provider';
+import type { Room, Transaction } from '@/context/data-provider';
 import { format, parseISO } from 'date-fns';
 import { Separator } from '../ui/separator';
 import { ManagePaymentModal } from './manage-payment-modal';
@@ -22,7 +22,7 @@ type RoomDetailsModalProps = {
   room: Room;
   isOpen: boolean;
   onClose: () => void;
-  onPaymentUpdated: (roomNumber: string, newPaidAmount: number) => void;
+  onPaymentUpdated: (roomNumber: string, newPaidAmount: number, transactions: Transaction[]) => void;
 };
 
 const statusColorMap: { [key: string]: string } = {
@@ -142,5 +142,3 @@ export function RoomDetailsModal({ room, isOpen, onClose, onPaymentUpdated }: Ro
     </>
   );
 }
-
-    

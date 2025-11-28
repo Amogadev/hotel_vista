@@ -32,7 +32,7 @@ import { cn } from '@/lib/utils';
 import { format, differenceInDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { updateRoom } from '@/app/actions';
-import { DataContext, Room } from '@/context/data-provider';
+import { DataContext, Room, Transaction } from '@/context/data-provider';
 import Topbar from '@/components/hotel-vista/topbar';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -93,6 +93,16 @@ export default function OccupyRoomPage() {
 
   const onSubmit = (values: OccupyFormValues) => {
     startTransition(async () => {
+      
+      const transactions: Transaction[] = [];
+      if(values.advanceAmount && values.advanceAmount > 0) {
+        transactions.push({
+          date: new Date().toISOString(),
+          amount: values.advanceAmount,
+          method: 'Advance',
+        });
+      }
+
       const updatedRoomData = {
           originalNumber: room.number,
           number: room.number,
@@ -109,6 +119,7 @@ export default function OccupyRoomPage() {
           totalPrice: totalPrice,
           advanceAmount: values.advanceAmount,
           paidAmount: values.advanceAmount,
+          transactions,
         };
 
       const result = await updateRoom(updatedRoomData);
@@ -131,7 +142,8 @@ export default function OccupyRoomPage() {
           facilities: values.facilities,
           totalPrice: totalPrice,
           advanceAmount: values.advanceAmount,
-          paidAmount: values.advanceAmount
+          paidAmount: values.advanceAmount,
+          transactions,
         };
         setRooms(prev => prev.map(r => r.number === room.number ? updatedRoom : r));
         
@@ -372,5 +384,3 @@ export default function OccupyRoomPage() {
     </div>
   );
 }
-
-    

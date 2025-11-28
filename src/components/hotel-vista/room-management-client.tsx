@@ -55,7 +55,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 import { format, differenceInCalendarDays, parseISO, isWithinInterval, startOfDay, endOfDay, isSameDay, isFuture } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { Room } from '@/context/data-provider';
+import { Room, Transaction } from '@/context/data-provider';
 import { cn } from '@/lib/utils';
 import { RoomManagementSidebar } from './room-management-sidebar';
 
@@ -164,7 +164,8 @@ export default function RoomManagementDashboard() {
                 idProof: undefined,
                 email: undefined,
                 advanceAmount: undefined,
-                paidAmount: undefined
+                paidAmount: undefined,
+                transactions: [],
             };
         } else { 
             newStatus = 'Maintenance';
@@ -340,12 +341,12 @@ const stats = useMemo(() => {
     });
   };
 
-  const handlePaymentUpdated = (roomNumber: string, newPaidAmount: number) => {
+  const handlePaymentUpdated = (roomNumber: string, newPaidAmount: number, transactions: Transaction[]) => {
     setRooms(prevRooms => prevRooms.map(r => 
-        r.number === roomNumber ? { ...r, paidAmount: newPaidAmount } : r
+        r.number === roomNumber ? { ...r, paidAmount: newPaidAmount, transactions } : r
     ));
     if(viewingRoom?.number === roomNumber) {
-        setViewingRoom(prev => prev ? { ...prev, paidAmount: newPaidAmount } : null);
+        setViewingRoom(prev => prev ? { ...prev, paidAmount: newPaidAmount, transactions } : null);
     }
   };
 
@@ -418,7 +419,7 @@ const stats = useMemo(() => {
               </Card>
               <Card className="w-full md:w-56">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                  <CardTitle className="text-xs font-medium">Today's Income</CardTitle>
+                  <CardTitle className="text-xs font-medium">Today's Paid Income</CardTitle>
                   <DollarSign className="h-6 w-6 text-green-500" />
                 </CardHeader>
                 <CardContent className="pb-4">
