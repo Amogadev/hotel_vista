@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useTransition, useMemo, useContext, useEffect } from 'react';
@@ -250,6 +251,7 @@ const stats = useMemo(() => {
     let occupiedCount = 0;
     let availableCount = 0;
     let bookedCount = 0;
+    let todaysIncome = 0;
 
     if (roomAvailabilities) { // Date is selected
         rooms.forEach(room => {
@@ -276,6 +278,10 @@ const stats = useMemo(() => {
         });
     }
 
+    todaysIncome = rooms
+        .filter(room => room.checkOut && isSameDay(parseISO(room.checkOut), today))
+        .reduce((acc, room) => acc + (room.totalPrice || 0), 0);
+
     return [
       {
         title: 'Date',
@@ -283,9 +289,9 @@ const stats = useMemo(() => {
         icon: <CalendarIcon className="h-6 w-6 text-orange-300" />,
       },
       {
-        title: 'Total Rooms',
-        value: totalRooms.toString(),
-        icon: <BedDouble className="h-6 w-6 text-blue-500" />,
+        title: "Today's Income",
+        value: `₹${todaysIncome.toLocaleString()}`,
+        icon: <DollarSign className="h-6 w-6 text-green-500" />,
       },
       {
         title: 'Booked',
