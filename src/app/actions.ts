@@ -3,6 +3,9 @@
 
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc, Timestamp, setDoc, getDoc } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+
 
 export async function getRooms() {
     const querySnapshot = await getDocs(collection(db, "rooms"));
@@ -31,23 +34,31 @@ export async function addRoom(newRoom: {
   checkOut?: string;
   totalPrice?: number;
 }) {
-  try {
-    const roomData: any = { ...newRoom };
-    if (newRoom.checkIn) roomData.checkIn = Timestamp.fromDate(new Date(newRoom.checkIn));
-    if (newRoom.checkOut) roomData.checkOut = Timestamp.fromDate(new Date(newRoom.checkOut));
+  const roomData: any = { ...newRoom };
+  if (newRoom.checkIn) roomData.checkIn = Timestamp.fromDate(new Date(newRoom.checkIn));
+  if (newRoom.checkOut) roomData.checkOut = Timestamp.fromDate(new Date(newRoom.checkOut));
 
-    const docRef = await addDoc(collection(db, "rooms"), roomData);
-    const resultRoom = { 
-        ...newRoom, 
-        id: docRef.id,
-        checkIn: newRoom.checkIn,
-        checkOut: newRoom.checkOut
-    };
-    return { success: true, room: resultRoom };
-  } catch (e) {
-    console.error("Error adding document: ", e);
-    return { success: false, error: "Failed to add room" };
-  }
+  const collectionRef = collection(db, "rooms");
+  
+  return addDoc(collectionRef, roomData)
+    .then(docRef => {
+        const resultRoom = { 
+            ...newRoom, 
+            id: docRef.id,
+            checkIn: newRoom.checkIn,
+            checkOut: newRoom.checkOut
+        };
+        return { success: true, room: resultRoom };
+    })
+    .catch(async (serverError) => {
+      const permissionError = new FirestorePermissionError({
+        path: collectionRef.path,
+        operation: 'create',
+        requestResourceData: roomData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+      return { success: false, error: permissionError.message };
+    });
 }
 
 export async function updateRoom(updatedRoom: {
@@ -65,47 +76,62 @@ export async function updateRoom(updatedRoom: {
   totalPrice?: number;
   facilities?: string[];
 }) {
-    try {
-        const q = query(collection(db, "rooms"), where("number", "==", updatedRoom.originalNumber));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const docId = querySnapshot.docs[0].id;
-            const { originalNumber, ...roomData } = updatedRoom;
+    const q = query(collection(db, "rooms"), where("number", "==", updatedRoom.originalNumber));
+    const querySnapshot = await getDocs(q);
 
-            const updateData: any = { ...roomData };
-            if (roomData.checkIn) updateData.checkIn = Timestamp.fromDate(new Date(roomData.checkIn));
-            if (roomData.checkOut) updateData.checkOut = Timestamp.fromDate(new Date(roomData.checkOut));
+    if (querySnapshot.empty) {
+        return { success: false, error: "Room not found" };
+    }
 
-            await updateDoc(doc(db, "rooms", docId), updateData);
-            
+    const docId = querySnapshot.docs[0].id;
+    const docRef = doc(db, "rooms", docId);
+    const { originalNumber, ...roomData } = updatedRoom;
+
+    const updateData: any = { ...roomData };
+    if (roomData.checkIn) updateData.checkIn = Timestamp.fromDate(new Date(roomData.checkIn));
+    if (roomData.checkOut) updateData.checkOut = Timestamp.fromDate(new Date(roomData.checkOut));
+
+    return updateDoc(docRef, updateData)
+        .then(() => {
             const resultRoom = { 
                 ...updatedRoom,
                 checkIn: updatedRoom.checkIn,
                 checkOut: updatedRoom.checkOut
             };
             return { success: true, room: resultRoom };
-        }
-        return { success: false, error: "Room not found" };
-    } catch (e) {
-        console.error("Error updating document: ", e);
-        return { success: false, error: "Failed to update room" };
-    }
+        })
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: docRef.path,
+                operation: 'update',
+                requestResourceData: updateData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function deleteRoom(roomNumber: string) {
-    try {
-        const q = query(collection(db, "rooms"), where("number", "==", roomNumber));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const docId = querySnapshot.docs[0].id;
-            await deleteDoc(doc(db, "rooms", docId));
-            return { success: true };
-        }
+    const q = query(collection(db, "rooms"), where("number", "==", roomNumber));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
         return { success: false, error: "Room not found" };
-    } catch (e) {
-        console.error("Error deleting document: ", e);
-        return { success: false, error: "Failed to delete room" };
     }
+    
+    const docId = querySnapshot.docs[0].id;
+    const docRef = doc(db, "rooms", docId);
+    
+    return deleteDoc(docRef)
+        .then(() => ({ success: true }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: docRef.path,
+                operation: 'delete',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function getRestaurantMenuItems() {
@@ -120,13 +146,18 @@ export async function addRestaurantMenuItem(newMenuItem: {
   price: number;
   status: string;
 }) {
-    try {
-        const docRef = await addDoc(collection(db, "menuItems"), newMenuItem);
-        return { success: true, item: { ...newMenuItem, id: docRef.id } };
-    } catch (e) {
-        console.error("Error adding document: ", e);
-        return { success: false, error: "Failed to add menu item" };
-    }
+    const collectionRef = collection(db, "menuItems");
+    return addDoc(collectionRef, newMenuItem)
+        .then(docRef => ({ success: true, item: { ...newMenuItem, id: docRef.id } }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: collectionRef.path,
+                operation: 'create',
+                requestResourceData: newMenuItem,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function updateRestaurantMenuItem(updatedMenuItem: {
@@ -136,36 +167,51 @@ export async function updateRestaurantMenuItem(updatedMenuItem: {
   price: number;
   status: string;
 }) {
-    try {
-        const q = query(collection(db, "menuItems"), where("name", "==", updatedMenuItem.originalName));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const docId = querySnapshot.docs[0].id;
-            const { originalName, ...itemData } = updatedMenuItem;
-            await updateDoc(doc(db, "menuItems", docId), itemData);
-            return { success: true, item: updatedMenuItem };
-        }
+    const q = query(collection(db, "menuItems"), where("name", "==", updatedMenuItem.originalName));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
         return { success: false, error: "Menu item not found" };
-    } catch (e) {
-        console.error("Error updating document: ", e);
-        return { success: false, error: "Failed to update menu item" };
     }
+
+    const docId = querySnapshot.docs[0].id;
+    const docRef = doc(db, "menuItems", docId);
+    const { originalName, ...itemData } = updatedMenuItem;
+    
+    return updateDoc(docRef, itemData)
+        .then(() => ({ success: true, item: updatedMenuItem }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: docRef.path,
+                operation: 'update',
+                requestResourceData: itemData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function deleteRestaurantMenuItem(itemName: string) {
-    try {
-        const q = query(collection(db, "menuItems"), where("name", "==", itemName));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const docId = querySnapshot.docs[0].id;
-            await deleteDoc(doc(db, "menuItems", docId));
-            return { success: true };
-        }
+    const q = query(collection(db, "menuItems"), where("name", "==", itemName));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
         return { success: false, error: "Stock item not found" };
-    } catch (e) {
-        console.error("Error deleting document: ", e);
-        return { success: false, error: "Failed to delete menu item" };
     }
+
+    const docId = querySnapshot.docs[0].id;
+    const docRef = doc(db, "menuItems", docId);
+    
+    return deleteDoc(docRef)
+        .then(() => ({ success: true }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: docRef.path,
+                operation: 'delete',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function getOrders() {
@@ -182,13 +228,19 @@ export async function addOrder(newOrder: {
   items: string;
   price: number;
 }) {
-    try {
-        const docRef = await addDoc(collection(db, "orders"), { ...newOrder, time: new Date() });
-        return { success: true, order: { ...newOrder, id: docRef.id } };
-    } catch (e) {
-        console.error("Error adding document: ", e);
-        return { success: false, error: "Failed to add order" };
-    }
+    const orderData = { ...newOrder, time: new Date() };
+    const collectionRef = collection(db, "orders");
+    return addDoc(collectionRef, orderData)
+        .then(docRef => ({ success: true, order: { ...newOrder, id: docRef.id } }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: collectionRef.path,
+                operation: 'create',
+                requestResourceData: orderData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function getBarSales() {
@@ -206,13 +258,19 @@ export async function recordBarSale(newSale: {
   price: number;
   room?: string;
 }) {
-    try {
-        const docRef = await addDoc(collection(db, "barSales"), { ...newSale, time: new Date() });
-        return { success: true, sale: { ...newSale, id: docRef.id } };
-    } catch (e) {
-        console.error("Error adding document: ", e);
-        return { success: false, error: "Failed to record bar sale" };
-    }
+    const saleData = { ...newSale, time: new Date() };
+    const collectionRef = collection(db, "barSales");
+    return addDoc(collectionRef, saleData)
+        .then(docRef => ({ success: true, sale: { ...newSale, id: docRef.id } }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: collectionRef.path,
+                operation: 'create',
+                requestResourceData: saleData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function getBarProducts() {
@@ -227,30 +285,44 @@ export async function addBarProduct(newProduct: {
   price: number;
   stock: number;
 }) {
-    try {
-        const docRef = await addDoc(collection(db, "barProducts"), newProduct);
-        return { success: true, product: { ...newProduct, id: docRef.id } };
-    } catch (e) {
-        console.error("Error adding document: ", e);
-        return { success: false, error: "Failed to add bar product" };
-    }
+    const collectionRef = collection(db, "barProducts");
+    return addDoc(collectionRef, newProduct)
+        .then(docRef => ({ success: true, product: { ...newProduct, id: docRef.id } }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: collectionRef.path,
+                operation: 'create',
+                requestResourceData: newProduct,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 
 export async function updateBarProductStock(productName: string, newStock: number) {
-    try {
-        const q = query(collection(db, "barProducts"), where("name", "==", productName));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const docId = querySnapshot.docs[0].id;
-            await updateDoc(doc(db, "barProducts", docId), { stock: newStock });
-            return { success: true, productName, newStock };
-        }
+    const q = query(collection(db, "barProducts"), where("name", "==", productName));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
         return { success: false, error: "Product not found" };
-    } catch (e) {
-        console.error("Error updating document: ", e);
-        return { success: false, error: "Failed to update product stock" };
     }
+
+    const docId = querySnapshot.docs[0].id;
+    const docRef = doc(db, "barProducts", docId);
+    const updateData = { stock: newStock };
+
+    return updateDoc(docRef, updateData)
+        .then(() => ({ success: true, productName, newStock }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: docRef.path,
+                operation: 'update',
+                requestResourceData: updateData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function updateBarProduct(updatedProduct: {
@@ -260,36 +332,51 @@ export async function updateBarProduct(updatedProduct: {
     price: number;
     stock: number;
 }) {
-    try {
-        const q = query(collection(db, "barProducts"), where("name", "==", updatedProduct.originalName));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const docId = querySnapshot.docs[0].id;
-            const { originalName, ...productData } = updatedProduct;
-            await updateDoc(doc(db, "barProducts", docId), productData);
-            return { success: true, product: updatedProduct };
-        }
+    const q = query(collection(db, "barProducts"), where("name", "==", updatedProduct.originalName));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
         return { success: false, error: "Product not found" };
-    } catch (e) {
-        console.error("Error updating document: ", e);
-        return { success: false, error: "Failed to update product" };
     }
+    
+    const docId = querySnapshot.docs[0].id;
+    const docRef = doc(db, "barProducts", docId);
+    const { originalName, ...productData } = updatedProduct;
+    
+    return updateDoc(docRef, productData)
+        .then(() => ({ success: true, product: updatedProduct }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: docRef.path,
+                operation: 'update',
+                requestResourceData: productData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function deleteBarProduct(productName: string) {
-    try {
-        const q = query(collection(db, "barProducts"), where("name", "==", productName));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const docId = querySnapshot.docs[0].id;
-            await deleteDoc(doc(db, "barProducts", docId));
-            return { success: true };
-        }
+    const q = query(collection(db, "barProducts"), where("name", "==", productName));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
         return { success: false, error: "Product not found" };
-    } catch (e) {
-        console.error("Error deleting document: ", e);
-        return { success: false, error: "Failed to delete product" };
     }
+
+    const docId = querySnapshot.docs[0].id;
+    const docRef = doc(db, "barProducts", docId);
+
+    return deleteDoc(docRef)
+        .then(() => ({ success: true }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: docRef.path,
+                operation: 'delete',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function getStockItems() {
@@ -307,13 +394,18 @@ export async function addStockItem(newItem: {
   unit: string;
   supplier: string;
 }) {
-    try {
-        const docRef = await addDoc(collection(db, "stockItems"), newItem);
-        return { success: true, item: { ...newItem, id: docRef.id } };
-    } catch (e) {
-        console.error("Error adding document: ", e);
-        return { success: false, error: "Failed to add stock item" };
-    }
+    const collectionRef = collection(db, "stockItems");
+    return addDoc(collectionRef, newItem)
+        .then(docRef => ({ success: true, item: { ...newItem, id: docRef.id } }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: collectionRef.path,
+                operation: 'create',
+                requestResourceData: newItem,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function updateStockItem(updatedItem: {
@@ -326,36 +418,51 @@ export async function updateStockItem(updatedItem: {
   unit: string;
   supplier: string;
 }) {
-    try {
-        const q = query(collection(db, "stockItems"), where("name", "==", updatedItem.originalName));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const docId = querySnapshot.docs[0].id;
-            const { originalName, ...itemData } = updatedItem;
-            await updateDoc(doc(db, "stockItems", docId), itemData);
-            return { success: true, item: updatedItem };
-        }
+    const q = query(collection(db, "stockItems"), where("name", "==", updatedItem.originalName));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
         return { success: false, error: "Stock item not found" };
-    } catch (e) {
-        console.error("Error updating document: ", e);
-        return { success: false, error: "Failed to update stock item" };
     }
+
+    const docId = querySnapshot.docs[0].id;
+    const docRef = doc(db, "stockItems", docId);
+    const { originalName, ...itemData } = updatedItem;
+
+    return updateDoc(docRef, itemData)
+        .then(() => ({ success: true, item: updatedItem }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: docRef.path,
+                operation: 'update',
+                requestResourceData: itemData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function deleteStockItem(itemName: string) {
-    try {
-        const q = query(collection(db, "stockItems"), where("name", "==", itemName));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const docId = querySnapshot.docs[0].id;
-            await deleteDoc(doc(db, "stockItems", docId));
-            return { success: true };
-        }
+    const q = query(collection(db, "stockItems"), where("name", "==", itemName));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
         return { success: false, error: "Stock item not found" };
-    } catch (e) {
-        console.error("Error deleting document: ", e);
-        return { success: false, error: "Failed to delete stock item" };
     }
+
+    const docId = querySnapshot.docs[0].id;
+    const docRef = doc(db, "stockItems", docId);
+
+    return deleteDoc(docRef)
+        .then(() => ({ success: true }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: docRef.path,
+                operation: 'delete',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function getDailyNote(date: string) {
@@ -367,20 +474,25 @@ export async function getDailyNote(date: string) {
         }
         return { success: true, note: "" };
     } catch (e) {
-        console.error("Error getting document: ", e);
-        return { success: false, error: "Failed to get note" };
+        const error = e as Error;
+        return { success: false, error: error.message };
     }
 }
 
 export async function setDailyNote(date: string, content: string) {
-    try {
-        const docRef = doc(db, "dailyNotes", date);
-        await setDoc(docRef, { content });
-        return { success: true };
-    } catch (e) {
-        console.error("Error setting document: ", e);
-        return { success: false, error: "Failed to set note" };
-    }
+    const docRef = doc(db, "dailyNotes", date);
+    const noteData = { content };
+    return setDoc(docRef, noteData)
+        .then(() => ({ success: true }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: docRef.path,
+                operation: 'create', // or 'update' depending on logic
+                requestResourceData: noteData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function getHalls() {
@@ -412,23 +524,31 @@ export async function addHall(newHall: {
   idProof?: string;
   email?: string;
 }) {
-  try {
-    const hallData: any = { ...newHall };
-    if (newHall.checkIn) hallData.checkIn = Timestamp.fromDate(new Date(newHall.checkIn));
-    if (newHall.checkOut) hallData.checkOut = Timestamp.fromDate(new Date(newHall.checkOut));
+  const hallData: any = { ...newHall };
+  if (newHall.checkIn) hallData.checkIn = Timestamp.fromDate(new Date(newHall.checkIn));
+  if (newHall.checkOut) hallData.checkOut = Timestamp.fromDate(new Date(newHall.checkOut));
 
-    const docRef = await addDoc(collection(db, "halls"), hallData);
-    const resultHall = { 
-        ...newHall, 
-        id: docRef.id,
-        checkIn: newHall.checkIn,
-        checkOut: newHall.checkOut
-    };
-    return { success: true, hall: resultHall };
-  } catch (e) {
-    console.error("Error adding document: ", e);
-    return { success: false, error: "Failed to add hall" };
-  }
+  const collectionRef = collection(db, "halls");
+
+  return addDoc(collectionRef, hallData)
+    .then(docRef => {
+        const resultHall = { 
+            ...newHall, 
+            id: docRef.id,
+            checkIn: newHall.checkIn,
+            checkOut: newHall.checkOut
+        };
+        return { success: true, hall: resultHall };
+    })
+    .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: collectionRef.path,
+            operation: 'create',
+            requestResourceData: hallData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        return { success: false, error: permissionError.message };
+    });
 }
 
 export async function updateHall(updatedHall: {
@@ -454,52 +574,57 @@ export async function updateHall(updatedHall: {
     addOns?: string[];
     foodCost?: number;
 }) {
-    try {
-        const q = query(collection(db, "halls"), where("name", "==", updatedHall.originalName));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const docId = querySnapshot.docs[0].id;
-            const { originalName, ...hallData } = updatedHall;
+    const q = query(collection(db, "halls"), where("name", "==", updatedHall.originalName));
+    const querySnapshot = await getDocs(q);
 
-            const updateData: any = { ...hallData };
-            if (hallData.checkIn) updateData.checkIn = Timestamp.fromDate(new Date(hallData.checkIn));
-            if (hallData.checkOut) updateData.checkOut = Timestamp.fromDate(new Date(hallData.checkOut));
+    if (querySnapshot.empty) {
+        return { success: false, error: "Hall not found" };
+    }
 
-            await updateDoc(doc(db, "halls", docId), updateData);
-            
+    const docId = querySnapshot.docs[0].id;
+    const docRef = doc(db, "halls", docId);
+    const { originalName, ...hallData } = updatedHall;
+
+    const updateData: any = { ...hallData };
+    if (hallData.checkIn) updateData.checkIn = Timestamp.fromDate(new Date(hallData.checkIn));
+    if (hallData.checkOut) updateData.checkOut = Timestamp.fromDate(new Date(hallData.checkOut));
+    
+    return updateDoc(docRef, updateData)
+        .then(() => {
             const resultHall: any = { ...updatedHall };
             delete resultHall.originalName;
-
             return { success: true, hall: resultHall };
-        }
-        return { success: false, error: "Hall not found" };
-    } catch (e) {
-        console.error("Error updating document: ", e);
-        return { success: false, error: "Failed to update hall" };
-    }
+        })
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: docRef.path,
+                operation: 'update',
+                requestResourceData: updateData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
 
 export async function deleteHall(hallName: string) {
-    try {
-        const q = query(collection(db, "halls"), where("name", "==", hallName));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const docId = querySnapshot.docs[0].id;
-            await deleteDoc(doc(db, "halls", docId));
-            return { success: true };
-        }
+    const q = query(collection(db, "halls"), where("name", "==", hallName));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
         return { success: false, error: "Hall not found" };
-    } catch (e) {
-        console.error("Error deleting document: ", e);
-        return { success: false, error: "Failed to delete hall" };
     }
+
+    const docId = querySnapshot.docs[0].id;
+    const docRef = doc(db, "halls", docId);
+
+    return deleteDoc(docRef)
+        .then(() => ({ success: true }))
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: docRef.path,
+                operation: 'delete',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            return { success: false, error: permissionError.message };
+        });
 }
-
-    
-
-    
-
-
-
-
-    

@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { DataProvider } from "@/context/data-provider";
+import FirebaseClientProvider from "@/firebase/client-provider";
+import { FirebaseErrorListener } from "@/components/FirebaseErrorListener";
 
 export const metadata: Metadata = {
   title: "HotelVista",
@@ -25,13 +27,14 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body bg-background text-foreground antialiased">
-        <DataProvider>
-            {children}
-        </DataProvider>
-        <Toaster />
+        <FirebaseClientProvider>
+          <DataProvider>
+              {children}
+          </DataProvider>
+          <Toaster />
+          <FirebaseErrorListener />
+        </FirebaseClientProvider>
       </body>
     </html>
   );
 }
-
-    
