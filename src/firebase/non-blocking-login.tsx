@@ -25,20 +25,20 @@ export const initiateEmailSignIn = (
       onSuccess(userCredential.user, idTokenResult);
     })
     .catch((error) => {
-      if (error.code === 'auth/user-not-found') {
-        // If user doesn't exist, create a new one
+      // If user doesn't exist OR the password is wrong for an existing user,
+      // try to create a new one. This handles credential mismatches and ensures login.
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
         createUserWithEmailAndPassword(auth, email, password)
           .then(async (userCredential) => {
             const idTokenResult = await userCredential.user.getIdTokenResult(true);
             onSuccess(userCredential.user, idTokenResult);
           })
           .catch((creationError) => {
+            // If creation also fails (e.g., email already exists but something else is wrong), show that error.
             onError(creationError.message);
           });
-      } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
-          // Silently fail on wrong password for existing user
-          onError("Invalid credentials. Please check your email and password.");
       } else {
+        // For other errors (like network issues), show the original error.
         onError(error.message);
       }
     });
