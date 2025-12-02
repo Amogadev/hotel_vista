@@ -26,8 +26,8 @@ const roleRedirects: { [key: string]: string } = {
 };
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('admin@hotelvista.app');
-  const [password, setPassword] = useState('admin');
+  const [email, setEmail] = useState('hotel@gmail.com');
+  const [password, setPassword] = useState('hotel@123');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, setIsPending] = useState(false);
