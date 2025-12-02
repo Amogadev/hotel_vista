@@ -80,7 +80,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availa
     onAction('occupy', room);
   };
   
-  const displayStatus = availability ? availability.status : (room.status === 'Occupied' && room.checkIn && isFuture(startOfDay(parseISO(room.checkIn))) ? 'Booked' : room.status);
+  const displayStatus = availability ? availability.status : (room.status === 'Occupied' && room.checkIn && typeof room.checkIn === 'string' && isValid(parseISO(room.checkIn)) && isFuture(startOfDay(parseISO(room.checkIn))) ? 'Booked' : room.status);
   const colorClass = statusColorMap[displayStatus] || '';
   const guestName = availability ? availability.guestName : room.guest;
 
@@ -99,7 +99,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availa
         onClick={() => onViewRoom(room)}
       >
         <p className="text-sm text-muted-foreground">Room</p>
-        <p className="text-3xl font-bold">{room.number}</p>
+        <p className="text-3xl font-bold">{room.number || 'N/A'}</p>
         <Badge variant={'default'} className={cn("mt-2 capitalize", colorClass, !colorClass.includes('text-') && 'text-foreground')}>
             {displayStatus}
         </Badge>
