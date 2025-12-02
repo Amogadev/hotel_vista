@@ -112,7 +112,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availa
         ) : (
             displayStatus === 'Available' && !availability && (
                 <Button variant="outline" size="sm" className="mt-3 h-7 text-xs border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white" onClick={handleOccupyClick}>
-                    Occupy
+                    Book
                 </Button>
             )
         )}
