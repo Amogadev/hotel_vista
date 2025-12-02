@@ -27,7 +27,7 @@ const roleRedirects: { [key: string]: string } = {
 
 export default function LoginPage() {
   const [email, setEmail] = useState('admin@example.com');
-  const [password, setPassword] = useState('password');
+  const [password, setPassword] = useState('admin');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, setIsPending] = useState(false);
