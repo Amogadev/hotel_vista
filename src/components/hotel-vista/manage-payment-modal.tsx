@@ -29,7 +29,7 @@ import { Loader2 } from 'lucide-react';
 import type { Room, Transaction } from '@/context/data-provider';
 import { Separator } from '../ui/separator';
 import { ScrollArea } from '../ui/scroll-area';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const paymentSchema = z.object({
@@ -137,7 +137,7 @@ export function ManagePaymentModal({ room, isOpen, onClose, onPaymentUpdated }: 
                                 <p className="font-medium">₹{tx.amount.toLocaleString()}</p>
                                 <p className="text-xs text-muted-foreground">{tx.method}</p>
                             </div>
-                            <p className="text-xs text-muted-foreground">{format(parseISO(tx.date), 'PP p')}</p>
+                            <p className="text-xs text-muted-foreground">{typeof tx.date === 'string' && isValid(parseISO(tx.date)) ? format(parseISO(tx.date), 'PP p') : 'Invalid Date'}</p>
                         </div>
                         ))
                     ) : (

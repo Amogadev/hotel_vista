@@ -53,7 +53,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 
-import { format, differenceInCalendarDays, parseISO, isWithinInterval, startOfDay, endOfDay, isSameDay, isFuture } from 'date-fns';
+import { format, differenceInCalendarDays, parseISO, isWithinInterval, startOfDay, endOfDay, isSameDay, isFuture, isValid } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Room, Transaction } from '@/context/data-provider';
 import { cn } from '@/lib/utils';
@@ -196,10 +196,10 @@ const roomAvailabilities = useMemo(() => {
         let isBooked = false;
         let guestName: string | undefined = undefined;
 
-        if (room.checkIn && room.checkOut) {
+        if (room.checkIn && room.checkOut && typeof room.checkIn === 'string' && typeof room.checkOut === 'string') {
             const checkInDate = startOfDay(parseISO(room.checkIn));
             const checkOutDate = endOfDay(parseISO(room.checkOut));
-            if (isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
+            if (isValid(checkInDate) && isValid(checkOutDate) && isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
                 isBooked = true;
                 guestName = room.guest;
             }
@@ -225,9 +225,9 @@ const roomAvailabilities = useMemo(() => {
 
     if (activeFilter !== 'All') {
         if (activeFilter === 'Booked') {
-            roomsToDisplay = roomsToDisplay.filter(room => room.status === 'Occupied' && room.checkIn && isFuture(startOfDay(parseISO(room.checkIn))));
+            roomsToDisplay = roomsToDisplay.filter(room => room.status === 'Occupied' && room.checkIn && typeof room.checkIn === 'string' && isValid(parseISO(room.checkIn)) && isFuture(startOfDay(parseISO(room.checkIn))));
         } else if (activeFilter === 'Occupied') {
-            roomsToDisplay = roomsToDisplay.filter(room => room.status === 'Occupied' && (!room.checkIn || !isFuture(startOfDay(parseISO(room.checkIn)))));
+            roomsToDisplay = roomsToDisplay.filter(room => room.status === 'Occupied' && (!room.checkIn || typeof room.checkIn !== 'string' || !isValid(parseISO(room.checkIn)) || !isFuture(startOfDay(parseISO(room.checkIn)))));
         } else {
             roomsToDisplay = roomsToDisplay.filter(room => room.status === activeFilter);
         }
@@ -259,7 +259,7 @@ const stats = useMemo(() => {
     rooms.forEach(room => {
         if (room.transactions) {
             room.transactions.forEach(tx => {
-                if(isSameDay(parseISO(tx.date), date)) {
+                if(typeof tx.date === 'string' && isValid(parseISO(tx.date)) && isSameDay(parseISO(tx.date), date)) {
                     dailyIncome += tx.amount;
                     dailyTransactions.push({ ...tx, roomNumber: room.number, guest: room.guest });
                 }
@@ -283,7 +283,7 @@ const stats = useMemo(() => {
         availableCount = rooms.filter(r => r.status === 'Available').length;
         rooms.forEach(room => {
             if (room.status === 'Occupied') {
-                if (room.checkIn && isFuture(startOfDay(parseISO(room.checkIn)))) {
+                if (room.checkIn && typeof room.checkIn === 'string' && isValid(parseISO(room.checkIn)) && isFuture(startOfDay(parseISO(room.checkIn)))) {
                     bookedCount++;
                 } else {
                     occupiedCount++;
@@ -630,4 +630,3 @@ const stats = useMemo(() => {
     </div>
   );
 }
-

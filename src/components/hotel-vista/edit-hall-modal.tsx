@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useTransition, useEffect } from 'react';
@@ -39,7 +40,7 @@ import type { Hall } from '@/context/data-provider';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
-import { format, differenceInCalendarDays, parseISO } from 'date-fns';
+import { format, differenceInCalendarDays, parseISO, isValid } from 'date-fns';
 import { Textarea } from '../ui/textarea';
 import { ScrollArea } from '../ui/scroll-area';
 
@@ -89,8 +90,8 @@ export function EditHallModal({ hall, isOpen, onClose, onHallUpdated }: EditHall
     if (hall) {
       form.reset({
         ...hall,
-        checkIn: hall.checkIn ? parseISO(hall.checkIn) : undefined,
-        checkOut: hall.checkOut ? parseISO(hall.checkOut) : undefined,
+        checkIn: hall.checkIn && typeof hall.checkIn === 'string' && isValid(parseISO(hall.checkIn)) ? parseISO(hall.checkIn) : undefined,
+        checkOut: hall.checkOut && typeof hall.checkOut === 'string' && isValid(parseISO(hall.checkOut)) ? parseISO(hall.checkOut) : undefined,
       });
     }
   }, [hall, form]);
@@ -376,4 +377,5 @@ export function EditHallModal({ hall, isOpen, onClose, onHallUpdated }: EditHall
     </Dialog>
   );
 }
+
 

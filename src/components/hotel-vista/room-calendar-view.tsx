@@ -7,7 +7,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import type { Room } from '@/context/data-provider';
-import { parseISO, isWithinInterval, startOfDay, format, eachDayOfInterval, isSameDay } from 'date-fns';
+import { parseISO, isWithinInterval, startOfDay, format, eachDayOfInterval, isSameDay, isValid } from 'date-fns';
 import { DailyBookingModal } from './daily-booking-modal';
 import { useRouter } from 'next/navigation';
 
@@ -31,10 +31,10 @@ export function RoomCalendarView({ rooms }: RoomCalendarViewProps) {
 
   const bookingsByDate: { [key: string]: Room[] } = {};
   occupiedRooms.forEach(room => {
-    if (room.checkIn && room.checkOut) {
+    if (room.checkIn && room.checkOut && typeof room.checkIn === 'string' && typeof room.checkOut === 'string') {
         const start = startOfDay(parseISO(room.checkIn));
         const end = startOfDay(parseISO(room.checkOut));
-        if (start && end) {
+        if (isValid(start) && isValid(end)) {
             const interval = eachDayOfInterval({ start, end });
             interval.forEach(day => {
             const dateKey = format(day, 'yyyy-MM-dd');
@@ -123,7 +123,7 @@ export function RoomCalendarView({ rooms }: RoomCalendarViewProps) {
                         <div key={room.number} className="border p-3 rounded-lg bg-muted/50">
                             <p className="font-semibold text-primary">Room {room.number}</p>
                             <p className="text-sm font-medium">{room.guest}</p>
-                            {room.checkIn && room.checkOut &&
+                            {room.checkIn && room.checkOut && typeof room.checkIn === 'string' && typeof room.checkOut === 'string' && isValid(parseISO(room.checkIn)) && isValid(parseISO(room.checkOut)) &&
                                 <Badge variant="secondary" className="mt-1">{format(parseISO(room.checkIn), 'MMM d')} to {format(parseISO(room.checkOut), 'MMM d')}</Badge>
                             }
                         </div>

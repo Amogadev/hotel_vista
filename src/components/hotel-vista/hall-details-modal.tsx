@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Building, Users, CalendarDays, DollarSign, ListTree } from 'lucide-react';
 import type { Hall } from '@/context/data-provider';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 
 type HallDetailsModalProps = {
   hall: Hall;
@@ -79,7 +79,7 @@ export function HallDetailsModal({ hall, isOpen, onClose }: HallDetailsModalProp
                                 <p className="font-medium">{hall.customerName}</p>
                             </div>
                         </div>
-                        {hall.checkIn && hall.checkOut && (
+                        {hall.checkIn && typeof hall.checkIn === 'string' && isValid(parseISO(hall.checkIn)) && hall.checkOut && typeof hall.checkOut === 'string' && isValid(parseISO(hall.checkOut)) && (
                              <div className="grid grid-cols-2 gap-4">
                                 <div className="flex items-center gap-2">
                                     <CalendarDays className="h-5 w-5 text-muted-foreground" />

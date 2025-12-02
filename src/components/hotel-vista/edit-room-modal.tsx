@@ -36,7 +36,7 @@ import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
-import { format, differenceInCalendarDays, parseISO } from 'date-fns';
+import { format, differenceInCalendarDays, parseISO, isValid } from 'date-fns';
 import type { Room } from '@/context/data-provider';
 
 const roomSchema = z.object({
@@ -90,8 +90,8 @@ export function EditRoomModal({ room, isOpen, onClose, onRoomUpdated, isOccupyFl
         peopleCount: room.peopleCount || undefined,
         idProof: room.idProof || undefined,
         email: room.email || undefined,
-        checkIn: room.checkIn ? new Date(room.checkIn) : undefined,
-        checkOut: room.checkOut ? new Date(room.checkOut) : undefined,
+        checkIn: room.checkIn && typeof room.checkIn === 'string' && isValid(parseISO(room.checkIn)) ? new Date(room.checkIn) : undefined,
+        checkOut: room.checkOut && typeof room.checkOut === 'string' && isValid(parseISO(room.checkOut)) ? new Date(room.checkOut) : undefined,
         totalPrice: room.totalPrice || 0,
       });
     }

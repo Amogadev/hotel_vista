@@ -15,7 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { LogIn, LogOut, Wrench, Bed, User, Calendar, Pencil, Sparkles } from 'lucide-react';
 import type { Room } from '@/context/data-provider';
-import { format, isSameDay, parseISO } from 'date-fns';
+import { format, isSameDay, parseISO, isValid } from 'date-fns';
 import { Separator } from '../ui/separator';
 import { getDailyNote, setDailyNote } from '@/app/actions';
 import { EditNotesModal } from './edit-notes-modal';
@@ -48,15 +48,15 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
   }, [isOpen, dateKey]);
 
   const bookedRooms = rooms.filter(r => 
-    r.checkIn && r.checkOut && isSameDay(date, parseISO(r.checkIn))
+    r.checkIn && typeof r.checkIn === 'string' && isValid(parseISO(r.checkIn)) && r.checkOut && isSameDay(date, parseISO(r.checkIn))
   );
 
   const availableRooms = rooms.filter(r => 
     r.status === 'Available' && !bookedRooms.find(br => br.number === r.number)
   );
 
-  const checkIns = rooms.filter(r => r.checkIn && isSameDay(parseISO(r.checkIn), date));
-  const checkOuts = rooms.filter(r => r.checkOut && isSameDay(parseISO(r.checkOut), date));
+  const checkIns = rooms.filter(r => r.checkIn && typeof r.checkIn === 'string' && isValid(parseISO(r.checkIn)) && isSameDay(parseISO(r.checkIn), date));
+  const checkOuts = rooms.filter(r => r.checkOut && typeof r.checkOut === 'string' && isValid(parseISO(r.checkOut)) && isSameDay(parseISO(r.checkOut), date));
   const maintenanceRooms = rooms.filter(r => r.status === 'Maintenance');
 
   const handleNoteUpdated = async (newNote: string) => {
@@ -155,7 +155,7 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm font-medium flex items-center gap-2"><User className="w-4 h-4"/>{room.guest}</p>
-                                        {room.checkIn && room.checkOut &&
+                                        {room.checkIn && room.checkOut && typeof room.checkIn === 'string' && typeof room.checkOut === 'string' && isValid(parseISO(room.checkIn)) && isValid(parseISO(room.checkOut)) &&
                                             <p className="text-xs text-muted-foreground flex items-center gap-2"><Calendar className="w-4 h-4"/>{format(parseISO(room.checkIn), 'MMM d')} - {format(parseISO(room.checkOut), 'MMM d')}</p>
                                         }
                                     </div>

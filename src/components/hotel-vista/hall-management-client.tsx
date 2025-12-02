@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useMemo, useContext, useTransition, useEffect } from 'react';
@@ -70,7 +71,7 @@ function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availa
   };
   
   let displayStatus: 'Occupied' | 'Available' | 'Booked' | 'Maintenance' | 'Cleaning' = availability ? availability.status : hall.status;
-  if (hall.status === 'Booked' && hall.checkIn && hall.checkOut && isWithinInterval(new Date(), { start: parseISO(hall.checkIn), end: parseISO(hall.checkOut) })) {
+  if (hall.status === 'Booked' && hall.checkIn && hall.checkOut && typeof hall.checkIn === 'string' && typeof hall.checkOut === 'string' && isValid(parseISO(hall.checkIn)) && isValid(parseISO(hall.checkOut)) && isWithinInterval(new Date(), { start: parseISO(hall.checkIn), end: parseISO(hall.checkOut) })) {
       displayStatus = 'Occupied';
   }
 
@@ -170,7 +171,7 @@ export default function HallManagementDashboard() {
       const bookingsForHall = halls.filter(h => h.id === hall.id && h.checkIn && h.checkOut);
 
       for (const booking of bookingsForHall) {
-        if (booking.checkIn && booking.checkOut) {
+        if (booking.checkIn && typeof booking.checkIn === 'string' && isValid(parseISO(booking.checkIn)) && booking.checkOut && typeof booking.checkOut === 'string' && isValid(parseISO(booking.checkOut))) {
             const checkInDate = startOfDay(parseISO(booking.checkIn));
             const checkOutDate = endOfDay(parseISO(booking.checkOut));
             if (isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {

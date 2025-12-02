@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bed, Users, CalendarDays, DollarSign, Wallet } from 'lucide-react';
 import type { Room, Transaction } from '@/context/data-provider';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { Separator } from '../ui/separator';
 import { ManagePaymentModal } from './manage-payment-modal';
 
@@ -81,7 +81,7 @@ export function RoomDetailsModal({ room, isOpen, onClose, onPaymentUpdated }: Ro
                                 <p className="font-medium">{room.guest}</p>
                             </div>
                         </div>
-                        {room.checkIn && room.checkOut && (
+                        {room.checkIn && typeof room.checkIn === 'string' && isValid(parseISO(room.checkIn)) && room.checkOut && typeof room.checkOut === 'string' && isValid(parseISO(room.checkOut)) && (
                              <div className="grid grid-cols-2 gap-4">
                                 <div className="flex items-center gap-2">
                                     <CalendarDays className="h-5 w-5 text-muted-foreground" />
