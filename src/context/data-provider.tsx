@@ -190,7 +190,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [totalBill, setTotalBill] = useState<TotalBill[]>([]);
 
   useEffect(() => {
-    if (roomsData) setRooms(roomsData);
+    if (roomsData) {
+      const validRooms = roomsData.filter(room => room.number);
+      setRooms(validRooms);
+    }
   }, [roomsData]);
 
   useEffect(() => {
