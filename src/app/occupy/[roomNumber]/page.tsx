@@ -356,7 +356,7 @@ export default function OccupyRoomPage() {
                             <FormItem>
                             <FormLabel>Advance Payment</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="e.g., 5000" {...field} />
+                                <Input type="number" placeholder="e.g., 5000" {...field} value={field.value ?? 0} />
                             </FormControl>
                             <FormDescription>
                                 Enter any advance amount paid by the guest.
