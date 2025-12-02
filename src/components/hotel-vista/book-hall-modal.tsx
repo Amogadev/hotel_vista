@@ -195,14 +195,14 @@ export function BookHallModal({ hall, isOpen, onClose, onHallBooked }: BookHallM
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
+        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
             <DialogHeader>
                 <DialogTitle>Book Hall: {hall.name}</DialogTitle>
                 <DialogDescription>Enter the customer's details to book the hall.</DialogDescription>
             </DialogHeader>
             <ScrollArea className="flex-grow pr-6 -mr-6">
                 <Form {...form}>
-                <form id="book-hall-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <form id="book-hall-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 py-4">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     {/* Left Column */}
                     <div className="space-y-6">
@@ -371,6 +371,11 @@ export function BookHallModal({ hall, isOpen, onClose, onHallBooked }: BookHallM
                         </div>
                         </div>
 
+                        
+                    </div>
+
+                    {/* Right Column */}
+                    <div className="space-y-6">
                         {/* Guest Count */}
                         <div className="space-y-4 rounded-md border p-4">
                             <h3 className="text-lg font-semibold">Guest Count</h3>
@@ -391,7 +396,6 @@ export function BookHallModal({ hall, isOpen, onClose, onHallBooked }: BookHallM
                                 )} />
                             </div>
                         </div>
-
                         {/* Food Preference */}
                         <div className="space-y-4 rounded-md border p-4">
                             <h3 className="text-lg font-semibold">Food & Catering</h3>
@@ -408,10 +412,6 @@ export function BookHallModal({ hall, isOpen, onClose, onHallBooked }: BookHallM
                                 </FormItem>
                             )} />
                         </div>
-                    </div>
-
-                    {/* Right Column */}
-                    <div className="space-y-6">
                         {/* Add-ons */}
                         <div className="space-y-4 rounded-md border p-4">
                         <FormField control={form.control} name="addOns" render={() => (
@@ -449,7 +449,7 @@ export function BookHallModal({ hall, isOpen, onClose, onHallBooked }: BookHallM
                         </div>
 
                         {/* Estimated Bill */}
-                        <div className="space-y-2 rounded-md border p-4">
+                        <div className="space-y-2 rounded-md border p-4 sticky top-0 bg-background z-10">
                             <h3 className="text-lg font-semibold">Estimated Bill</h3>
                             <Separator />
                             <div className="flex justify-between items-center text-xl font-bold">

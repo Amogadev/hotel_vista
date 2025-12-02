@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useTransition, useEffect } from 'react';
@@ -144,7 +145,7 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Add New Hall</DialogTitle>
           <DialogDescription>
@@ -154,7 +155,7 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
         <ScrollArea className="flex-grow pr-6 -mr-6">
           <Form {...form}>
             <form id="add-hall-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -201,7 +202,7 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
               />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                  <FormField
                   control={form.control}
                   name="capacity"
@@ -241,7 +242,7 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
                         Select the facilities available in this hall.
                       </FormDescription>
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {facilitiesList.map((item) => (
                       <FormField
                         key={item}
@@ -296,7 +297,7 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
                       </FormItem>
                   )}
                   />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField
                       control={form.control}
                       name="checkIn"

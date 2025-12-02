@@ -28,6 +28,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { recordBarSale, updateBarProductStock } from '@/app/actions';
 import { BarReceiptPrint, type BarReceiptPrintProps } from './bar-receipt-print';
+import { ScrollArea } from '../ui/scroll-area';
 
 type SaleItem = InventoryItemType & { quantity: number };
 
@@ -234,7 +235,7 @@ export default function BarPOS() {
 
 
   return (
-    <main className="h-full overflow-hidden flex bg-background font-sans">
+    <main className="h-full overflow-hidden flex flex-col md:flex-row bg-background font-sans">
       <div className="flex-1 flex flex-col p-6">
         <header className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-foreground">Bar &amp; Liquor Sales</h1>
@@ -243,7 +244,7 @@ export default function BarPOS() {
             </Button>
         </header>
         
-        <div className="flex-1 overflow-y-auto pr-4">
+        <ScrollArea className="flex-1 -mr-4 pr-4">
             <div className="flex gap-2 mb-6">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -279,10 +280,10 @@ export default function BarPOS() {
                     </div>
                 ))}
             </div>
-        </div>
+        </ScrollArea>
       </div>
 
-      <aside className="w-80 bg-card border-l border-border flex flex-col">
+      <aside className="w-full md:w-80 bg-card border-t md:border-t-0 md:border-l border-border flex flex-col">
         <div className="p-6">
             <h2 className="text-xl font-bold text-foreground mb-4">Current Order</h2>
             <div className="space-y-4">
@@ -306,35 +307,37 @@ export default function BarPOS() {
 
         <Separator />
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {currentSale.length > 0 ? currentSale.map(item => (
-              <div key={item.name} className="flex items-start justify-between">
-                  <div className="flex-1">
-                      <p className="font-semibold text-foreground">{item.name}</p>
-                      <p className="text-sm text-muted-foreground">₹{item.price.toFixed(2)}</p>
+        <ScrollArea className="flex-1">
+            <div className="p-6 space-y-4">
+                {currentSale.length > 0 ? currentSale.map(item => (
+                  <div key={item.name} className="flex items-start justify-between">
+                      <div className="flex-1">
+                          <p className="font-semibold text-foreground">{item.name}</p>
+                          <p className="text-sm text-muted-foreground">₹{item.price.toFixed(2)}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                          <Input 
+                            type="number" 
+                            value={item.quantity} 
+                            onChange={(e) => updateQuantity(item.name, parseInt(e.target.value))}
+                            className="h-8 w-16"
+                            min="1"
+                          />
+                          <p className="font-semibold text-foreground w-16 text-right">₹{(item.price * item.quantity).toFixed(2)}</p>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => removeFromSale(item.name)}>
+                              <Trash2 className="h-4 w-4" />
+                          </Button>
+                      </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                      <Input 
-                        type="number" 
-                        value={item.quantity} 
-                        onChange={(e) => updateQuantity(item.name, parseInt(e.target.value))}
-                        className="h-8 w-16"
-                        min="1"
-                      />
-                      <p className="font-semibold text-foreground w-16 text-right">₹{(item.price * item.quantity).toFixed(2)}</p>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => removeFromSale(item.name)}>
-                          <Trash2 className="h-4 w-4" />
-                      </Button>
-                  </div>
-              </div>
-            )) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground">
-                    <p>No item</p>
-                </div>
-            )}
-        </div>
+                )) : (
+                    <div className="h-full flex items-center justify-center text-muted-foreground py-10">
+                        <p>No items selected</p>
+                    </div>
+                )}
+            </div>
+        </ScrollArea>
         
-        <div className="p-6 border-t border-border space-y-4">
+        <div className="p-6 border-t border-border space-y-4 mt-auto">
             <div className="space-y-2 text-sm">
                 <div className="flex justify-between font-bold text-lg">
                     <span className="text-foreground">Total</span>

@@ -9,6 +9,7 @@ import { FirebaseErrorListener } from "@/components/FirebaseErrorListener";
 export const metadata: Metadata = {
   title: "HotelVista",
   description: "A modern hotel management dashboard.",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
 
 export default function RootLayout({

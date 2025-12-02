@@ -68,8 +68,8 @@ const statusColorMap: { [key: string]: string } = {
   Available: 'bg-blue-100 text-gray-700 border-blue-200',
   Cleaning: 'bg-yellow-100 text-gray-700 border-yellow-200',
   Maintenance: 'bg-red-100 text-gray-700 border-red-200',
-  Booked: 'bg-red-100 text-gray-700 border-red-200',
-  BOOKED: 'bg-red-100 text-gray-700 border-red-200',
+  Booked: 'bg-purple-100 text-gray-700 border-purple-200',
+  BOOKED: 'bg-purple-100 text-gray-700 border-purple-200',
   AVAILABLE: 'bg-blue-100 text-gray-700 border-blue-200',
 };
 
@@ -85,7 +85,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availa
   const guestName = availability ? availability.guestName : room.guest;
 
   return (
-    <Card className="relative flex flex-col transition-all duration-200 hover:shadow-lg w-40 h-40 rounded-lg">
+    <Card className="relative flex flex-col transition-all duration-200 hover:shadow-lg w-full rounded-lg">
        {!availability && (
         <div className="absolute top-1 right-1 z-10">
           <QuickActionsDropdown room={room} onEdit={onEditRoom} onDelete={onDeleteRoom} onAction={onAction} />
@@ -93,7 +93,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availa
        )}
       <CardContent 
         className={cn(
-            "flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg",
+            "flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg h-36",
             colorClass
         )}
         onClick={() => onViewRoom(room)}
@@ -394,7 +394,7 @@ const stats = useMemo(() => {
         isCollapsed={isSidebarCollapsed}
         setIsCollapsed={setIsSidebarCollapsed}
       />
-      <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
+      <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8 overflow-y-auto">
         <header className="flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Room Management</h1>
@@ -413,54 +413,52 @@ const stats = useMemo(() => {
           </div>
         </header>
         {activeView === 'all-rooms' && (
-          <div className="flex justify-center">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-              <Card className="w-full md:w-56">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                  <CardTitle className="text-xs font-medium">Date</CardTitle>
-                  <CalendarIcon className="h-6 w-6 text-orange-300" />
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="text-base font-bold">{stats.date}</div>
-                </CardContent>
-              </Card>
-              <Card className="w-full md:w-56">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                  <CardTitle className="text-xs font-medium">Daily Income</CardTitle>
-                  <DollarSign className="h-6 w-6 text-green-500" />
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="text-xl font-bold">{stats.dailyIncome}</div>
-                </CardContent>
-              </Card>
-              <Card className="w-full md:w-56">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                  <CardTitle className="text-xs font-medium">Booked</CardTitle>
-                  <Bed className="h-6 w-6 text-red-500" />
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="text-xl font-bold">{stats.booked}</div>
-                </CardContent>
-              </Card>
-              <Card className="w-full md:w-56">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                  <CardTitle className="text-xs font-medium">Occupied</CardTitle>
-                  <Users className="h-6 w-6 text-green-500" />
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="text-xl font-bold">{stats.occupied}</div>
-                </CardContent>
-              </Card>
-              <Card className="w-full md:w-56">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                  <CardTitle className="text-xs font-medium">Available</CardTitle>
-                  <CalendarDays className="h-6 w-6 text-blue-500" />
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="text-xl font-bold">{stats.available}</div>
-                </CardContent>
-              </Card>
-            </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                <CardTitle className="text-xs font-medium">Date</CardTitle>
+                <CalendarIcon className="h-6 w-6 text-orange-300" />
+              </CardHeader>
+              <CardContent className="pb-4">
+                <div className="text-base font-bold">{stats.date}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                <CardTitle className="text-xs font-medium">Daily Income</CardTitle>
+                <DollarSign className="h-6 w-6 text-green-500" />
+              </CardHeader>
+              <CardContent className="pb-4">
+                <div className="text-xl font-bold">{stats.dailyIncome}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                <CardTitle className="text-xs font-medium">Booked</CardTitle>
+                <Bed className="h-6 w-6 text-red-500" />
+              </CardHeader>
+              <CardContent className="pb-4">
+                <div className="text-xl font-bold">{stats.booked}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                <CardTitle className="text-xs font-medium">Occupied</CardTitle>
+                <Users className="h-6 w-6 text-green-500" />
+              </CardHeader>
+              <CardContent className="pb-4">
+                <div className="text-xl font-bold">{stats.occupied}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+                <CardTitle className="text-xs font-medium">Available</CardTitle>
+                <CalendarDays className="h-6 w-6 text-blue-500" />
+              </CardHeader>
+              <CardContent className="pb-4">
+                <div className="text-xl font-bold">{stats.available}</div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
@@ -529,20 +527,18 @@ const stats = useMemo(() => {
                 </CardContent>
             </Card>
             
-            <div className="flex justify-center mt-6">
-                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                    {filteredRooms.map((room, index) => (
-                        <RoomCard 
-                            key={`${room.number}-${index}`} 
-                            room={room} 
-                            onViewRoom={handleViewRoom} 
-                            onEditRoom={handleEditRoom} 
-                            onDeleteRoom={handleDeleteRoom} 
-                            onAction={handleQuickAction}
-                            availability={roomAvailabilities?.get(room.number)}
-                        />
-                    ))}
-                </div>
+            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                {filteredRooms.map((room, index) => (
+                    <RoomCard 
+                        key={`${room.number}-${index}`} 
+                        room={room} 
+                        onViewRoom={handleViewRoom} 
+                        onEditRoom={handleEditRoom} 
+                        onDeleteRoom={handleDeleteRoom} 
+                        onAction={handleQuickAction}
+                        availability={roomAvailabilities?.get(room.number)}
+                    />
+                ))}
             </div>
           </>
         )}

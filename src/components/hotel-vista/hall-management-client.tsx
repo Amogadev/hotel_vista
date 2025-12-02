@@ -81,7 +81,7 @@ function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availa
   
 
   return (
-    <Card className="relative flex flex-col transition-all duration-200 hover:shadow-lg w-40 h-40 rounded-lg">
+    <Card className="relative flex flex-col transition-all duration-200 hover:shadow-lg w-full rounded-lg">
        {!availability && (
         <div className="absolute top-1 right-1 z-10">
           <QuickActionsDropdown hall={hall} onEdit={onEditHall} onDelete={onDeleteHall} onAction={onAction} />
@@ -89,7 +89,7 @@ function HallCard({ hall, onViewHall, onEditHall, onDeleteHall, onAction, availa
        )}
       <CardContent 
         className={cn(
-            "flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg",
+            "flex-grow flex flex-col items-center justify-center p-2 text-center cursor-pointer rounded-lg h-36",
             colorClass
         )}
         onClick={() => onViewHall(hall)}
@@ -416,20 +416,18 @@ export default function HallManagementDashboard() {
         </div>
       </header>
 
-      <div className="flex justify-center">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            {stats.map((stat) => (
-            <Card key={stat.title} className="w-full md:w-56">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-                <CardTitle className="text-xs font-medium">{stat.title}</CardTitle>
-                {stat.icon}
-                </CardHeader>
-                <CardContent className="pb-4">
-                <div className={cn("font-bold", stat.title === 'Date' ? 'text-base' : 'text-xl')}>{stat.value}</div>
-                </CardContent>
-            </Card>
-            ))}
-        </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {stats.map((stat) => (
+          <Card key={stat.title}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+              <CardTitle className="text-xs font-medium">{stat.title}</CardTitle>
+              {stat.icon}
+              </CardHeader>
+              <CardContent className="pb-4">
+              <div className={cn("font-bold", stat.title === 'Date' ? 'text-base' : 'text-xl')}>{stat.value}</div>
+              </CardContent>
+          </Card>
+          ))}
       </div>
 
       <Card>
@@ -495,20 +493,18 @@ export default function HallManagementDashboard() {
         </CardContent>
       </Card>
       
-      <div className="flex justify-center mt-6">
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {filteredHalls.map((hall) => (
-                <HallCard 
-                    key={hall.id}
-                    hall={hall} 
-                    onViewHall={handleViewHall} 
-                    onEditHall={handleEditHall} 
-                    onDeleteHall={handleDeleteHall} 
-                    onAction={handleAction}
-                    availability={selectedDate && hallAvailabilities ? hallAvailabilities.get(hall.id) : undefined}
-                />
-            ))}
-        </div>
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 mt-6">
+          {filteredHalls.map((hall) => (
+              <HallCard 
+                  key={hall.id}
+                  hall={hall} 
+                  onViewHall={handleViewHall} 
+                  onEditHall={handleEditHall} 
+                  onDeleteHall={handleDeleteHall} 
+                  onAction={handleAction}
+                  availability={selectedDate && hallAvailabilities ? hallAvailabilities.get(hall.id) : undefined}
+              />
+          ))}
       </div>
 
       <AddHallModal
