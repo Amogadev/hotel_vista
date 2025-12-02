@@ -171,17 +171,18 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const roomsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'rooms') : null, [firestore]);
   const hallsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'halls') : null, [firestore]);
   const menuItemsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'restaurantMenuItems') : null, [firestore]);
-  const activeOrdersQuery = useMemoFirebase(() => firestore ? collection(firestore, 'orders') : null, [firestore]);
   const inventoryItemsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'barProducts') : null, [firestore]);
-  const recentSalesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'barSales') : null, [firestore]);
   const stockItemsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'stockItems') : null, [firestore]);
+
+  // These are fetched on demand now
+  // const activeOrdersQuery = useMemoFirebase(() => firestore ? collection(firestore, 'orders') : null, [firestore]);
+  // const recentSalesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'barSales') : null, [firestore]);
+
 
   const { data: roomsData, isLoading: roomsLoading } = useCollection<Room>(roomsQuery);
   const { data: hallsData, isLoading: hallsLoading } = useCollection<Hall>(hallsQuery);
   const { data: menuItemsData, isLoading: menuItemsLoading } = useCollection<MenuItem>(menuItemsQuery);
-  const { data: activeOrdersData, isLoading: activeOrdersLoading } = useCollection<ActiveOrder>(activeOrdersQuery);
   const { data: inventoryItemsData, isLoading: inventoryItemsLoading } = useCollection<InventoryItem>(inventoryItemsQuery);
-  const { data: recentSalesData, isLoading: recentSalesLoading } = useCollection<RecentSale>(recentSalesQuery);
   const { data: stockItemsData, isLoading: stockItemsLoading } = useCollection<StockItem>(stockItemsQuery);
   
   // Local state
@@ -208,22 +209,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   }, [menuItemsData]);
 
   useEffect(() => {
-    if (activeOrdersData) setActiveOrders(activeOrdersData);
-  }, [activeOrdersData]);
-
-  useEffect(() => {
     if (inventoryItemsData) setInventoryItems(inventoryItemsData);
   }, [inventoryItemsData]);
-
-  useEffect(() => {
-    if (recentSalesData) setRecentSales(recentSalesData);
-  }, [recentSalesData]);
 
   useEffect(() => {
     if (stockItemsData) setStockItems(stockItemsData);
   }, [stockItemsData]);
   
-  const loading = roomsLoading || hallsLoading || menuItemsLoading || activeOrdersLoading || inventoryItemsLoading || recentSalesLoading || stockItemsLoading;
+  const loading = roomsLoading || hallsLoading || menuItemsLoading || inventoryItemsLoading || stockItemsLoading;
 
   const value = {
     rooms,
