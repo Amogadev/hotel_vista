@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Publicly readable collections
+    match /rooms/{roomId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /halls/{hallId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /restaurantMenuItems/{itemId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /barProducts/{productId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+    }
+    match /stockItems/{itemId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+    }
+
+    // User-specific collections
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    match /bookings/{bookingId} {
+        allow read, create: if isSignedIn();
+        allow update, delete: if isSignedIn(); // Add more specific rules if needed
+    }
+
+    match /orders/{orderId} {
+        allow read, write: if isSignedIn();
+    }
+    
+    match /barSales/{saleId} {
+        allow read, write: if isSignedIn();
+    }
+    
+    match /dailyNotes/{noteId} {
+        allow read, write: if isSignedIn();
+    }
+  }
+}
