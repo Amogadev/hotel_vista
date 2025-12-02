@@ -22,6 +22,7 @@ import {
   User,
   Pencil,
   X,
+  UserPlus,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -64,11 +65,11 @@ import { ScrollArea } from '../ui/scroll-area';
 const statusFilters = ['All', 'Available', 'Occupied', 'Booked', 'Cleaning', 'Maintenance'];
 
 const statusColorMap: { [key: string]: string } = {
-  Occupied: 'bg-green-100 text-gray-700 border-green-200',
-  Available: 'bg-blue-100 text-gray-700 border-blue-200',
-  Cleaning: 'bg-yellow-100 text-gray-700 border-yellow-200',
-  Maintenance: 'bg-red-100 text-gray-700 border-red-200',
-  Booked: 'bg-purple-100 text-gray-700 border-purple-200',
+  Occupied: 'bg-green-100 text-green-800 border-green-200',
+  Available: 'bg-blue-100 text-blue-800 border-blue-200',
+  Cleaning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  Maintenance: 'bg-red-100 text-red-800 border-red-200',
+  Booked: 'bg-purple-100 text-purple-800 border-purple-200',
 };
 
 function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availability }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => void, availability?: { status: 'Booked' | 'Available', guestName?: string } }) {
@@ -110,9 +111,10 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availa
                 </p>
             </div>
         ) : (
-            displayStatus === 'Available' && !availability && (
+            displayStatus === 'Available' && (
                 <Button variant="outline" size="sm" className="mt-3 h-7 text-xs border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white" onClick={handleOccupyClick}>
-                    Book
+                    <UserPlus className="mr-1 h-3 w-3" />
+                    Occupy
                 </Button>
             )
         )}
@@ -134,7 +136,7 @@ export default function RoomManagementDashboard() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [activeFilter, setActiveFilter] = useState('Available');
   const [activeView, setActiveView] = useState('all-rooms');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
