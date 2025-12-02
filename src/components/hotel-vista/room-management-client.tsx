@@ -69,11 +69,9 @@ const statusColorMap: { [key: string]: string } = {
   Cleaning: 'bg-yellow-100 text-gray-700 border-yellow-200',
   Maintenance: 'bg-red-100 text-gray-700 border-red-200',
   Booked: 'bg-purple-100 text-gray-700 border-purple-200',
-  BOOKED: 'bg-purple-100 text-gray-700 border-purple-200',
-  AVAILABLE: 'bg-blue-100 text-gray-700 border-blue-200',
 };
 
-function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availability }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => void, availability?: { status: 'BOOKED' | 'AVAILABLE', guestName?: string } }) {
+function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availability }: { room: Room, onViewRoom: (room: Room) => void, onEditRoom: (room: Room) => void, onDeleteRoom: (room: Room) => void, onAction: (action: 'checkout' | 'maintenance' | 'occupy', room: Room) => void, availability?: { status: 'Booked' | 'Available', guestName?: string } }) {
   
   const handleOccupyClick = (e: React.MouseEvent) => {
     e.stopPropagation(); 
@@ -191,7 +189,7 @@ export default function RoomManagementDashboard() {
 const roomAvailabilities = useMemo(() => {
     if (!selectedDate) return null;
 
-    const availabilities = new Map<string, { status: 'BOOKED' | 'AVAILABLE', guestName?: string }>();
+    const availabilities = new Map<string, { status: 'Booked' | 'Available', guestName?: string }>();
     
     rooms.forEach(room => {
         let isBooked = false;
@@ -207,7 +205,7 @@ const roomAvailabilities = useMemo(() => {
         }
         
         availabilities.set(room.number, {
-            status: isBooked ? 'BOOKED' : 'AVAILABLE',
+            status: isBooked ? 'Booked' : 'Available',
             guestName,
         });
     });
@@ -272,7 +270,7 @@ const stats = useMemo(() => {
         rooms.forEach(room => {
             const availability = roomAvailabilities.get(room.number);
             if (availability) {
-                if (availability.status === 'BOOKED') {
+                if (availability.status === 'Booked') {
                     bookedCount++;
                 } else {
                     availableCount++;
