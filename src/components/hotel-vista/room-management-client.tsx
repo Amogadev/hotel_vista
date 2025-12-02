@@ -98,6 +98,7 @@ function RoomCard({ room, onViewRoom, onEditRoom, onDeleteRoom, onAction, availa
         )}
         onClick={() => onViewRoom(room)}
       >
+        <p className="text-sm text-muted-foreground">Room</p>
         <p className="text-3xl font-bold">{room.number}</p>
         <Badge variant={'default'} className={cn("mt-2 capitalize", colorClass, !colorClass.includes('text-') && 'text-foreground')}>
             {displayStatus}
