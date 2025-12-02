@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -12,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bed, Users, CalendarDays, DollarSign, Wallet } from 'lucide-react';
+import { Bed, Users, CalendarDays, DollarSign, Wallet, UserPlus } from 'lucide-react';
 import type { Room, Transaction } from '@/context/data-provider';
 import { format, parseISO, isValid } from 'date-fns';
 import { Separator } from '../ui/separator';
@@ -36,8 +37,14 @@ const statusColorMap: { [key: string]: string } = {
 export function RoomDetailsModal({ room, isOpen, onClose, onPaymentUpdated }: RoomDetailsModalProps) {
     const colorClass = statusColorMap[room.status] || '';
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const router = useRouter();
 
     const balanceDue = (room.totalPrice || 0) - (room.paidAmount || 0);
+
+    const handleBookRoom = () => {
+        onClose();
+        router.push(`/occupy/${room.number}`);
+    };
 
   return (
     <>
@@ -125,9 +132,15 @@ export function RoomDetailsModal({ room, isOpen, onClose, onPaymentUpdated }: Ro
             )}
         </div>
         <DialogFooter>
-          <Button type="button" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={onClose}>
             Close
           </Button>
+          {room.status === 'Available' && (
+            <Button onClick={handleBookRoom}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Book Room
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
