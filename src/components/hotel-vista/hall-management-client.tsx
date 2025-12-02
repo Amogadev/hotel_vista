@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useMemo, useContext, useTransition, useEffect } from 'react';
@@ -137,23 +136,11 @@ export default function HallManagementDashboard() {
   const { toast } = useToast();
   const router = useRouter();
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const userRole = localStorage.getItem('userRole');
-      if (!userRole) {
-        router.push('/login');
-      }
-    }
-  }, [router]);
-
   const handleOpenAddModal = () => setIsAddModalOpen(true);
   const handleCloseAddModal = () => setIsAddModalOpen(false);
 
-  const handleHallAdded = (newHallData: HallFormValues & {id: string}) => {
-    const newHall: Hall = {
-      ...newHallData,
-    };
-    setHalls(prevHalls => [...prevHalls, newHall].sort((a, b) => a.name.localeCompare(b.name)));
+  const handleHallAdded = (newHallData: Hall) => {
+    setHalls(prevHalls => [...prevHalls, newHallData].sort((a, b) => a.name.localeCompare(b.name)));
     handleCloseAddModal();
   };
 
@@ -398,7 +385,7 @@ export default function HallManagementDashboard() {
                     description: `Hall ${hall.name} is now ${updatedHallData.status}.`,
                 });
                 setHalls(prevHalls =>
-                    prevHalls.map(h => (h.id === hall.id ? updatedHallData : h))
+                    prevHalls.map(h => (h.id === hall.id ? updatedHallData as Hall : h))
                 );
             } else {
                 throw new Error(result.error || 'Failed to update hall status');
@@ -571,5 +558,3 @@ export default function HallManagementDashboard() {
     </div>
   );
 }
-
-    

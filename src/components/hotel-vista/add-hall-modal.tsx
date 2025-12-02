@@ -40,6 +40,7 @@ import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
 import { format, differenceInCalendarDays } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
+import { Hall } from '@/context/data-provider';
 
 
 const facilitiesList = ['Projector', 'Sound System', 'AC', 'Whiteboard', 'TV'];
@@ -61,7 +62,7 @@ export type HallFormValues = z.infer<typeof hallSchema>;
 type AddHallModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onHallAdded: (newHall: HallFormValues & {id: string}) => void;
+  onHallAdded: (newHall: Hall) => void;
 };
 
 export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps) {
@@ -125,7 +126,7 @@ export function AddHallModal({ isOpen, onClose, onHallAdded }: AddHallModalProps
             title: 'Hall Added',
             description: `Hall ${values.name} has been successfully added.`,
           });
-          onHallAdded({ ...values, id: result.hall.id});
+          onHallAdded(result.hall as Hall);
           onClose();
           form.reset();
         } else {

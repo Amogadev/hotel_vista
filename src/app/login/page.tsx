@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,50 +11,67 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Sofa, User, Lock, Eye, EyeOff } from 'lucide-react';
+import { Sofa, User, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import AnimatedShapes from '@/components/hotel-vista/animated-shapes';
+import { useToast } from '@/hooks/use-toast';
+import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
+import { useAuth } from '@/firebase/provider';
 
-const users = [
-  { username: 'admin', password: 'admin', role: 'admin', redirect: '/dashboard' },
-  { username: 'staff', password: 'staff', role: 'reception', redirect: '/room-management' },
-  { username: 'hotel', password: 'hotel', role: 'restaurant', redirect: '/restaurant' },
-  { username: 'bar', password: 'bar', role: 'bar', redirect: '/bar-liquor' },
-];
+const roleRedirects: { [key: string]: string } = {
+  admin: '/dashboard',
+  reception: '/room-management',
+  restaurant: '/restaurant',
+  bar: '/bar-liquor',
+  default: '/dashboard',
+};
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@example.com');
+  const [password, setPassword] = useState('password');
   const [error, setError] = useState('');
-  const [activeUser, setActiveUser] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
+  const auth = useAuth();
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedActiveUser = localStorage.getItem('activeUser');
-      setActiveUser(storedActiveUser);
-    }
-  }, []);
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = (e: FormEvent) => {
     e.preventDefault();
-    const user = users.find(
-      (u) => u.username === username && u.password === password
-    );
-
-    if (user) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('userRole', user.role);
-        localStorage.setItem('activeUser', user.username);
-      }
-      router.push(user.redirect);
-    } else {
-      setError('Invalid username or password');
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('activeUser');
-      }
+    if (!auth) {
+        setError("Firebase not initialized");
+        return;
     }
+
+    setIsPending(true);
+    setError('');
+
+    initiateEmailSignIn(auth, email, password, (user, idTokenResult) => {
+        setIsPending(false);
+        if (user) {
+          const claims = idTokenResult?.claims;
+          const userRole = claims?.role || 'default';
+          
+          if (typeof window !== 'undefined') {
+              localStorage.setItem('userRole', userRole as string);
+              localStorage.setItem('activeUser', user.email || 'Unknown');
+          }
+          
+          toast({
+            title: 'Login Successful',
+            description: `Welcome, ${user.email}!`,
+          });
+          
+          router.push(roleRedirects[userRole as string] || roleRedirects.default);
+        }
+    }, (errorMessage) => {
+        setIsPending(false);
+        setError(errorMessage);
+        toast({
+          variant: 'destructive',
+          title: 'Login Failed',
+          description: errorMessage,
+        });
+    });
   };
 
   return (
@@ -72,11 +89,11 @@ export default function LoginPage() {
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
-                id="username"
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full rounded-lg border-gray-300 bg-white/80 py-3 pl-10 text-black placeholder-gray-500 focus:ring-2 focus:ring-primary"
               />
@@ -101,7 +118,8 @@ export default function LoginPage() {
               </button>
             </div>
             {error && <p className="text-center text-sm text-red-500">{error}</p>}
-            <Button type="submit" className="w-full rounded-lg bg-primary py-3 text-base font-bold text-white transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/50">
+            <Button type="submit" className="w-full rounded-lg bg-primary py-3 text-base font-bold text-white transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/50" disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               LOGIN
             </Button>
           </form>
