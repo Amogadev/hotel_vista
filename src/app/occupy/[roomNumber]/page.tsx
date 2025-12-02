@@ -104,7 +104,7 @@ export default function OccupyRoomPage() {
       }
 
       const updatedRoomData = {
-          originalNumber: room.number,
+          id: room.id,
           number: room.number,
           type: room.type,
           price: room.price,
@@ -145,7 +145,7 @@ export default function OccupyRoomPage() {
           paidAmount: values.advanceAmount,
           transactions,
         };
-        setRooms(prev => prev.map(r => r.number === room.number ? updatedRoom : r));
+        setRooms(prev => prev.map(r => r.id === room.id ? updatedRoom : r));
         
         router.push('/room-management');
       } else {

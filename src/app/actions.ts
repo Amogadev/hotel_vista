@@ -96,14 +96,11 @@ export async function addRoom(newRoom: any) {
   return { ...result, room: result.doc };
 }
 
-export async function updateRoom({ originalNumber, ...updatedRoom }: any) {
-  const q = query(collection(db, "rooms"), where("number", "==", originalNumber));
-  const querySnapshot = await getDocs(q);
-  if (querySnapshot.empty) {
-    return { success: false, error: "Room not found" };
+export async function updateRoom({ id, ...updatedRoom }: any) {
+  if (!id) {
+    return { success: false, error: "Room ID is required for updates." };
   }
-  const docToUpdate = querySnapshot.docs[0];
-  return updateDocument('rooms', docToUpdate.id, updatedRoom);
+  return updateDocument('rooms', id, updatedRoom);
 }
 
 export async function deleteRoom(roomNumber: string) {
