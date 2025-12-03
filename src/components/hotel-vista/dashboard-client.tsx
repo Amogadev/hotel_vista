@@ -161,7 +161,7 @@ export default function Dashboard() {
               <CardTitle>Booking Calendar</CardTitle>
               <CardDescription>Select a date to see room availability.</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col md:flex-row items-start gap-4">
+            <CardContent className="flex flex-col md:flex-row items-start justify-center gap-4">
               <div className="flex justify-center">
                 <Calendar
                     mode="single"
