@@ -69,8 +69,8 @@ export default function Dashboard() {
     const occupied = rooms.filter(room => {
       if (room.status === 'Occupied' && room.checkIn && room.checkOut) {
         try {
-          const checkInDate = startOfDay(parseISO(room.checkIn));
-          const checkOutDate = endOfDay(parseISO(room.checkOut));
+          const checkInDate = startOfDay(typeof room.checkIn === 'string' ? parseISO(room.checkIn) : room.checkIn);
+          const checkOutDate = endOfDay(typeof room.checkOut === 'string' ? parseISO(room.checkOut) : room.checkOut);
           if (isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
             occupiedNumbers.add(room.number);
             return true;
