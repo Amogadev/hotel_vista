@@ -74,15 +74,26 @@ export default function Dashboard() {
         });
     });
     
-    const dummyTransactions: (Transaction & { roomNumber?: string, guest?: string})[] = [
-        { date: date.toISOString(), amount: 1250, method: 'UPI', roomNumber: '101', guest: 'John Doe' },
-        { date: date.toISOString(), amount: 8500, method: 'Card', roomNumber: '205', guest: 'Jane Smith' },
-        { date: date.toISOString(), amount: 3200, method: 'Cash', roomNumber: '302', guest: 'Peter Jones' },
-    ];
+    const dayOfMonth = date.getDate();
+    const dummyGuests = ['John Doe', 'Jane Smith', 'Peter Jones', 'Mary Johnson', 'David Brown'];
+    const dummyRooms = ['101', '205', '302', '401', '105'];
+    const dummyMethods = ['UPI', 'Card', 'Cash'];
+
+    const dummyTransactions: (Transaction & { roomNumber?: string, guest?: string})[] = Array.from({length: (dayOfMonth % 5) + 1}, (_, i) => {
+      const guestIndex = (dayOfMonth + i) % dummyGuests.length;
+      const roomIndex = (dayOfMonth + i) % dummyRooms.length;
+      return {
+          date: date.toISOString(),
+          amount: 1000 + (dayOfMonth * 100) + (i * 150),
+          method: dummyMethods[(dayOfMonth + i) % dummyMethods.length],
+          roomNumber: dummyRooms[roomIndex],
+          guest: dummyGuests[guestIndex]
+      }
+    });
 
     const transactionsToDisplay = dailyTransactions.length > 0 ? dailyTransactions : dummyTransactions;
 
-    const dailyRevenue = dailyTransactions.reduce((acc, tx) => acc + tx.amount, 0);
+    const dailyRevenue = transactionsToDisplay.reduce((acc, tx) => acc + tx.amount, 0);
     
     let occupiedRoomsCount = 0;
     let activeGuestsCount = 0;
@@ -107,7 +118,7 @@ export default function Dashboard() {
             {
               title: `Revenue for ${format(date, 'MMM d')}`,
               value: `₹${dailyRevenue.toLocaleString()}`,
-              trend: `from ${dailyTransactions.length} transactions`,
+              trend: `from ${transactionsToDisplay.length} transactions`,
               trendColor: "text-muted-foreground",
               icon: <DollarSign className="h-5 w-5 text-green-500" />,
             },
