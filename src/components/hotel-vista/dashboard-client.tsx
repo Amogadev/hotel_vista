@@ -50,7 +50,7 @@ const chartData = [
 export default function Dashboard() {
   const { rooms, activeOrders } = useContext(DataContext);
   const router = useRouter();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isDailyBookingModalOpen, setIsDailyBookingModalOpen] = useState(false);
 
 
@@ -287,3 +287,5 @@ export default function Dashboard() {
     </>
   );
 }
+
+    
