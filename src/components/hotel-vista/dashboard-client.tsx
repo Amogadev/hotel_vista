@@ -172,7 +172,7 @@ export default function Dashboard() {
                 />
               </div>
               {selectedDate && (
-                <div className="w-full md:w-auto md:flex-1 p-4 border rounded-lg">
+                <div className="w-full md:w-auto p-4 border rounded-lg">
                   <div className="flex justify-between items-center mb-2">
                     <div>
                       <h3 className="font-semibold text-sm">Room Status for {format(selectedDate, 'MMMM d, yyyy')}</h3>
@@ -184,7 +184,7 @@ export default function Dashboard() {
                       <XIcon className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <h4 className="font-medium text-xs text-red-600 flex items-center gap-1"><Bed className="h-3 w-3" />Occupied ({occupiedRoomsForDate.length})</h4>
                       <ScrollArea className="h-24 rounded-md border">
