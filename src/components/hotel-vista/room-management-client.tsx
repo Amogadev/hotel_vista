@@ -137,7 +137,7 @@ export default function RoomManagementDashboard() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('Available');
+  const [activeFilter, setActiveFilter] = useState('All');
   const [activeView, setActiveView] = useState('all-rooms');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
