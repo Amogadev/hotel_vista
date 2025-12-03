@@ -3,8 +3,8 @@
 
 import React, { useContext, useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { DataContext, Room } from "@/context/data-provider";
-import { isWithinInterval, startOfDay, endOfDay, parseISO, format, isFuture, isValid } from 'date-fns';
+import { DataContext, Room, Transaction } from "@/context/data-provider";
+import { isWithinInterval, startOfDay, endOfDay, parseISO, format, isFuture, isValid, isSameDay } from 'date-fns';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -25,17 +25,12 @@ import {
   UtensilsCrossed,
   Wine,
   Plus,
-  X as XIcon,
-  User,
-  Bed,
-  CheckCircle,
+  CalendarIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Calendar } from "../ui/calendar";
-import { Badge } from "../ui/badge";
-import { ScrollArea } from "../ui/scroll-area";
-import { Separator } from "../ui/separator";
-import { DailyBookingModal } from './daily-booking-modal';
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { cn } from "@/lib/utils";
 
 
 const chartData = [
@@ -51,7 +46,7 @@ export default function Dashboard() {
   const { rooms, activeOrders } = useContext(DataContext);
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [isDailyBookingModalOpen, setIsDailyBookingModalOpen] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
 
   useEffect(() => {
@@ -63,82 +58,69 @@ export default function Dashboard() {
     }
   }, [router]);
 
-  const { availableRooms, occupiedRoomsForDate } = useMemo(() => {
-    if (!selectedDate) {
-      return { availableRooms: [], occupiedRoomsForDate: [] };
-    }
+  const stats = useMemo(() => {
+    const date = selectedDate || new Date();
 
-    const occupiedNumbers = new Set<string>();
+    const dailyTransactions: Transaction[] = [];
+    rooms.forEach(room => {
+        room.transactions?.forEach(tx => {
+            if (tx.date && typeof tx.date === 'string' && isSameDay(parseISO(tx.date), date)) {
+                dailyTransactions.push(tx);
+            }
+        });
+    });
+    const dailyRevenue = dailyTransactions.reduce((acc, tx) => acc + tx.amount, 0);
+    
+    let occupiedRoomsCount = 0;
+    let activeGuestsCount = 0;
 
-    const occupied = rooms.filter(room => {
-      if (room.status === 'Occupied' && room.checkIn && room.checkOut) {
-        try {
-          const checkInDate = startOfDay(typeof room.checkIn === 'string' ? parseISO(room.checkIn) : room.checkIn);
-          const checkOutDate = endOfDay(typeof room.checkOut === 'string' ? parseISO(room.checkOut) : room.checkOut);
-          if (isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
-            occupiedNumbers.add(room.number);
-            return true;
-          }
-        } catch (e) {
-            console.error("Invalid date format for room", room.number, e);
-            return false;
+    rooms.forEach(room => {
+        if (room.status === 'Occupied' && room.checkIn && room.checkOut) {
+            const checkInDate = typeof room.checkIn === 'string' ? parseISO(room.checkIn) : room.checkIn;
+            const checkOutDate = typeof room.checkOut === 'string' ? parseISO(room.checkOut) : room.checkOut;
+            if (isValid(checkInDate) && isValid(checkOutDate)) {
+                 if (isWithinInterval(date, { start: startOfDay(checkInDate), end: endOfDay(checkOutDate) })) {
+                    occupiedRoomsCount++;
+                    activeGuestsCount += room.peopleCount || 1;
+                }
+            }
         }
-      }
-      return false;
     });
 
-    const available = rooms.filter(room => room.status === 'Available' && !occupiedNumbers.has(room.number));
+    const restaurantOrdersCount = activeOrders.filter(order => order.time && isSameDay(parseISO(order.time), date)).length;
 
-    return { availableRooms: available, occupiedRoomsForDate: occupied };
-  }, [selectedDate, rooms]);
+    return [
+        {
+          title: `Revenue for ${format(date, 'MMM d')}`,
+          value: `₹${dailyRevenue.toLocaleString()}`,
+          trend: `from ${dailyTransactions.length} transactions`,
+          trendColor: "text-muted-foreground",
+          icon: <DollarSign className="h-5 w-5 text-green-500" />,
+        },
+        {
+          title: "Occupied Rooms",
+          value: `${occupiedRoomsCount} / ${rooms.length}`,
+          trend: `on ${format(date, 'PPP')}`,
+          trendColor: "text-muted-foreground",
+          icon: <BedDouble className="h-5 w-5 text-blue-500" />,
+        },
+        {
+          title: "Active Guests",
+          value: `${activeGuestsCount}`,
+          trend: `on ${format(date, 'PPP')}`,
+          trendColor: "text-muted-foreground",
+          icon: <Users className="h-5 w-5 text-orange-500" />,
+        },
+        {
+          title: "Restaurant Orders",
+          value: `${restaurantOrdersCount}`,
+          trend: `on ${format(date, 'PPP')}`,
+          trendColor: "text-muted-foreground",
+          icon: <UtensilsCrossed className="h-5 w-5 text-yellow-500" />,
+        },
+      ];
+  }, [selectedDate, rooms, activeOrders]);
 
-
-  const totalRevenue = rooms
-  .filter(room => room.status === 'Occupied')
-  .reduce((acc, room) => acc + (room.totalPrice || room.price), 0);
-  const occupiedRooms = rooms.filter(room => room.status === 'Occupied' && (!room.checkIn || typeof room.checkIn !== 'string' || !isValid(parseISO(room.checkIn)) || !isFuture(startOfDay(parseISO(room.checkIn))))).length;
-  const bookedRooms = rooms.filter(room => room.status === 'Occupied' && room.checkIn && typeof room.checkIn === 'string' && isValid(parseISO(room.checkIn)) && isFuture(startOfDay(parseISO(room.checkIn)))).length;
-  const totalRooms = rooms.length;
-  const activeGuests = rooms.filter(room => room.status === 'Occupied' && room.guest).length; // Simplified guest count
-  const restaurantOrders = activeOrders.length;
-
-  const stats = [
-    {
-      title: "Total Revenue",
-      value: `₹${totalRevenue.toLocaleString()}`,
-      trend: "+12.5% from last month",
-      trendColor: "text-green-600",
-      icon: <DollarSign className="h-5 w-5 text-green-500" />,
-    },
-    {
-      title: "Occupied Rooms",
-      value: `${occupiedRooms} / ${totalRooms}`,
-      trend: "+6.3% from last month",
-      trendColor: "text-blue-600",
-      icon: <BedDouble className="h-5 w-5 text-blue-500" />,
-    },
-    {
-      title: "Active Guests",
-      value: `${activeGuests}`,
-      trend: "+8.2% from last month",
-      trendColor: "text-orange-600",
-      icon: <Users className="h-5 w-5 text-orange-500" />,
-    },
-    {
-      title: "Restaurant Orders",
-      value: `${restaurantOrders}`,
-      trend: "+15.3% from last month",
-      trendColor: "text-yellow-600",
-      icon: <UtensilsCrossed className="h-5 w-5 text-yellow-500" />,
-    },
-  ];
-
-  const handleOccupyClick = (roomNumber: string) => {
-    router.push(`/occupy/${roomNumber}`);
-    if (isDailyBookingModalOpen) {
-        setIsDailyBookingModalOpen(false);
-    }
-  };
 
   return (
     <>
@@ -147,6 +129,31 @@ export default function Dashboard() {
           <h1 className="font-headline text-2xl font-bold tracking-tight md:text-3xl">
             Dashboard
           </h1>
+            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                <PopoverTrigger asChild>
+                    <Button
+                        variant={'outline'}
+                        className={cn(
+                        'w-[240px] justify-start text-left font-normal',
+                        !selectedDate && 'text-muted-foreground'
+                        )}
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={(day) => {
+                            setSelectedDate(day);
+                            setIsDatePickerOpen(false);
+                        }}
+                        initialFocus
+                    />
+                </PopoverContent>
+            </Popover>
         </header>
 
         <main className="flex flex-1 flex-col gap-4 md:gap-8">
@@ -155,78 +162,6 @@ export default function Dashboard() {
               <StatCard key={stat.title} {...stat} />
             ))}
           </div>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Booking Calendar</CardTitle>
-              <CardDescription>Select a date to see room availability.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col md:flex-row items-start justify-center gap-4">
-              <div className="flex justify-center">
-                <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => setSelectedDate(date)}
-                    className="p-3 rounded-md border"
-                    initialFocus
-                />
-              </div>
-              {selectedDate && (
-                <div className="w-full md:w-auto p-4 border rounded-lg">
-                  <div className="flex justify-between items-center mb-2">
-                    <div>
-                      <h3 className="font-semibold text-sm">Room Status for {format(selectedDate, 'MMMM d, yyyy')}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {occupiedRoomsForDate.length} occupied, {availableRooms.length} available.
-                      </p>
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={() => setSelectedDate(undefined)}>
-                      <XIcon className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <h4 className="font-medium text-xs text-red-600 flex items-center gap-1"><Bed className="h-3 w-3" />Occupied ({occupiedRoomsForDate.length})</h4>
-                      <ScrollArea className="h-24 rounded-md border">
-                        {occupiedRoomsForDate.length > 0 ? (
-                          <div className="p-2 space-y-1">
-                            {occupiedRoomsForDate.map(room => (
-                              <div key={room.number} className="flex items-center justify-between p-1.5 rounded-md bg-muted text-xs">
-                                <p className="font-semibold">{room.number}</p>
-                                <p className="truncate">{room.guest}</p>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-center text-xs text-muted-foreground pt-8">No rooms occupied.</p>
-                        )}
-                      </ScrollArea>
-                    </div>
-                    <div className="space-y-1">
-                      <h4 className="font-medium text-xs text-green-600 flex items-center gap-1"><CheckCircle className="h-3 w-3" />Available ({availableRooms.length})</h4>
-                      <ScrollArea className="h-24 rounded-md border">
-                        {availableRooms.length > 0 ? (
-                          <div className="p-2 space-y-1">
-                            {availableRooms.map(room => (
-                              <div key={room.number} className="flex items-center justify-between p-1.5 rounded-md bg-muted text-xs">
-                                <div className="flex items-center gap-2">
-                                  <p className="font-semibold">{room.number}</p>
-                                  <Badge variant="outline" className="text-[9px] px-1 py-0">{room.type}</Badge>
-                                </div>
-                                <Button size="sm" variant="outline" className="h-6 px-2 text-xs" onClick={() => handleOccupyClick(room.number)}>Book</Button>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-center text-xs text-muted-foreground pt-8">No rooms available.</p>
-                        )}
-                      </ScrollArea>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
           <div className="grid gap-6 lg:grid-cols-5">
             <Card className="lg:col-span-3">
@@ -275,15 +210,6 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
-      {selectedDate && (
-        <DailyBookingModal
-            date={selectedDate}
-            rooms={rooms}
-            isOpen={isDailyBookingModalOpen}
-            onClose={() => setIsDailyBookingModalOpen(false)}
-            onOccupy={handleOccupyClick}
-        />
-      )}
     </>
   );
 }
