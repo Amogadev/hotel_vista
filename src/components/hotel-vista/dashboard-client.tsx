@@ -137,6 +137,21 @@ export default function Dashboard() {
             <StatCard key={stat.title} {...stat} />
           ))}
         </div>
+        <div className="grid gap-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Calendar</CardTitle>
+                </CardHeader>
+                <CardContent className="flex justify-center items-center">
+                    <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        className="rounded-md border"
+                    />
+                </CardContent>
+            </Card>
+        </div>
         <div className="grid gap-6 lg:grid-cols-5">
           <Card className="lg:col-span-3">
             <CardHeader>
@@ -164,19 +179,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
           <div className="lg:col-span-2 flex flex-col gap-6">
-             <Card>
-                <CardHeader>
-                    <CardTitle>Calendar</CardTitle>
-                </CardHeader>
-                <CardContent className="flex justify-center items-center">
-                    <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        className="rounded-md border"
-                    />
-                </CardContent>
-            </Card>
             <Card>
                 <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
