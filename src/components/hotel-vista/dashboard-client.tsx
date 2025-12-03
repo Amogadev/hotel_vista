@@ -4,7 +4,7 @@
 import React, { useContext, useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { DataContext, Room } from "@/context/data-provider";
-import { isWithinInterval, startOfDay, endOfDay, parseISO, format } from 'date-fns';
+import { isWithinInterval, startOfDay, endOfDay, parseISO, format, isFuture, isValid } from 'date-fns';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -34,6 +34,7 @@ import { Calendar } from "../ui/calendar";
 import { Badge } from "../ui/badge";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
+import { DailyBookingModal } from './daily-booking-modal';
 
 
 const chartData = [
@@ -49,6 +50,7 @@ export default function Dashboard() {
   const { rooms, activeOrders } = useContext(DataContext);
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [isDailyBookingModalOpen, setIsDailyBookingModalOpen] = useState(false);
 
 
   useEffect(() => {
@@ -93,7 +95,8 @@ export default function Dashboard() {
   const totalRevenue = rooms
   .filter(room => room.status === 'Occupied')
   .reduce((acc, room) => acc + (room.totalPrice || room.price), 0);
-  const occupiedRooms = rooms.filter(room => room.status === 'Occupied').length;
+  const occupiedRooms = rooms.filter(room => room.status === 'Occupied' && (!room.checkIn || typeof room.checkIn !== 'string' || !isValid(parseISO(room.checkIn)) || !isFuture(startOfDay(parseISO(room.checkIn))))).length;
+  const bookedRooms = rooms.filter(room => room.status === 'Occupied' && room.checkIn && typeof room.checkIn === 'string' && isValid(parseISO(room.checkIn)) && isFuture(startOfDay(parseISO(room.checkIn)))).length;
   const totalRooms = rooms.length;
   const activeGuests = rooms.filter(room => room.status === 'Occupied' && room.guest).length; // Simplified guest count
   const restaurantOrders = activeOrders.length;
@@ -129,6 +132,13 @@ export default function Dashboard() {
     },
   ];
 
+  const handleOccupyClick = (roomNumber: string) => {
+    router.push(`/occupy/${roomNumber}`);
+    if (isDailyBookingModalOpen) {
+        setIsDailyBookingModalOpen(false);
+    }
+  };
+
   return (
     <>
       <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
@@ -151,7 +161,16 @@ export default function Dashboard() {
               <CardDescription>Select a date to see room availability.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col md:flex-row items-start gap-4">
-               {selectedDate && (
+              <div className="flex-1 flex justify-center">
+                <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => setSelectedDate(date)}
+                    className="p-3 rounded-md border"
+                    initialFocus
+                />
+              </div>
+              {selectedDate && (
                 <div className="w-full md:w-1/3 lg:w-1/4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center mb-2">
                     <div>
@@ -202,14 +221,6 @@ export default function Dashboard() {
                   </div>
                 </div>
               )}
-              <div className="flex-1 flex justify-center">
-                <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    className="rounded-md border"
-                />
-              </div>
             </CardContent>
           </Card>
 
@@ -260,6 +271,15 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+      {selectedDate && (
+        <DailyBookingModal
+            date={selectedDate}
+            rooms={rooms}
+            isOpen={isDailyBookingModalOpen}
+            onClose={() => setIsDailyBookingModalOpen(false)}
+            onOccupy={handleOccupyClick}
+        />
+      )}
     </>
   );
 }
