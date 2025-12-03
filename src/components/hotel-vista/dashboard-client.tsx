@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useContext, useEffect, useState, useMemo } from "react";
@@ -8,6 +9,7 @@ import { isWithinInterval, startOfDay, endOfDay, parseISO, format, isFuture, isV
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatCard } from "./stat-card";
 import {
   LineChart,
@@ -26,11 +28,15 @@ import {
   Wine,
   Plus,
   CalendarIcon,
+  CreditCard,
+  Banknote,
+  Smartphone,
 } from "lucide-react";
 import Link from "next/link";
 import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "../ui/scroll-area";
 
 
 const chartData = [
@@ -41,6 +47,22 @@ const chartData = [
     { name: 'May', revenue: 45000 },
     { name: 'Jun', revenue: 48000 },
 ];
+
+const getPaymentMethodIcon = (method: string) => {
+    switch (method.toLowerCase()) {
+        case 'card':
+            return <CreditCard className="h-4 w-4 text-blue-500" />;
+        case 'cash':
+            return <Banknote className="h-4 w-4 text-green-500" />;
+        case 'upi':
+        case 'upi / qr':
+        case 'gpay':
+            return <Smartphone className="h-4 w-4 text-purple-500" />;
+        default:
+            return <DollarSign className="h-4 w-4 text-muted-foreground" />;
+    }
+};
+
 
 export default function Dashboard() {
   const { rooms, activeOrders } = useContext(DataContext);
@@ -58,17 +80,18 @@ export default function Dashboard() {
     }
   }, [router]);
 
-  const stats = useMemo(() => {
+  const dailyData = useMemo(() => {
     const date = selectedDate || new Date();
-
-    const dailyTransactions: Transaction[] = [];
+    const dailyTransactions: (Transaction & { roomNumber?: string, guest?: string})[] = [];
+    
     rooms.forEach(room => {
         room.transactions?.forEach(tx => {
-            if (tx.date && typeof tx.date === 'string' && isSameDay(parseISO(tx.date), date)) {
-                dailyTransactions.push(tx);
+            if (tx.date && typeof tx.date === 'string' && isValid(parseISO(tx.date)) && isSameDay(parseISO(tx.date), date)) {
+                dailyTransactions.push({ ...tx, roomNumber: room.number, guest: room.guest });
             }
         });
     });
+
     const dailyRevenue = dailyTransactions.reduce((acc, tx) => acc + tx.amount, 0);
     
     let occupiedRoomsCount = 0;
@@ -89,36 +112,39 @@ export default function Dashboard() {
 
     const restaurantOrdersCount = activeOrders.filter(order => order.time && isSameDay(parseISO(order.time), date)).length;
 
-    return [
-        {
-          title: `Revenue for ${format(date, 'MMM d')}`,
-          value: `₹${dailyRevenue.toLocaleString()}`,
-          trend: `from ${dailyTransactions.length} transactions`,
-          trendColor: "text-muted-foreground",
-          icon: <DollarSign className="h-5 w-5 text-green-500" />,
-        },
-        {
-          title: "Occupied Rooms",
-          value: `${occupiedRoomsCount} / ${rooms.length}`,
-          trend: `on ${format(date, 'PPP')}`,
-          trendColor: "text-muted-foreground",
-          icon: <BedDouble className="h-5 w-5 text-blue-500" />,
-        },
-        {
-          title: "Active Guests",
-          value: `${activeGuestsCount}`,
-          trend: `on ${format(date, 'PPP')}`,
-          trendColor: "text-muted-foreground",
-          icon: <Users className="h-5 w-5 text-orange-500" />,
-        },
-        {
-          title: "Restaurant Orders",
-          value: `${restaurantOrdersCount}`,
-          trend: `on ${format(date, 'PPP')}`,
-          trendColor: "text-muted-foreground",
-          icon: <UtensilsCrossed className="h-5 w-5 text-yellow-500" />,
-        },
-      ];
+    return {
+        stats: [
+            {
+              title: `Revenue for ${format(date, 'MMM d')}`,
+              value: `₹${dailyRevenue.toLocaleString()}`,
+              trend: `from ${dailyTransactions.length} transactions`,
+              trendColor: "text-muted-foreground",
+              icon: <DollarSign className="h-5 w-5 text-green-500" />,
+            },
+            {
+              title: "Occupied Rooms",
+              value: `${occupiedRoomsCount} / ${rooms.length}`,
+              trend: `on ${format(date, 'PPP')}`,
+              trendColor: "text-muted-foreground",
+              icon: <BedDouble className="h-5 w-5 text-blue-500" />,
+            },
+            {
+              title: "Active Guests",
+              value: `${activeGuestsCount}`,
+              trend: `on ${format(date, 'PPP')}`,
+              trendColor: "text-muted-foreground",
+              icon: <Users className="h-5 w-5 text-orange-500" />,
+            },
+            {
+              title: "Restaurant Orders",
+              value: `${restaurantOrdersCount}`,
+              trend: `on ${format(date, 'PPP')}`,
+              trendColor: "text-muted-foreground",
+              icon: <UtensilsCrossed className="h-5 w-5 text-yellow-500" />,
+            },
+        ],
+        transactions: dailyTransactions,
+    }
   }, [selectedDate, rooms, activeOrders]);
 
 
@@ -158,55 +184,72 @@ export default function Dashboard() {
 
         <main className="flex flex-1 flex-col gap-4 md:gap-8">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {stats.map((stat) => (
+            {dailyData.stats.map((stat) => (
               <StatCard key={stat.title} {...stat} />
             ))}
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-5">
-            <Card className="lg:col-span-3">
-              <CardHeader>
-                <CardTitle>Revenue Trends</CardTitle>
-                <CardDescription>Last 6 months</CardDescription>
-              </CardHeader>
-              <CardContent className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                    <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value/1000}k`} />
-                    <Tooltip
-                      contentStyle={{ 
-                          borderRadius: '0.5rem', 
-                          border: '1px solid hsl(var(--border))', 
-                          background: 'hsl(var(--background))' 
-                      }}
-                      labelStyle={{ fontWeight: 'bold' }}
-                      formatter={(value: number) => [`₹${value.toLocaleString()}`, "Revenue"]}
-                    />
-                    <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: 'hsl(var(--primary))' }} activeDot={{ r: 6 }}/>
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
+          <div className="grid gap-6 lg:grid-cols-2">
+             <Card className="lg:col-span-1">
+                <CardHeader>
+                    <CardTitle>Daily Payment Details</CardTitle>
+                    <CardDescription>Breakdown of payments for {selectedDate ? format(selectedDate, 'PPP') : 'today'}.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ScrollArea className="h-72">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Room/Guest</TableHead>
+                                <TableHead>Method</TableHead>
+                                <TableHead className="text-right">Amount</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                           {dailyData.transactions.length > 0 ? (
+                                dailyData.transactions.map((tx, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>
+                                            <div className="font-medium">Room {tx.roomNumber}</div>
+                                            <div className="text-sm text-muted-foreground">{tx.guest}</div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                {getPaymentMethodIcon(tx.method)}
+                                                <span>{tx.method}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right font-medium">₹{tx.amount.toLocaleString()}</TableCell>
+                                    </TableRow>
+                                ))
+                           ) : (
+                            <TableRow>
+                                <TableCell colSpan={3} className="text-center text-muted-foreground h-24">
+                                    No payments recorded for this day.
+                                </TableCell>
+                            </TableRow>
+                           )}
+                        </TableBody>
+                    </Table>
+                    </ScrollArea>
+                </CardContent>
             </Card>
-            <div className="lg:col-span-2 flex flex-col gap-6">
-              <Card>
-                  <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-2">
-                      <Button asChild variant="outline">
-                          <Link href="/room-management">Add New Room <Plus className="ml-auto" /></Link>
-                      </Button>
-                      <Button asChild variant="outline">
-                          <Link href="/bar-liquor">Record Bar Sale <Wine className="ml-auto" /></Link>
-                      </Button>
-                      <Button asChild variant="outline">
-                          <Link href="/restaurant">New Restaurant Order <UtensilsCrossed className="ml-auto" /></Link>
-                      </Button>
-                  </CardContent>
-              </Card>
-            </div>
+            <Card className="lg:col-span-1">
+                <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-2">
+                    <Button asChild variant="outline">
+                        <Link href="/room-management">Add New Room <Plus className="ml-auto" /></Link>
+                    </Button>
+                    <Button asChild variant="outline">
+                        <Link href="/bar-liquor">Record Bar Sale <Wine className="ml-auto" /></Link>
+                    </Button>
+                    <Button asChild variant="outline">
+                        <Link href="/restaurant">New Restaurant Order <UtensilsCrossed className="ml-auto" /></Link>
+                    </Button>
+                </CardContent>
+            </Card>
           </div>
         </main>
       </div>
