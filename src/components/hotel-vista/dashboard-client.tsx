@@ -28,6 +28,7 @@ import {
   X as XIcon,
   User,
   Bed,
+  CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { Calendar } from "../ui/calendar";
@@ -183,38 +184,41 @@ export default function Dashboard() {
                       <XIcon className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-4">
                     <div className="space-y-1">
-                      <h4 className="font-medium text-xs text-red-600">Occupied ({occupiedRoomsForDate.length})</h4>
-                      <ScrollArea className="h-24 rounded-md border p-1">
+                      <h4 className="font-medium text-xs text-red-600 flex items-center gap-1"><Bed className="h-3 w-3" />Occupied ({occupiedRoomsForDate.length})</h4>
+                      <ScrollArea className="h-24 rounded-md border">
                         {occupiedRoomsForDate.length > 0 ? (
-                          <div className="space-y-1">
+                          <div className="p-2 space-y-1">
                             {occupiedRoomsForDate.map(room => (
-                              <div key={room.number} className="flex items-center justify-between p-1 rounded-md bg-muted text-[10px]">
+                              <div key={room.number} className="flex items-center justify-between p-1.5 rounded-md bg-muted text-xs">
                                 <p className="font-semibold">{room.number}</p>
                                 <p className="truncate">{room.guest}</p>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-center text-xs text-muted-foreground pt-4">No rooms occupied.</p>
+                          <p className="text-center text-xs text-muted-foreground pt-8">No rooms occupied.</p>
                         )}
                       </ScrollArea>
                     </div>
                     <div className="space-y-1">
-                      <h4 className="font-medium text-xs text-green-600">Available ({availableRooms.length})</h4>
-                      <ScrollArea className="h-24 rounded-md border p-1">
+                      <h4 className="font-medium text-xs text-green-600 flex items-center gap-1"><CheckCircle className="h-3 w-3" />Available ({availableRooms.length})</h4>
+                      <ScrollArea className="h-24 rounded-md border">
                         {availableRooms.length > 0 ? (
-                          <div className="space-y-1">
+                          <div className="p-2 space-y-1">
                             {availableRooms.map(room => (
-                              <div key={room.number} className="flex items-center justify-between p-1 rounded-md bg-muted text-[10px]">
-                                <p className="font-semibold">{room.number}</p>
-                                <Badge variant="outline" className="text-[9px] px-1 py-0">{room.type}</Badge>
+                              <div key={room.number} className="flex items-center justify-between p-1.5 rounded-md bg-muted text-xs">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-semibold">{room.number}</p>
+                                  <Badge variant="outline" className="text-[9px] px-1 py-0">{room.type}</Badge>
+                                </div>
+                                <Button size="sm" variant="outline" className="h-6 px-2 text-xs" onClick={() => handleOccupyClick(room.number)}>Book</Button>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-center text-xs text-muted-foreground pt-4">No rooms available.</p>
+                          <p className="text-center text-xs text-muted-foreground pt-8">No rooms available.</p>
                         )}
                       </ScrollArea>
                     </div>
