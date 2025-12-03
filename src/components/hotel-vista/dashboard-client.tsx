@@ -33,6 +33,7 @@ import Link from "next/link";
 import { Calendar } from "../ui/calendar";
 import { Badge } from "../ui/badge";
 import { ScrollArea } from "../ui/scroll-area";
+import { Separator } from "../ui/separator";
 
 
 const chartData = [
@@ -143,84 +144,72 @@ export default function Dashboard() {
               <StatCard key={stat.title} {...stat} />
             ))}
           </div>
-          <div className="grid gap-6">
-              <Card>
-                  <CardHeader>
-                      <CardTitle>Calendar</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex justify-center items-center">
-                      <Calendar
-                          mode="single"
-                          selected={selectedDate}
-                          onSelect={setSelectedDate}
-                          className="rounded-md border"
-                      />
-                  </CardContent>
-              </Card>
-          </div>
-
-          {selectedDate && (
-            <Card>
-                <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <CardTitle>Room Status for {format(selectedDate, 'MMMM d, yyyy')}</CardTitle>
-                            <CardDescription>
-                                {occupiedRoomsForDate.length} occupied, {availableRooms.length} available.
-                            </CardDescription>
-                        </div>
-                        <Button variant="ghost" size="icon" onClick={() => setSelectedDate(undefined)}>
-                            <XIcon className="h-4 w-4" />
-                        </Button>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Booking Calendar</CardTitle>
+              <CardDescription>Select a date to see room availability.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center gap-4">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className="rounded-md border"
+              />
+              {selectedDate && (
+                <div className="w-full p-4 border rounded-lg">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <h3 className="font-semibold">Room Status for {format(selectedDate, 'MMMM d, yyyy')}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {occupiedRoomsForDate.length} occupied, {availableRooms.length} available.
+                      </p>
                     </div>
-                </CardHeader>
-                <CardContent className="grid md:grid-cols-2 gap-6 max-h-[400px]">
-                    <div className="space-y-3">
-                        <h3 className="font-semibold text-red-600">Occupied Rooms ({occupiedRoomsForDate.length})</h3>
-                        <ScrollArea className="h-full max-h-80 rounded-md border p-2">
-                            {occupiedRoomsForDate.length > 0 ? (
-                                <div className="space-y-2">
-                                {occupiedRoomsForDate.map(room => (
-                                    <div key={room.number} className="flex items-center justify-between p-2 rounded-md bg-muted">
-                                        <div className="flex items-center gap-2">
-                                            <Bed className="h-4 w-4" />
-                                            <p className="font-semibold">{room.number}</p>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-sm">
-                                            <User className="h-4 w-4"/>
-                                            <p>{room.guest}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                                </div>
-                            ) : (
-                                <p className="text-center text-sm text-muted-foreground p-4">No rooms occupied on this day.</p>
-                            )}
-                        </ScrollArea>
+                    <Button variant="ghost" size="icon" onClick={() => setSelectedDate(undefined)}>
+                      <XIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm text-red-600">Occupied ({occupiedRoomsForDate.length})</h4>
+                      <ScrollArea className="h-40 rounded-md border p-2">
+                        {occupiedRoomsForDate.length > 0 ? (
+                          <div className="space-y-2">
+                            {occupiedRoomsForDate.map(room => (
+                              <div key={room.number} className="flex items-center justify-between p-2 rounded-md bg-muted text-xs">
+                                <p className="font-semibold">{room.number}</p>
+                                <p>{room.guest}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-center text-xs text-muted-foreground pt-4">No rooms occupied.</p>
+                        )}
+                      </ScrollArea>
                     </div>
-                     <div className="space-y-3">
-                        <h3 className="font-semibold text-green-600">Available Rooms ({availableRooms.length})</h3>
-                        <ScrollArea className="h-full max-h-80 rounded-md border p-2">
-                            {availableRooms.length > 0 ? (
-                                <div className="space-y-2">
-                                {availableRooms.map(room => (
-                                    <div key={room.number} className="flex items-center justify-between p-2 rounded-md bg-muted">
-                                        <div className="flex items-center gap-2">
-                                            <Bed className="h-4 w-4" />
-                                            <p className="font-semibold">{room.number}</p>
-                                        </div>
-                                        <Badge variant="outline">{room.type}</Badge>
-                                    </div>
-                                ))}
-                                </div>
-                            ) : (
-                                <p className="text-center text-sm text-muted-foreground p-4">No rooms available on this day.</p>
-                            )}
-                        </ScrollArea>
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm text-green-600">Available ({availableRooms.length})</h4>
+                      <ScrollArea className="h-40 rounded-md border p-2">
+                        {availableRooms.length > 0 ? (
+                          <div className="space-y-2">
+                            {availableRooms.map(room => (
+                              <div key={room.number} className="flex items-center justify-between p-2 rounded-md bg-muted text-xs">
+                                <p className="font-semibold">{room.number}</p>
+                                <Badge variant="outline" className="text-xs">{room.type}</Badge>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-center text-xs text-muted-foreground pt-4">No rooms available.</p>
+                        )}
+                      </ScrollArea>
                     </div>
-                </CardContent>
-            </Card>
-          )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           <div className="grid gap-6 lg:grid-cols-5">
             <Card className="lg:col-span-3">
