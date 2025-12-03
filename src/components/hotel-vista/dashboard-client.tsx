@@ -12,15 +12,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatCard } from "./stat-card";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import {
   DollarSign,
   BedDouble,
   Users,
@@ -38,15 +29,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
 
-
-const chartData = [
-    { name: 'Jan', revenue: 32000 },
-    { name: 'Feb', revenue: 38000 },
-    { name: 'Mar', revenue: 42000 },
-    { name: 'Apr', revenue: 39000 },
-    { name: 'May', revenue: 45000 },
-    { name: 'Jun', revenue: 48000 },
-];
 
 const getPaymentMethodIcon = (method: string) => {
     switch (method.toLowerCase()) {
@@ -93,9 +75,9 @@ export default function Dashboard() {
     });
     
     const dummyTransactions: (Transaction & { roomNumber?: string, guest?: string})[] = [
-        { date: new Date().toISOString(), amount: 1250, method: 'UPI', roomNumber: '101', guest: 'John Doe' },
-        { date: new Date().toISOString(), amount: 8500, method: 'Card', roomNumber: '205', guest: 'Jane Smith' },
-        { date: new Date().toISOString(), amount: 3200, method: 'Cash', roomNumber: '302', guest: 'Peter Jones' },
+        { date: date.toISOString(), amount: 1250, method: 'UPI', roomNumber: '101', guest: 'John Doe' },
+        { date: date.toISOString(), amount: 8500, method: 'Card', roomNumber: '205', guest: 'Jane Smith' },
+        { date: date.toISOString(), amount: 3200, method: 'Cash', roomNumber: '302', guest: 'Peter Jones' },
     ];
 
     const transactionsToDisplay = dailyTransactions.length > 0 ? dailyTransactions : dummyTransactions;
@@ -266,5 +248,3 @@ export default function Dashboard() {
     </>
   );
 }
-
-    
