@@ -1,9 +1,10 @@
 
 "use client";
 
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { DataContext } from "@/context/data-provider";
+import { DataContext, Room } from "@/context/data-provider";
+import { isWithinInterval, startOfDay, endOfDay, parseISO, format } from 'date-fns';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -24,42 +25,15 @@ import {
   UtensilsCrossed,
   Wine,
   Plus,
-  CalendarCheck,
-  PackagePlus,
-  ClipboardList
+  X as XIcon,
+  User,
+  Bed,
 } from "lucide-react";
 import Link from "next/link";
 import { Calendar } from "../ui/calendar";
-import { DailyBookingModal } from "./daily-booking-modal";
+import { Badge } from "../ui/badge";
+import { ScrollArea } from "../ui/scroll-area";
 
-
-const activityItems = [
-    {
-      icon: <CalendarCheck className="h-5 w-5 text-blue-500" />,
-      description: "Room 204 checked in",
-      time: "2m ago",
-    },
-    {
-      icon: <UtensilsCrossed className="h-5 w-5 text-yellow-500" />,
-      description: "New restaurant order #1247",
-      time: "5m ago",
-    },
-    {
-      icon: <Wine className="h-5 w-5 text-purple-500" />,
-      description: "Bar sale – Premium Whiskey",
-      time: "10m ago",
-    },
-    {
-      icon: <PackagePlus className="h-5 w-5 text-green-500" />,
-      description: "New stock delivered: Linens",
-      time: "30m ago",
-    },
-    {
-      icon: <ClipboardList className="h-5 w-5 text-red-500" />,
-      description: "Stock alert: Low towels",
-      time: "1h ago",
-    },
-  ];
 
 const chartData = [
     { name: 'Jan', revenue: 32000 },
@@ -73,9 +47,7 @@ const chartData = [
 export default function Dashboard() {
   const { rooms, activeOrders } = useContext(DataContext);
   const router = useRouter();
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
-  const [isDailyBookingModalOpen, setIsDailyBookingModalOpen] = useState(false);
-  const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 
 
   useEffect(() => {
@@ -86,6 +58,36 @@ export default function Dashboard() {
       }
     }
   }, [router]);
+
+  const { availableRooms, occupiedRoomsForDate } = useMemo(() => {
+    if (!selectedDate) {
+      return { availableRooms: [], occupiedRoomsForDate: [] };
+    }
+
+    const occupiedNumbers = new Set<string>();
+
+    const occupied = rooms.filter(room => {
+      if (room.status === 'Occupied' && room.checkIn && room.checkOut) {
+        try {
+          const checkInDate = startOfDay(parseISO(room.checkIn));
+          const checkOutDate = endOfDay(parseISO(room.checkOut));
+          if (isWithinInterval(selectedDate, { start: checkInDate, end: checkOutDate })) {
+            occupiedNumbers.add(room.number);
+            return true;
+          }
+        } catch (e) {
+            console.error("Invalid date format for room", room.number, e);
+            return false;
+        }
+      }
+      return false;
+    });
+
+    const available = rooms.filter(room => room.status === 'Available' && !occupiedNumbers.has(room.number));
+
+    return { availableRooms: available, occupiedRoomsForDate: occupied };
+  }, [selectedDate, rooms]);
+
 
   const totalRevenue = rooms
   .filter(room => room.status === 'Occupied')
@@ -126,19 +128,6 @@ export default function Dashboard() {
     },
   ];
 
-  const handleDateSelect = (selectedDate: Date | undefined) => {
-    if (selectedDate) {
-      setDate(selectedDate);
-      setSelectedDateForModal(selectedDate);
-      setIsDailyBookingModalOpen(true);
-    }
-  }
-
-  const handleOccupyClick = (roomNumber: string) => {
-    router.push(`/occupy/${roomNumber}`);
-    setIsDailyBookingModalOpen(false);
-  };
-
   return (
     <>
       <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
@@ -162,13 +151,77 @@ export default function Dashboard() {
                   <CardContent className="flex justify-center items-center">
                       <Calendar
                           mode="single"
-                          selected={date}
-                          onSelect={handleDateSelect}
+                          selected={selectedDate}
+                          onSelect={setSelectedDate}
                           className="rounded-md border"
                       />
                   </CardContent>
               </Card>
           </div>
+
+          {selectedDate && (
+            <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle>Room Status for {format(selectedDate, 'MMMM d, yyyy')}</CardTitle>
+                            <CardDescription>
+                                {occupiedRoomsForDate.length} occupied, {availableRooms.length} available.
+                            </CardDescription>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => setSelectedDate(undefined)}>
+                            <XIcon className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent className="grid md:grid-cols-2 gap-6 max-h-[400px]">
+                    <div className="space-y-3">
+                        <h3 className="font-semibold text-red-600">Occupied Rooms ({occupiedRoomsForDate.length})</h3>
+                        <ScrollArea className="h-full max-h-80 rounded-md border p-2">
+                            {occupiedRoomsForDate.length > 0 ? (
+                                <div className="space-y-2">
+                                {occupiedRoomsForDate.map(room => (
+                                    <div key={room.number} className="flex items-center justify-between p-2 rounded-md bg-muted">
+                                        <div className="flex items-center gap-2">
+                                            <Bed className="h-4 w-4" />
+                                            <p className="font-semibold">{room.number}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <User className="h-4 w-4"/>
+                                            <p>{room.guest}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                                </div>
+                            ) : (
+                                <p className="text-center text-sm text-muted-foreground p-4">No rooms occupied on this day.</p>
+                            )}
+                        </ScrollArea>
+                    </div>
+                     <div className="space-y-3">
+                        <h3 className="font-semibold text-green-600">Available Rooms ({availableRooms.length})</h3>
+                        <ScrollArea className="h-full max-h-80 rounded-md border p-2">
+                            {availableRooms.length > 0 ? (
+                                <div className="space-y-2">
+                                {availableRooms.map(room => (
+                                    <div key={room.number} className="flex items-center justify-between p-2 rounded-md bg-muted">
+                                        <div className="flex items-center gap-2">
+                                            <Bed className="h-4 w-4" />
+                                            <p className="font-semibold">{room.number}</p>
+                                        </div>
+                                        <Badge variant="outline">{room.type}</Badge>
+                                    </div>
+                                ))}
+                                </div>
+                            ) : (
+                                <p className="text-center text-sm text-muted-foreground p-4">No rooms available on this day.</p>
+                            )}
+                        </ScrollArea>
+                    </div>
+                </CardContent>
+            </Card>
+          )}
+
           <div className="grid gap-6 lg:grid-cols-5">
             <Card className="lg:col-span-3">
               <CardHeader>
@@ -216,15 +269,6 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
-      {selectedDateForModal && (
-        <DailyBookingModal
-          date={selectedDateForModal}
-          rooms={rooms}
-          isOpen={isDailyBookingModalOpen}
-          onClose={() => setIsDailyBookingModalOpen(false)}
-          onOccupy={handleOccupyClick}
-        />
-      )}
     </>
   );
 }

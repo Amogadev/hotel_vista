@@ -48,7 +48,7 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
   }, [isOpen, dateKey]);
 
   const bookedRooms = rooms.filter(r => 
-    r.checkIn && typeof r.checkIn === 'string' && isValid(parseISO(r.checkIn)) && r.checkOut && isSameDay(date, parseISO(r.checkIn))
+    r.checkIn && typeof r.checkIn === 'string' && isValid(parseISO(r.checkIn)) && isSameDay(date, parseISO(r.checkIn))
   );
 
   const availableRooms = rooms.filter(r => 
@@ -184,13 +184,15 @@ export function DailyBookingModal({ date, rooms, isOpen, onClose, onOccupy }: Da
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <EditNotesModal 
-        isOpen={isEditNoteModalOpen}
-        onClose={() => setIsEditNoteModalOpen(false)}
-        date={date}
-        initialNote={note}
-        onNoteUpdated={handleNoteUpdated}
-      />
+      {isEditNoteModalOpen && (
+        <EditNotesModal 
+            isOpen={isEditNoteModalOpen}
+            onClose={() => setIsEditNoteModalOpen(false)}
+            date={date}
+            initialNote={note}
+            onNoteUpdated={handleNoteUpdated}
+        />
+      )}
     </>
   );
 }
