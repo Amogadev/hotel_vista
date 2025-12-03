@@ -29,6 +29,7 @@ import {
   ClipboardList
 } from "lucide-react";
 import Link from "next/link";
+import { Calendar } from "../ui/calendar";
 
 
 const activityItems = [
@@ -71,6 +72,8 @@ const chartData = [
 export default function Dashboard() {
   const { rooms, activeOrders } = useContext(DataContext);
   const router = useRouter();
+  const [date, setDate] = React.useState<Date | undefined>(new Date())
+
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -134,8 +137,8 @@ export default function Dashboard() {
             <StatCard key={stat.title} {...stat} />
           ))}
         </div>
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
+        <div className="grid gap-6 lg:grid-cols-5">
+          <Card className="lg:col-span-3">
             <CardHeader>
               <CardTitle>Revenue Trends</CardTitle>
               <CardDescription>Last 6 months</CardDescription>
@@ -160,7 +163,20 @@ export default function Dashboard() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-          <div className="flex flex-col gap-6">
+          <div className="lg:col-span-2 flex flex-col gap-6">
+             <Card>
+                <CardHeader>
+                    <CardTitle>Calendar</CardTitle>
+                </CardHeader>
+                <CardContent className="flex justify-center items-center">
+                    <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        className="rounded-md border"
+                    />
+                </CardContent>
+            </Card>
             <Card>
                 <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
@@ -176,26 +192,6 @@ export default function Dashboard() {
                         <Link href="/restaurant">New Restaurant Order <UtensilsCrossed className="ml-auto" /></Link>
                     </Button>
                 </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-headline">Recent Activity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {activityItems.map((item, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
-                        {item.icon}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{item.description}</p>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{item.time}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
             </Card>
           </div>
         </div>
