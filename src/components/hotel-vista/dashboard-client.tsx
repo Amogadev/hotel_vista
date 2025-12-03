@@ -162,7 +162,7 @@ export default function Dashboard() {
               <CardDescription>Select a date to see room availability.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col md:flex-row items-start gap-4">
-              <div className="flex-1 flex justify-center">
+              <div className="flex justify-center">
                 <Calendar
                     mode="single"
                     selected={selectedDate}
@@ -172,7 +172,7 @@ export default function Dashboard() {
                 />
               </div>
               {selectedDate && (
-                <div className="w-full md:w-1/3 lg:w-1/4 p-4 border rounded-lg">
+                <div className="w-full md:w-auto md:flex-1 p-4 border rounded-lg">
                   <div className="flex justify-between items-center mb-2">
                     <div>
                       <h3 className="font-semibold text-sm">Room Status for {format(selectedDate, 'MMMM d, yyyy')}</h3>
