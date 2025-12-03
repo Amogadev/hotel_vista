@@ -150,15 +150,9 @@ export default function Dashboard() {
               <CardTitle>Booking Calendar</CardTitle>
               <CardDescription>Select a date to see room availability.</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col items-center gap-4">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                className="rounded-md border"
-              />
-              {selectedDate && (
-                <div className="w-full p-4 border rounded-lg">
+            <CardContent className="flex flex-col md:flex-row items-start gap-4">
+               {selectedDate && (
+                <div className="w-full md:w-1/3 lg:w-1/4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center mb-2">
                     <div>
                       <h3 className="font-semibold text-sm">Room Status for {format(selectedDate, 'MMMM d, yyyy')}</h3>
@@ -170,7 +164,7 @@ export default function Dashboard() {
                       <XIcon className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-2">
                     <div className="space-y-1">
                       <h4 className="font-medium text-xs text-red-600">Occupied ({occupiedRoomsForDate.length})</h4>
                       <ScrollArea className="h-24 rounded-md border p-1">
@@ -208,6 +202,14 @@ export default function Dashboard() {
                   </div>
                 </div>
               )}
+              <div className="flex-1 flex justify-center">
+                <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    className="rounded-md border"
+                />
+              </div>
             </CardContent>
           </Card>
 
