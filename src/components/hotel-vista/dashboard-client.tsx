@@ -159,10 +159,10 @@ export default function Dashboard() {
               />
               {selectedDate && (
                 <div className="w-full p-4 border rounded-lg">
-                  <div className="flex justify-between items-center mb-4">
+                  <div className="flex justify-between items-center mb-2">
                     <div>
-                      <h3 className="font-semibold">Room Status for {format(selectedDate, 'MMMM d, yyyy')}</h3>
-                      <p className="text-sm text-muted-foreground">
+                      <h3 className="font-semibold text-sm">Room Status for {format(selectedDate, 'MMMM d, yyyy')}</h3>
+                      <p className="text-xs text-muted-foreground">
                         {occupiedRoomsForDate.length} occupied, {availableRooms.length} available.
                       </p>
                     </div>
@@ -170,16 +170,16 @@ export default function Dashboard() {
                       <XIcon className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm text-red-600">Occupied ({occupiedRoomsForDate.length})</h4>
-                      <ScrollArea className="h-40 rounded-md border p-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <h4 className="font-medium text-xs text-red-600">Occupied ({occupiedRoomsForDate.length})</h4>
+                      <ScrollArea className="h-24 rounded-md border p-1">
                         {occupiedRoomsForDate.length > 0 ? (
-                          <div className="space-y-2">
+                          <div className="space-y-1">
                             {occupiedRoomsForDate.map(room => (
-                              <div key={room.number} className="flex items-center justify-between p-2 rounded-md bg-muted text-xs">
+                              <div key={room.number} className="flex items-center justify-between p-1 rounded-md bg-muted text-[10px]">
                                 <p className="font-semibold">{room.number}</p>
-                                <p>{room.guest}</p>
+                                <p className="truncate">{room.guest}</p>
                               </div>
                             ))}
                           </div>
@@ -188,15 +188,15 @@ export default function Dashboard() {
                         )}
                       </ScrollArea>
                     </div>
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm text-green-600">Available ({availableRooms.length})</h4>
-                      <ScrollArea className="h-40 rounded-md border p-2">
+                    <div className="space-y-1">
+                      <h4 className="font-medium text-xs text-green-600">Available ({availableRooms.length})</h4>
+                      <ScrollArea className="h-24 rounded-md border p-1">
                         {availableRooms.length > 0 ? (
-                          <div className="space-y-2">
+                          <div className="space-y-1">
                             {availableRooms.map(room => (
-                              <div key={room.number} className="flex items-center justify-between p-2 rounded-md bg-muted text-xs">
+                              <div key={room.number} className="flex items-center justify-between p-1 rounded-md bg-muted text-[10px]">
                                 <p className="font-semibold">{room.number}</p>
-                                <Badge variant="outline" className="text-xs">{room.type}</Badge>
+                                <Badge variant="outline" className="text-[9px] px-1 py-0">{room.type}</Badge>
                               </div>
                             ))}
                           </div>
