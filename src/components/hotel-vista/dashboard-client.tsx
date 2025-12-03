@@ -91,6 +91,14 @@ export default function Dashboard() {
             }
         });
     });
+    
+    const dummyTransactions: (Transaction & { roomNumber?: string, guest?: string})[] = [
+        { date: new Date().toISOString(), amount: 1250, method: 'UPI', roomNumber: '101', guest: 'John Doe' },
+        { date: new Date().toISOString(), amount: 8500, method: 'Card', roomNumber: '205', guest: 'Jane Smith' },
+        { date: new Date().toISOString(), amount: 3200, method: 'Cash', roomNumber: '302', guest: 'Peter Jones' },
+    ];
+
+    const transactionsToDisplay = dailyTransactions.length > 0 ? dailyTransactions : dummyTransactions;
 
     const dailyRevenue = dailyTransactions.reduce((acc, tx) => acc + tx.amount, 0);
     
@@ -143,7 +151,7 @@ export default function Dashboard() {
               icon: <UtensilsCrossed className="h-5 w-5 text-yellow-500" />,
             },
         ],
-        transactions: dailyTransactions,
+        transactions: transactionsToDisplay,
     }
   }, [selectedDate, rooms, activeOrders]);
 
