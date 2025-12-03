@@ -163,31 +163,6 @@ export default function Dashboard() {
           <h1 className="font-headline text-2xl font-bold tracking-tight md:text-3xl">
             Dashboard
           </h1>
-            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                <PopoverTrigger asChild>
-                    <Button
-                        variant={'outline'}
-                        className={cn(
-                        'w-[240px] justify-start text-left font-normal',
-                        !selectedDate && 'text-muted-foreground'
-                        )}
-                    >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                    <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={(day) => {
-                            setSelectedDate(day);
-                            setIsDatePickerOpen(false);
-                        }}
-                        initialFocus
-                    />
-                </PopoverContent>
-            </Popover>
         </header>
 
         <main className="flex flex-1 flex-col gap-4 md:gap-8">
@@ -199,9 +174,36 @@ export default function Dashboard() {
 
           <div className="grid gap-6 lg:grid-cols-2">
              <Card className="lg:col-span-1">
-                <CardHeader>
-                    <CardTitle>Daily Payment Details</CardTitle>
-                    <CardDescription>Breakdown of payments for {selectedDate ? format(selectedDate, 'PPP') : 'today'}.</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>Daily Payment Details</CardTitle>
+                        <CardDescription>Breakdown of payments for {selectedDate ? format(selectedDate, 'PPP') : 'today'}.</CardDescription>
+                    </div>
+                    <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant={'outline'}
+                                className={cn(
+                                'w-[240px] justify-start text-left font-normal',
+                                !selectedDate && 'text-muted-foreground'
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={(day) => {
+                                    setSelectedDate(day);
+                                    setIsDatePickerOpen(false);
+                                }}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
                 </CardHeader>
                 <CardContent>
                     <ScrollArea className="h-72">
@@ -264,3 +266,5 @@ export default function Dashboard() {
     </>
   );
 }
+
+    
