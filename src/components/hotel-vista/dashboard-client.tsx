@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DataContext } from "@/context/data-provider";
 
@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Calendar } from "../ui/calendar";
+import { DailyBookingModal } from "./daily-booking-modal";
 
 
 const activityItems = [
@@ -72,7 +73,9 @@ const chartData = [
 export default function Dashboard() {
   const { rooms, activeOrders } = useContext(DataContext);
   const router = useRouter();
-  const [date, setDate] = React.useState<Date | undefined>(new Date())
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [isDailyBookingModalOpen, setIsDailyBookingModalOpen] = useState(false);
+  const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
 
 
   useEffect(() => {
@@ -123,81 +126,105 @@ export default function Dashboard() {
     },
   ];
 
-  return (
-    <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
-      <header className="flex items-center justify-between gap-4">
-        <h1 className="font-headline text-2xl font-bold tracking-tight md:text-3xl">
-          Dashboard
-        </h1>
-      </header>
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    if (selectedDate) {
+      setDate(selectedDate);
+      setSelectedDateForModal(selectedDate);
+      setIsDailyBookingModalOpen(true);
+    }
+  }
 
-      <main className="flex flex-1 flex-col gap-4 md:gap-8">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <StatCard key={stat.title} {...stat} />
-          ))}
-        </div>
-        <div className="grid gap-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Calendar</CardTitle>
-                </CardHeader>
-                <CardContent className="flex justify-center items-center">
-                    <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        className="rounded-md border"
-                    />
-                </CardContent>
-            </Card>
-        </div>
-        <div className="grid gap-6 lg:grid-cols-5">
-          <Card className="lg:col-span-3">
-            <CardHeader>
-              <CardTitle>Revenue Trends</CardTitle>
-              <CardDescription>Last 6 months</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                  <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value/1000}k`} />
-                  <Tooltip
-                    contentStyle={{ 
-                        borderRadius: '0.5rem', 
-                        border: '1px solid hsl(var(--border))', 
-                        background: 'hsl(var(--background))' 
-                    }}
-                    labelStyle={{ fontWeight: 'bold' }}
-                    formatter={(value: number) => [`₹${value.toLocaleString()}`, "Revenue"]}
-                  />
-                  <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: 'hsl(var(--primary))' }} activeDot={{ r: 6 }}/>
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          <div className="lg:col-span-2 flex flex-col gap-6">
-            <Card>
-                <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-2">
-                    <Button asChild variant="outline">
-                        <Link href="/room-management">Add New Room <Plus className="ml-auto" /></Link>
-                    </Button>
-                    <Button asChild variant="outline">
-                        <Link href="/bar-liquor">Record Bar Sale <Wine className="ml-auto" /></Link>
-                    </Button>
-                    <Button asChild variant="outline">
-                        <Link href="/restaurant">New Restaurant Order <UtensilsCrossed className="ml-auto" /></Link>
-                    </Button>
-                </CardContent>
-            </Card>
+  const handleOccupyClick = (roomNumber: string) => {
+    router.push(`/occupy/${roomNumber}`);
+    setIsDailyBookingModalOpen(false);
+  };
+
+  return (
+    <>
+      <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
+        <header className="flex items-center justify-between gap-4">
+          <h1 className="font-headline text-2xl font-bold tracking-tight md:text-3xl">
+            Dashboard
+          </h1>
+        </header>
+
+        <main className="flex flex-1 flex-col gap-4 md:gap-8">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {stats.map((stat) => (
+              <StatCard key={stat.title} {...stat} />
+            ))}
           </div>
-        </div>
-      </main>
-    </div>
+          <div className="grid gap-6">
+              <Card>
+                  <CardHeader>
+                      <CardTitle>Calendar</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex justify-center items-center">
+                      <Calendar
+                          mode="single"
+                          selected={date}
+                          onSelect={handleDateSelect}
+                          className="rounded-md border"
+                      />
+                  </CardContent>
+              </Card>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-5">
+            <Card className="lg:col-span-3">
+              <CardHeader>
+                <CardTitle>Revenue Trends</CardTitle>
+                <CardDescription>Last 6 months</CardDescription>
+              </CardHeader>
+              <CardContent className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" tickLine={false} axisLine={false} />
+                    <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value/1000}k`} />
+                    <Tooltip
+                      contentStyle={{ 
+                          borderRadius: '0.5rem', 
+                          border: '1px solid hsl(var(--border))', 
+                          background: 'hsl(var(--background))' 
+                      }}
+                      labelStyle={{ fontWeight: 'bold' }}
+                      formatter={(value: number) => [`₹${value.toLocaleString()}`, "Revenue"]}
+                    />
+                    <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: 'hsl(var(--primary))' }} activeDot={{ r: 6 }}/>
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            <div className="lg:col-span-2 flex flex-col gap-6">
+              <Card>
+                  <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-2">
+                      <Button asChild variant="outline">
+                          <Link href="/room-management">Add New Room <Plus className="ml-auto" /></Link>
+                      </Button>
+                      <Button asChild variant="outline">
+                          <Link href="/bar-liquor">Record Bar Sale <Wine className="ml-auto" /></Link>
+                      </Button>
+                      <Button asChild variant="outline">
+                          <Link href="/restaurant">New Restaurant Order <UtensilsCrossed className="ml-auto" /></Link>
+                      </Button>
+                  </CardContent>
+              </Card>
+            </div>
+          </div>
+        </main>
+      </div>
+      {selectedDateForModal && (
+        <DailyBookingModal
+          date={selectedDateForModal}
+          rooms={rooms}
+          isOpen={isDailyBookingModalOpen}
+          onClose={() => setIsDailyBookingModalOpen(false)}
+          onOccupy={handleOccupyClick}
+        />
+      )}
+    </>
   );
 }
